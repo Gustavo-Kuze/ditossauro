@@ -9,6 +9,7 @@ REM Check prerequisites
 echo [INFO] Checking prerequisites...
 
 REM Check Node.js
+echo [INFO] Checking Node.js...
 node --version >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Node.js is not installed or not in PATH
@@ -18,6 +19,7 @@ if errorlevel 1 (
 )
 
 REM Check Python
+echo [INFO] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
     python3 --version >nul 2>&1
@@ -30,6 +32,7 @@ if errorlevel 1 (
 )
 
 REM Check Rust/Cargo
+echo [INFO] Checking Rust/Cargo...
 cargo --version >nul 2>&1
 if errorlevel 1 (
     echo [ERROR] Rust/Cargo is not installed or not in PATH
@@ -39,6 +42,7 @@ if errorlevel 1 (
 )
 
 REM Check Tauri CLI
+echo [INFO] Checking Tauri CLI...
 cargo tauri --version >nul 2>&1
 if errorlevel 1 (
     echo [WARN] Tauri CLI not found, installing...
@@ -46,6 +50,7 @@ if errorlevel 1 (
 )
 
 REM Install frontend dependencies if needed
+echo [INFO] Checking frontend dependencies...
 if not exist "frontend\node_modules" (
     echo [INFO] Installing frontend dependencies...
     cd frontend
@@ -54,6 +59,7 @@ if not exist "frontend\node_modules" (
 )
 
 REM Install backend dependencies if needed
+echo [INFO] Checking backend dependencies...
 python -c "import faster_whisper" >nul 2>&1
 if errorlevel 1 (
     python3 -c "import faster_whisper" >nul 2>&1
@@ -66,6 +72,7 @@ if errorlevel 1 (
 )
 
 REM Create Python virtual environment if it doesn't exist
+echo [INFO] Checking Python virtual environment...
 if not exist "venv" (
     echo [INFO] Creating Python virtual environment...
     python -m venv venv
@@ -85,4 +92,5 @@ echo [INFO] The application will open in a new window
 echo [INFO] Press Ctrl+C to stop the development server
 
 REM Run in development mode
+echo [INFO] Running in development mode...
 npm run tauri dev

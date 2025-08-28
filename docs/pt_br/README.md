@@ -1,22 +1,20 @@
 # OpenWispr
 
-An open-source desktop application to transform voice into text with a keyboard shortcut.
-A lightweight alternative to WisprFlow, running **100% locally** with [faster_whisper](https://github.com/guillaumekln/faster-whisper).
-
-> [Versão em Português Brasileiro disponível aqui](docs/pt_br/README.md)
+Um aplicativo desktop open source para transformar voz em texto com um atalho de teclado.  
+Alternativa leve ao WisprFlow, rodando **100% local** com [faster_whisper](https://github.com/guillaumekln/faster-whisper).
 
 ---
 
-## Features
-- Press and hold a hotkey to speak.
-- Upon release, the audio is transcribed locally.
-- The text is typed directly into the focused field.
-- Simple interface with a visual overlay.
-- No data is sent to the cloud.
+## Funcionalidades
+- Pressione e segure uma hotkey para falar.
+- Ao soltar, o áudio é transcrito localmente.
+- O texto é digitado diretamente no campo em foco.
+- Interface simples com overlay visual.
+- Sem envio de dados para a nuvem.
 
 ---
 
-## Structure
+## Estrutura
 
 ```
 openwispr/
@@ -30,17 +28,17 @@ openwispr/
 │   │   └── main.tsx
 │   ├── package.json
 │   └── tsconfig.json
-├── backend/                # Python Backend (transcription)
+├── backend/                # Backend Python (transcrição)
 │   ├── main.py
 │   ├── requirements.txt
 │   └── utils/
 │       └── audio_processor.py
-├── src-tauri/              # Tauri Config (bridge)
+├── src-tauri/              # Configuração Tauri (bridge)
 │   ├── Cargo.toml
 │   ├── src/
 │   │   └── main.rs
 │   └── tauri.conf.json
-├── scripts/                # Helper scripts
+├── scripts/                # Scripts auxiliares
 │   ├── build.py
 │   └── dev.sh
 └── assets/
@@ -50,23 +48,23 @@ openwispr/
 
 ---
 
-## Running in Dev Mode
+## Rodando em modo dev
 
-1. Install backend dependencies:
+1. Instale dependências do backend:
    
     ```bash
       cd backend
       pip install -r requirements.txt
     ```
 
-2. Install frontend dependencies:
+2. Instale dependências do frontend:
 
    ```bash
    cd frontend
    npm install
    ```
 
-3. Run the app:
+3. Rode o app:
 
    ```bash
    cd ..
@@ -77,7 +75,7 @@ openwispr/
 
 ## Build
 
-To generate a binary:
+Para gerar binário:
 
 ```bash
 npm run tauri build
@@ -85,6 +83,6 @@ npm run tauri build
 
 ---
 
-## License
+## Licença
 
-MIT License – see the [LICENSE](LICENSE) file.
+MIT License – veja o arquivo [LICENSE](LICENSE).

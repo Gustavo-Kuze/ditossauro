@@ -1,0 +1,42 @@
+{
+  "package": {
+    "productName": "OpenWispr",
+    "version": "0.1.0"
+  },
+  "build": {
+    "beforeDevCommand": "npm run dev --prefix ../frontend",
+    "beforeBuildCommand": "npm run build --prefix ../frontend",
+    "devPath": "http://localhost:5173",
+    "distDir": "../frontend/dist"
+  },
+  "tauri": {
+    "windows": [
+      {
+        "title": "OpenWispr",
+        "width": 420,
+        "height": 180,
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true
+      }
+    ],
+    "bundle": {
+      "active": true,
+      "identifier": "com.openwispr.app",
+      "targets": ["app", "deb", "appimage"],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ]
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": { "active": false }
+  }
+}

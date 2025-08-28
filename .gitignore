@@ -1,0 +1,34 @@
+# Node
+node_modules/
+frontend/node_modules/
+frontend/dist/
+.vite/
+
+# Rust
+src-tauri/target/
+target/
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tauri
+src-tauri/gen/
+src-tauri/target/
+
+# IDE
+.idea/
+.vscode/
+*.swp

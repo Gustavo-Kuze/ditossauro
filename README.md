@@ -52,6 +52,16 @@ openwispr/
 
 ## Running in Dev Mode
 
+### Quick Setup (All Platforms)
+```bash
+# Install all dependencies
+npm run setup
+
+# Start development server
+npm run dev
+```
+
+### Manual Setup
 1. Install backend dependencies:
    
     ```bash
@@ -72,6 +82,13 @@ openwispr/
    cd ..
    npm run tauri dev
    ```
+
+### Windows Users
+If you encounter issues on Windows, see [WINDOWS_SETUP.md](WINDOWS_SETUP.md) for detailed Windows-specific instructions, or use:
+
+```cmd
+npm run dev:windows
+```
 
 ---
 

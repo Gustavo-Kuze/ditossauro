@@ -1,0 +1,41 @@
+{
+  "name": "openwispr",
+  "private": true,
+  "version": "0.1.0",
+  "description": "An open-source desktop application to transform voice into text with a keyboard shortcut",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "dev": "./scripts/dev.sh",
+    "build": "python3 scripts/build.py",
+    "setup": "npm run setup:frontend && npm run setup:backend",
+    "setup:frontend": "cd frontend && npm install",
+    "setup:backend": "cd backend && pip3 install -r requirements.txt"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openwispr/openwispr.git"
+  },
+  "keywords": [
+    "voice-to-text",
+    "transcription",
+    "whisper",
+    "desktop",
+    "tauri",
+    "keyboard-shortcuts"
+  ],
+  "author": "OpenWispr Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/openwispr/openwispr/issues"
+  },
+  "homepage": "https://github.com/openwispr/openwispr#readme",
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}

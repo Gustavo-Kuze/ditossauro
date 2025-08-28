@@ -1,0 +1,6 @@
+faster-whisper>=0.9.0
+pyaudio>=0.2.11
+pynput>=1.7.6
+sounddevice>=0.4.6
+numpy>=1.24.0
+torch>=2.0.0

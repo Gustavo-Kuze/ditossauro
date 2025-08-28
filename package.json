@@ -9,13 +9,15 @@
     "tauri:build": "tauri build",
     "dev": "node scripts/dev-cross-platform.js",
     "dev:windows": "scripts\\dev.bat",
+    "dev:simple": "scripts\\dev-simple.bat",
     "dev:unix": "./scripts/dev.sh",
     "build": "node scripts/build-cross-platform.js",
     "build:windows": "scripts\\build.bat",
     "build:unix": "python3 scripts/build.py",
     "setup": "npm run setup:frontend && npm run setup:backend",
     "setup:frontend": "cd frontend && npm install",
-    "setup:backend": "cd backend && pip3 install -r requirements.txt"
+    "setup:backend": "cd backend && pip3 install -r requirements.txt",
+    "diagnose": "scripts\\diagnose.bat"
   },
   "repository": {
     "type": "git",

@@ -70,7 +70,12 @@ npm run tauri dev
 # Desenvolvimento
 npm run dev              # Inicia o servidor de desenvolvimento (multiplataforma)
 npm run dev:windows      # Força o uso do script Windows (.bat)
+npm run dev:simple       # Versão simplificada para teste rápido
 scripts\dev.bat          # Executa diretamente o script Windows
+
+# Diagnóstico
+npm run diagnose         # Executa diagnóstico para identificar problemas
+scripts\diagnose.bat     # Executa diretamente o diagnóstico
 
 # Build
 npm run build            # Build de produção (multiplataforma)
@@ -94,6 +99,35 @@ npm run dev:windows
 
 # Ou execute diretamente:
 scripts\dev.bat
+```
+
+### Script para após verificar Python e para silenciosamente
+Se o script `dev:windows` para após verificar o Python sem erro:
+
+**Diagnóstico:**
+```cmd
+# Execute o diagnóstico para identificar o problema:
+npm run diagnose
+
+# Ou tente a versão simplificada:
+npm run dev:simple
+```
+
+**Possíveis causas:**
+1. Rust/Cargo não instalado ou não no PATH
+2. Tauri CLI não instalado
+3. Erro silencioso na instalação de dependências
+
+**Solução rápida:**
+```cmd
+# Tente a versão simplificada primeiro:
+npm run dev:simple
+
+# Se não funcionar, instale o Rust:
+# 1. Vá para https://rustup.rs/
+# 2. Baixe e execute o instalador
+# 3. Reinicie o terminal
+# 4. Execute: cargo install tauri-cli
 ```
 
 ### Erro: "python3 não é reconhecido"

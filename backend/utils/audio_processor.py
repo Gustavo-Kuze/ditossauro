@@ -44,22 +44,38 @@ class AudioProcessor:
         self.whisper_model = None
         self.current_model_size = None
         
+        # Log available packages for debugging
+        logger.info(f"sounddevice available: {SOUNDDEVICE_AVAILABLE}")
+        logger.info(f"pyaudio available: {PYAUDIO_AVAILABLE}")
+        logger.info(f"faster_whisper available: {FASTER_WHISPER_AVAILABLE}")
+        
         # Choose audio backend
         if SOUNDDEVICE_AVAILABLE:
             self.audio_backend = "sounddevice"
             logger.info("Using sounddevice for audio recording")
         elif PYAUDIO_AVAILABLE:
-            self.audio_backend = "pyaudio"
-            self.pyaudio_instance = pyaudio.PyAudio()
-            logger.info("Using pyaudio for audio recording")
+            try:
+                self.pyaudio_instance = pyaudio.PyAudio()
+                self.audio_backend = "pyaudio"
+                logger.info("Using pyaudio for audio recording")
+            except Exception as e:
+                logger.error(f"Failed to initialize pyaudio: {e}")
+                self.audio_backend = None
         else:
             logger.error("No audio backend available. Please install sounddevice or pyaudio.")
             self.audio_backend = None
     
     def check_microphone(self) -> bool:
         """Check if microphone is available."""
+        logger.info("Starting microphone check...")
+        
+        if self.audio_backend is None:
+            logger.error("No audio backend available")
+            return False
+            
         try:
             if self.audio_backend == "sounddevice":
+                logger.info("Testing microphone with sounddevice...")
                 # Test recording a short sample
                 test_duration = 0.1  # 100ms
                 test_data = sd.rec(
@@ -69,17 +85,39 @@ class AudioProcessor:
                     dtype=np.float32
                 )
                 sd.wait()
-                return len(test_data) > 0
+                result = len(test_data) > 0
+                logger.info(f"Sounddevice microphone test result: {result}")
+                return result
             
             elif self.audio_backend == "pyaudio":
+                logger.info("Testing microphone with pyaudio...")
                 # Check for available input devices
                 info = self.pyaudio_instance.get_host_api_info_by_index(0)
-                return info.get('deviceCount', 0) > 0
+                device_count = info.get('deviceCount', 0)
+                logger.info(f"PyAudio found {device_count} devices")
+                
+                # Try to find an input device
+                input_devices = 0
+                for i in range(device_count):
+                    try:
+                        device_info = self.pyaudio_instance.get_device_info_by_index(i)
+                        if device_info.get('maxInputChannels', 0) > 0:
+                            input_devices += 1
+                            logger.info(f"Found input device: {device_info.get('name', 'Unknown')}")
+                    except Exception as e:
+                        logger.warning(f"Error checking device {i}: {e}")
+                
+                result = input_devices > 0
+                logger.info(f"PyAudio microphone test result: {result} ({input_devices} input devices)")
+                return result
             
+            logger.error(f"Unknown audio backend: {self.audio_backend}")
             return False
             
         except Exception as e:
             logger.error(f"Error checking microphone: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
             return False
     
     def start_recording(self) -> bool:

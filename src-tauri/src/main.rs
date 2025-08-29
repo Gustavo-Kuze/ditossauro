@@ -11,11 +11,25 @@ struct AppState {
     enigo: Mutex<Enigo>,
 }
 
+fn get_python_command() -> Result<String, String> {
+    let python_commands = ["python3", "python"];
+    
+    for cmd in &python_commands {
+        if Command::new(cmd).arg("--version").output().is_ok() {
+            return Ok(cmd.to_string());
+        }
+    }
+    
+    Err("No Python interpreter found".to_string())
+}
+
 #[tauri::command]
 async fn start_recording() -> Result<Value, String> {
     println!("Starting recording...");
     
-    let output = Command::new("python3")
+    let python_cmd = get_python_command()?;
+    
+    let output = Command::new(&python_cmd)
         .arg("backend/main.py")
         .arg("start_recording")
         .stdout(Stdio::piped())
@@ -39,9 +53,10 @@ async fn start_recording() -> Result<Value, String> {
 async fn stop_and_transcribe(model_size: String) -> Result<Value, String> {
     println!("Stopping recording and transcribing with model: {}", model_size);
     
+    let python_cmd = get_python_command()?;
     let params = serde_json::json!({ "model_size": model_size });
     
-    let output = Command::new("python3")
+    let output = Command::new(&python_cmd)
         .arg("backend/main.py")
         .arg("stop_and_transcribe")
         .arg(params.to_string())
@@ -66,7 +81,10 @@ async fn stop_and_transcribe(model_size: String) -> Result<Value, String> {
 async fn check_microphone() -> Result<bool, String> {
     println!("Checking microphone...");
     
-    let output = Command::new("python3")
+    let python_cmd = get_python_command()?;
+    println!("Using python command: {}", python_cmd);
+    
+    let output = Command::new(&python_cmd)
         .arg("backend/main.py")
         .arg("check_microphone")
         .stdout(Stdio::piped())
@@ -76,15 +94,23 @@ async fn check_microphone() -> Result<bool, String> {
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("Python backend stderr: {}", stderr);
         return Err(format!("Python backend error: {}", stderr));
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
+    println!("Python backend stdout: {}", stdout);
+    
     let result: Value = serde_json::from_str(&stdout)
-        .map_err(|e| format!("Failed to parse backend response: {}", e))?;
+        .map_err(|e| {
+            println!("Failed to parse JSON response: {}", e);
+            println!("Raw response: {}", stdout);
+            format!("Failed to parse backend response: {}", e)
+        })?;
 
     if let Some(microphone_available) = result.get("microphone_available") {
         if let Some(available) = microphone_available.as_bool() {
+            println!("Microphone check result: {}", available);
             return Ok(available);
         }
     }
@@ -92,10 +118,12 @@ async fn check_microphone() -> Result<bool, String> {
     // Fallback: if we get a success response, assume microphone is available
     if let Some(success) = result.get("success") {
         if let Some(is_success) = success.as_bool() {
+            println!("Microphone check success fallback: {}", is_success);
             return Ok(is_success);
         }
     }
-
+    
+    println!("Unexpected response format: {}", result);
     Ok(false)
 }
 
@@ -118,7 +146,9 @@ async fn type_text(text: String, state: State<'_, AppState>) -> Result<(), Strin
 async fn get_available_models() -> Result<Value, String> {
     println!("Getting available models...");
     
-    let output = Command::new("python3")
+    let python_cmd = get_python_command()?;
+    
+    let output = Command::new(&python_cmd)
         .arg("backend/main.py")
         .arg("get_models")
         .stdout(Stdio::piped())

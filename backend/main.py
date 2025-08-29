@@ -112,14 +112,19 @@ def handle_command(command: str, params: Dict[str, Any] = None) -> Dict[str, Any
 def main():
     """Main entry point - handles JSON-based communication with frontend."""
     try:
+        # Debug: log the arguments received
+        logger.info(f"Python backend started with args: {sys.argv}")
+        
         # Read command from stdin (for Tauri communication)
         if len(sys.argv) > 1:
             # Command line arguments mode
             command = sys.argv[1]
             params = json.loads(sys.argv[2]) if len(sys.argv) > 2 else {}
+            logger.info(f"Command line mode: command={command}, params={params}")
         else:
             # Stdin mode (for Tauri IPC)
             input_data = sys.stdin.read().strip()
+            logger.info(f"Stdin mode: input_data={input_data}")
             if input_data:
                 data = json.loads(input_data)
                 command = data.get("command")
@@ -128,16 +133,22 @@ def main():
                 command = "check_microphone"  # Default command
                 params = {}
         
+        logger.info(f"Executing command: {command} with params: {params}")
         result = handle_command(command, params)
-        print(json.dumps(result))
+        logger.info(f"Command result: {result}")
+        
+        # Ensure we output valid JSON
+        json_output = json.dumps(result)
+        print(json_output)
         
     except json.JSONDecodeError as e:
         error_result = {"success": False, "error": f"Invalid JSON: {e}"}
+        logger.error(f"JSON decode error: {e}")
         print(json.dumps(error_result))
     except Exception as e:
         error_result = {"success": False, "error": f"Backend error: {e}"}
-        print(json.dumps(error_result))
         logger.error(f"Unexpected error: {e}")
+        print(json.dumps(error_result))
 
 
 if __name__ == "__main__":

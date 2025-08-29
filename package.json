@@ -1,0 +1,74 @@
+{
+  "name": "openwispr",
+  "version": "1.0.0",
+  "description": "An open-source desktop application to transform voice into text with a keyboard shortcut",
+  "main": "electron/main.js",
+  "homepage": "./",
+  "scripts": {
+    "electron": "electron .",
+    "electron:dev": "concurrently \"npm run backend:dev\" \"npm run frontend:dev\" \"wait-on http://localhost:3000 http://localhost:5000 && electron .\"",
+    "electron:build": "npm run frontend:build && electron-builder",
+    "frontend:dev": "cd frontend && npm start",
+    "frontend:build": "cd frontend && npm run build",
+    "backend:dev": "cd backend && python main.py",
+    "build": "npm run frontend:build && npm run electron:build",
+    "dist": "electron-builder --publish=never"
+  },
+  "build": {
+    "appId": "com.openwispr.app",
+    "productName": "OpenWispr",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "frontend/build/**/*",
+      "backend/**/*",
+      "assets/**/*",
+      "!backend/__pycache__",
+      "!backend/**/__pycache__",
+      "!backend/.env"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    }
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "electron": "^27.0.0",
+    "electron-builder": "^24.6.4",
+    "wait-on": "^7.2.0",
+    "typescript": "^4.9.5",
+    "@types/node": "^18.15.0",
+    "electron-reload": "^2.0.0-alpha.1"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "node-global-key-listener": "^0.1.1",
+    "axios": "^1.5.1"
+  },
+  "author": "OpenWispr Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openwispr/openwispr.git"
+  },
+  "keywords": [
+    "voice-to-text",
+    "whisper",
+    "transcription",
+    "productivity",
+    "electron",
+    "desktop-app"
+  ]
+}

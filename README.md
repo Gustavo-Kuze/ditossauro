@@ -23,7 +23,7 @@ openwispr/
 ├── README.md
 ├── LICENSE
 ├── .gitignore
-├── frontend/               # UI (Tauri + React)
+├── frontend/               # UI (Electron + React)
 │   ├── src/
 │   │   ├── App.tsx
 │   │   ├── components/
@@ -35,11 +35,10 @@ openwispr/
 │   ├── requirements.txt
 │   └── utils/
 │       └── audio_processor.py
-├── src-tauri/              # Tauri Config (bridge)
-│   ├── Cargo.toml
-│   ├── src/
-│   │   └── main.rs
-│   └── tauri.conf.json
+├── electron/              # Electron Config (main process)
+│   ├── main.ts
+│   ├── preload.ts
+│   └── electron-builder.yml
 ├── scripts/                # Helper scripts
 │   ├── build.py
 │   └── dev.sh
@@ -70,7 +69,7 @@ openwispr/
 
    ```bash
    cd ..
-   npm run tauri dev
+   npm run electron:dev
    ```
 
 ---
@@ -80,7 +79,7 @@ openwispr/
 To generate a binary:
 
 ```bash
-npm run tauri build
+npm run electron:build
 ```
 
 ---

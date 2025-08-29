@@ -84,9 +84,9 @@ Create an open-source desktop application that allows users to quickly convert v
 ### 4. Technical Constraints
 
 *   **Suggested Base Technology:**
-    *   Electron or Tauri for the desktop app.
+    *   Electron for the desktop app.
     *   Python backend for *faster_whisper* or a model build in C++/Rust (for better performance).
-    *   Communication between frontend and backend via IPC (if using Electron/Tauri).
+    *   Communication between frontend and backend via IPC (Electron).
 *   **Auxiliary Libraries:**
     *   *pyaudio* or *sounddevice* for audio capture.
     *   *keyboard* (Windows/Linux) and *pynput* or native APIs for hotkeys.

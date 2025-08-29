@@ -88,9 +88,9 @@ Criar um aplicativo desktop open source que permita ao usuário converter voz em
 
 * **Tecnologia base sugerida:**
 
-  * Electron ou Tauri para app desktop.
-  * Python backend para *faster\_whisper* ou build do modelo em C++/Rust (para melhor performance).
-  * Comunicação entre frontend e backend via IPC (caso use Electron/Tauri).
+  * Electron para app desktop.
+  * Python backend para *faster_whisper* ou build do modelo em C++/Rust (para melhor performance).
+  * Comunicação entre frontend e backend via IPC (Electron).
 * **Bibliotecas auxiliares:**
 
   * *pyaudio* ou *sounddevice* para captura de áudio.

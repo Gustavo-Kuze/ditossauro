@@ -48,7 +48,7 @@ It shows the main modules, how they communicate, and what technologies can be us
 
    ┌─────────────────────────┐        ┌─────────────────────────┐
    │       Overlay UI        │◄──────┤    Settings Manager      │
-   │(Electron/Tauri frontend)│       │  (Local JSON / SQLite)   │
+   │(Electron frontend)│       │  (Local JSON / SQLite)   │
    └─────────────────────────┘        └─────────────────────────┘
 ```
 
@@ -75,7 +75,7 @@ It shows the main modules, how they communicate, and what technologies can be us
 
 5.  **Overlay UI**
     *   Shows the current state: Recording → Processing → Ready.
-    *   Built with Electron or Tauri for easier portability.
+    *   Built with Electron for easier portability.
 
 6.  **Settings Manager**
     *   Local persistence in JSON (or SQLite for more complex configs).

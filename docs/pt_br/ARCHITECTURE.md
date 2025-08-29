@@ -49,7 +49,7 @@ Diagrama em blocos (ASCII para clareza)
 
    ┌─────────────────────────┐        ┌─────────────────────────┐
    │     Overlay UI           │◄──────┤   Settings Manager       │
-   │ (Electron/Tauri frontend)│       │ (JSON local / SQLite)    │
+   │ (Electron frontend)│       │ (JSON local / SQLite)    │
    └─────────────────────────┘        └─────────────────────────┘
 
 Componentes detalhados
@@ -87,7 +87,7 @@ Em Linux: xdotool ou APIs nativas X11/Wayland.
 
 Mostra estado atual: Gravando → Processando → Pronto.
 
-Construído em Electron ou Tauri para facilitar portabilidade.
+Construído em Electron para facilitar portabilidade.
 
 6. Settings Manager
 

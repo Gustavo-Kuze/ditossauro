@@ -205,7 +205,8 @@ export class VoiceFlowApp extends EventEmitter {
   async insertTranscriptionText(text: string): Promise<void> {
     try {
       console.log('📝 Inserindo texto transcrito...');
-      await TextInserter.insertText(text, 'append');
+      const settings = this.settingsManager.loadSettings();
+      await TextInserter.insertText(text, 'append', settings);
       this.emit('text-inserted', text);
     } catch (error) {
       console.error('Erro ao inserir texto:', error);

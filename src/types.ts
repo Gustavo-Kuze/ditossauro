@@ -24,6 +24,7 @@ export interface AppSettings {
   behavior: {
     autoInsert: boolean;
     showConfirmation: boolean;
+    useClipboard: boolean; // Usar clipboard para inserção rápida ou digitação tradicional
   };
 }
 

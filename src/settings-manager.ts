@@ -20,7 +20,8 @@ export class SettingsManager {
     },
     behavior: {
       autoInsert: true,
-      showConfirmation: false
+      showConfirmation: false,
+      useClipboard: true
     }
   };
 

@@ -17,7 +17,6 @@ export default defineConfig({
       external: [
         'electron',
         'robotjs',
-        'node-record-lpcm16',
         'form-data',
         'axios',
         'uuid',

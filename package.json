@@ -40,7 +40,6 @@
   "dependencies": {
     "dotenv": "^17.2.2",
     "electron-squirrel-startup": "^1.0.1",
-    "node-record-lpcm16": "^1.0.1",
     "robotjs": "^0.6.0",
     "axios": "^1.7.2",
     "form-data": "^4.0.0",

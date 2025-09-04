@@ -19,12 +19,13 @@ class VoiceFlowElectronApp {
   private isQuitting = false;
 
   constructor() {
+    // Inicializar VoiceFlowApp para registrar handlers IPC
     this.voiceFlowApp = new VoiceFlowApp();
     this.setupVoiceFlowListeners();
   }
 
   createWindow(): void {
-    // Create the browser window.
+  // Create the browser window.
     this.mainWindow = new BrowserWindow({
       width: 900,
       height: 700,
@@ -32,15 +33,15 @@ class VoiceFlowElectronApp {
       minHeight: 500,
       show: false, // Não mostrar inicialmente
       icon: this.getAppIcon(),
-      webPreferences: {
-        preload: path.join(__dirname, 'preload.js'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
-      },
-    });
+    },
+  });
 
     // Load the index.html of the app.
-    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
       this.mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
       this.mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
@@ -63,6 +64,12 @@ class VoiceFlowElectronApp {
     });
 
     this.mainWindow.on('ready-to-show', () => {
+      // Atualizar referência da janela no VoiceFlowApp
+      this.voiceFlowApp.setMainWindow(this.mainWindow);
+      
+      // Injetar Web Audio Recorder
+      this.injectWebAudioRecorder();
+      
       // Mostrar apenas se não for para iniciar minimizado
       const settings = this.voiceFlowApp.getSettings();
       if (!settings.behavior?.startMinimized) {
@@ -166,7 +173,7 @@ class VoiceFlowElectronApp {
 
       if (success) {
         console.log(`✅ Hotkey ${startStopShortcut} registrada`);
-      } else {
+  } else {
         console.error(`❌ Falha ao registrar hotkey ${startStopShortcut}`);
       }
     }
@@ -184,53 +191,12 @@ class VoiceFlowElectronApp {
   }
 
   setupIpcHandlers(): void {
-    // Settings
-    ipcMain.handle('get-settings', () => {
-      return this.voiceFlowApp.getSettings();
-    });
-
-    ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: any) => {
-      this.voiceFlowApp.updateSettings(category, setting);
-      
-      // Reregistrar hotkeys se necessário
-      if (category === 'hotkeys') {
-        globalShortcut.unregisterAll();
-        this.setupGlobalShortcuts();
-      }
-      
-      return true;
-    });
-
-    // Recording
-    ipcMain.handle('start-recording', async () => {
-      await this.voiceFlowApp.startRecording();
-    });
-
-    ipcMain.handle('stop-recording', async () => {
-      await this.voiceFlowApp.stopRecording();
-    });
-
-    ipcMain.handle('get-recording-state', () => {
-      return this.voiceFlowApp.getRecordingState();
-    });
-
-    // History
-    ipcMain.handle('get-history', () => {
-      return this.voiceFlowApp.getTranscriptionHistory();
-    });
-
-    ipcMain.handle('clear-history', () => {
-      this.voiceFlowApp.clearHistory();
-    });
-
-    // Text insertion
-    ipcMain.handle('insert-text', async (_, text: string) => {
-      await this.voiceFlowApp.insertTranscriptionText(text);
-    });
-
-    // Test API
-    ipcMain.handle('test-api', async () => {
-      return await this.voiceFlowApp.testApiConnection();
+    // Handlers específicos do Electron App (não do VoiceFlowApp)
+    
+    // Reregistrar hotkeys quando configurações de hotkey mudarem
+    ipcMain.on('hotkeys-updated', () => {
+      globalShortcut.unregisterAll();
+      this.setupGlobalShortcuts();
     });
   }
 
@@ -314,6 +280,147 @@ class VoiceFlowElectronApp {
     // Criar um ícone simples programaticamente ou usar um arquivo
     // Por simplicidade, retornamos um ícone vazio
     return nativeImage.createEmpty();
+  }
+
+  private injectWebAudioRecorder(): void {
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+
+    // Injetar Web Audio Recorder no renderer process
+    this.mainWindow.webContents.executeJavaScript(`
+      class WebAudioRecorderRenderer {
+        constructor() {
+          this.mediaRecorder = null;
+          this.audioChunks = [];
+          this.isRecording = false;
+          this.startTime = null;
+          this.stream = null;
+        }
+
+        async startRecording() {
+          if (this.isRecording) {
+            console.log('Já está gravando...');
+            return;
+          }
+
+          try {
+            console.log('🎤 Iniciando gravação com Web Audio API...');
+            
+            this.stream = await navigator.mediaDevices.getUserMedia({
+              audio: {
+                sampleRate: 16000,
+                channelCount: 1,
+                echoCancellation: true,
+                noiseSuppression: true,
+                autoGainControl: true,
+              }
+            });
+
+            let options = { mimeType: 'audio/webm;codecs=opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+              if (MediaRecorder.isTypeSupported('audio/wav')) {
+                options.mimeType = 'audio/wav';
+              } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                options.mimeType = 'audio/mp4';
+              } else {
+                options = {};
+              }
+            }
+
+            this.mediaRecorder = new MediaRecorder(this.stream, options);
+            this.audioChunks = [];
+            this.isRecording = true;
+            this.startTime = Date.now();
+
+            this.mediaRecorder.ondataavailable = (event) => {
+              if (event.data.size > 0) {
+                this.audioChunks.push(event.data);
+              }
+            };
+
+            this.mediaRecorder.start(100);
+            
+            // Notificar o main process
+            window.electronAPI.sendAudioEvent('recording-started');
+            
+            return true;
+          } catch (error) {
+            this.isRecording = false;
+            let errorMessage = 'Erro ao acessar microfone';
+            if (error.name === 'NotAllowedError') {
+              errorMessage = 'Permissão negada para acessar o microfone. Habilite o acesso ao microfone nas configurações do navegador.';
+            } else if (error.name === 'NotFoundError') {
+              errorMessage = 'Nenhum microfone encontrado no sistema';
+            } else if (error.name === 'NotReadableError') {
+              errorMessage = 'Microfone está sendo usado por outro aplicativo';
+            }
+            window.electronAPI.sendAudioEvent('error', errorMessage);
+            throw new Error(errorMessage);
+          }
+        }
+
+        async stopRecording() {
+          if (!this.isRecording || !this.mediaRecorder) {
+            throw new Error('Não está gravando');
+          }
+
+          return new Promise((resolve, reject) => {
+            const duration = this.startTime ? (Date.now() - this.startTime) / 1000 : 0;
+            
+            this.mediaRecorder.onstop = async () => {
+              try {
+                if (this.audioChunks.length === 0) {
+                  throw new Error('Nenhum áudio foi gravado');
+                }
+
+                const audioBlob = new Blob(this.audioChunks, { 
+                  type: this.audioChunks[0]?.type || 'audio/webm' 
+                });
+                
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const uint8Array = new Uint8Array(arrayBuffer);
+                
+                console.log(\`📦 Áudio capturado: \${uint8Array.length} bytes, \${duration.toFixed(1)}s\`);
+                
+                // Enviar dados para o main process
+                const result = await window.electronAPI.processAudioData(Array.from(uint8Array), duration);
+                resolve(result);
+              } catch (error) {
+                console.error('Erro ao processar áudio:', error);
+                reject(error);
+              }
+            };
+
+            this.mediaRecorder.stop();
+            this.isRecording = false;
+            
+            if (this.stream) {
+              this.stream.getTracks().forEach(track => track.stop());
+              this.stream = null;
+            }
+            
+            window.electronAPI.sendAudioEvent('recording-stopped', { duration });
+          });
+        }
+
+        getRecordingState() {
+          return { isRecording: this.isRecording };
+        }
+
+        async getAudioDevices() {
+          try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            return devices.filter(device => device.kind === 'audioinput');
+          } catch (error) {
+            console.error('Erro ao listar dispositivos:', error);
+            return [];
+          }
+        }
+      }
+
+      // Disponibilizar globalmente
+      window.audioRecorder = new WebAudioRecorderRenderer();
+      console.log('✅ WebAudioRecorder injetado com sucesso');
+    `).catch(console.error);
   }
 }
 

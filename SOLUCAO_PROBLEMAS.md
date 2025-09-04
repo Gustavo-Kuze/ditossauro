@@ -36,7 +36,25 @@ Este erro é comum quando o Vite tenta processar módulos nativos. **Já foi cor
 
 ## 🔧 Outros Problemas Comuns
 
-### 1. **robotjs não compila no Windows**
+### 1. **Erro "spawn sox ENOENT" na gravação**
+
+**Erro:** `Error: spawn sox ENOENT` quando tenta gravar
+
+**Causa:** O `node-record-lpcm16` está tentando usar ferramentas de áudio do Linux/macOS no Windows.
+
+**✅ Solução aplicada:**
+- Configuração específica para Windows removendo dependência do `sox`
+- Melhor tratamento de erros
+- Fallback para configurações padrão do sistema
+
+**Se persistir:**
+```bash
+# Alternativa: usar gravação via Web Audio API (implementação futura)
+# Por enquanto, certifique-se que o microfone está funcionando:
+# Windows -> Configurações -> Privacidade -> Microfone
+```
+
+### 2. **robotjs não compila no Windows**
 
 **Erro:** `gyp ERR! build error` ou `MSBuild.exe failed`
 

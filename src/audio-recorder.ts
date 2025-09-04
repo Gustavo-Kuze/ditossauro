@@ -25,41 +25,69 @@ export class AudioRecorder extends EventEmitter {
     this.startTime = new Date();
     this.audioBuffer = [];
     
-    // Criar arquivo temporário
-    this.tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}.wav`);
+    try {
+      // Criar arquivo temporário
+      this.tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}.wav`);
 
-    console.log('Iniciando gravação...');
-    
-    const recordingOptions: any = {
-      sampleRateHertz: this.sampleRate,
-      threshold: 0,
-      verbose: false,
-      recordProgram: process.platform === 'darwin' ? 'sox' : 'rec',
-      silence: '1.0',
-    };
+      console.log('Iniciando gravação...', process.platform);
+      
+      const recordingOptions: any = {
+        sampleRateHertz: this.sampleRate,
+        threshold: 0,
+        verbose: false,
+        silence: '1.0',
+      };
 
-    // Configurar dispositivo se especificado
-    if (this.deviceId) {
-      recordingOptions.device = this.deviceId;
+      // Configuração específica para Windows
+      if (process.platform === 'win32') {
+        // Windows: usar configuração mínima para evitar problemas
+        recordingOptions.audioType = 'wav';
+        // Não especificar recordProgram - deixar o módulo decidir
+      } else if (process.platform === 'darwin') {
+        recordingOptions.recordProgram = 'sox';  
+      } else {
+        // Linux
+        recordingOptions.recordProgram = 'rec';
+      }
+
+      // Configurar dispositivo se especificado
+      if (this.deviceId && this.deviceId !== 'default') {
+        recordingOptions.device = this.deviceId;
+      }
+
+      console.log('Opções de gravação:', recordingOptions);
+
+      this.recording = recorder.record(recordingOptions);
+      
+      // Stream para arquivo temporário
+      const fileStream = fs.createWriteStream(this.tempFilePath);
+      this.recording.stream().pipe(fileStream);
+      
+      // Também capturar em buffer para processamento
+      this.recording.stream().on('data', (chunk: Buffer) => {
+        this.audioBuffer.push(chunk);
+      });
+
+      this.recording.stream().on('error', (err: Error) => {
+        console.error('Erro na gravação:', err);
+        this.isRecording = false;
+        this.emit('error', new Error(`Erro de gravação: ${err.message}. Verifique se o microfone está funcionando.`));
+      });
+
+      // Adicionar timeout para detectar problemas
+      setTimeout(() => {
+        if (this.audioBuffer.length === 0 && this.isRecording) {
+          console.warn('Nenhum áudio capturado em 2 segundos');
+        }
+      }, 2000);
+
+      this.emit('recording-started');
+      
+    } catch (error) {
+      console.error('Erro ao iniciar gravação:', error);
+      this.isRecording = false;
+      this.emit('error', new Error(`Falha ao inicializar gravação: ${error.message}`));
     }
-
-    this.recording = recorder.record(recordingOptions);
-    
-    // Stream para arquivo temporário
-    const fileStream = fs.createWriteStream(this.tempFilePath);
-    this.recording.stream().pipe(fileStream);
-    
-    // Também capturar em buffer para processamento
-    this.recording.stream().on('data', (chunk: Buffer) => {
-      this.audioBuffer.push(chunk);
-    });
-
-    this.recording.stream().on('error', (err: Error) => {
-      console.error('Erro na gravação:', err);
-      this.emit('error', err);
-    });
-
-    this.emit('recording-started');
   }
 
   stopRecording(): Promise<{ audioFile: string; duration: number }> {

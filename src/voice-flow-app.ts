@@ -1,47 +1,84 @@
 import { EventEmitter } from 'events';
-import { AudioRecorder } from './audio-recorder';
 import { AssemblyAIClient } from './assemblyai-client';
 import { TextInserter } from './text-inserter';
 import { SettingsManager } from './settings-manager';
 import { TranscriptionSession, AppSettings, RecordingState } from './types';
 import { v4 as uuidv4 } from 'uuid';
+import * as fs from 'fs';
+import * as path from 'path';
+import { ipcMain } from 'electron';
 
 export class VoiceFlowApp extends EventEmitter {
-  private recorder: AudioRecorder;
   private assemblyClient: AssemblyAIClient;
   private settingsManager: SettingsManager;
   private recordingState: RecordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
+  private mainWindow: any = null;
 
-  constructor() {
+  constructor(mainWindow?: any) {
     super();
     
+    this.mainWindow = mainWindow;
     this.settingsManager = new SettingsManager();
     const settings = this.settingsManager.loadSettings();
     
-    this.recorder = new AudioRecorder(settings.audio.sampleRate, settings.audio.deviceId);
     this.assemblyClient = new AssemblyAIClient(settings.api.assemblyAiKey);
     
     this.setupEventListeners();
+    this.setupAudioHandlers();
+    this.setupIPCHandlers();
   }
 
   private setupEventListeners(): void {
-    this.recorder.on('recording-started', () => {
-      this.recordingState = { isRecording: true, startTime: new Date() };
-      this.emit('recording-started');
-      console.log('🎤 Gravação iniciada');
+    // Os event listeners agora são tratados via IPC
+  }
+
+  private setupAudioHandlers(): void {
+    // Handler para processar dados de áudio do renderer
+    ipcMain.handle('process-audio-data', async (_, audioData: number[], duration: number) => {
+      try {
+        return await this.processAudioData(audioData, duration);
+      } catch (error) {
+        console.error('Erro ao processar áudio:', error);
+        throw error;
+      }
     });
 
-    this.recorder.on('recording-stopped', (data) => {
-      this.recordingState = { isRecording: false };
-      this.emit('recording-stopped', data);
-      console.log('⏹️ Gravação parada');
+    // Handler para eventos de áudio
+    ipcMain.on('audio-event', (_, eventType: string, data?: any) => {
+      switch (eventType) {
+        case 'recording-started':
+          this.recordingState = { isRecording: true, startTime: new Date() };
+          this.emit('recording-started');
+          console.log('🎤 Gravação iniciada (Web Audio API)');
+          break;
+        case 'recording-stopped':
+          this.recordingState = { isRecording: false };
+          this.emit('recording-stopped', data);
+          console.log('⏹️ Gravação parada');
+          break;
+        case 'error':
+          this.emit('error', new Error(data));
+          console.error('❌ Erro de áudio:', data);
+          break;
+      }
     });
+  }
 
-    this.recorder.on('error', (error) => {
-      this.emit('error', error);
-      console.error('❌ Erro no gravador:', error);
-    });
+  private async processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> {
+    // Converter array de volta para Buffer
+    const buffer = Buffer.from(audioData);
+    
+    // Salvar em arquivo temporário
+    const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}.webm`);
+    await fs.promises.writeFile(tempFilePath, buffer);
+    
+    console.log(`Áudio processado: ${tempFilePath} (${buffer.length} bytes)`);
+    
+    // Processar a transcrição
+    await this.processRecording({ audioFile: tempFilePath, duration });
+    
+    return { audioFile: tempFilePath, duration };
   }
 
   async startRecording(): Promise<void> {
@@ -56,7 +93,19 @@ export class VoiceFlowApp extends EventEmitter {
       throw new Error('Chave API da AssemblyAI não configurada');
     }
 
-    this.recorder.startRecording();
+    // Delegar para o renderer process via Web Audio API
+    if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+      try {
+        await this.mainWindow.webContents.executeJavaScript(`
+          window.audioRecorder.startRecording()
+        `);
+      } catch (error) {
+        console.error('Erro ao iniciar gravação:', error);
+        throw new Error('Falha ao iniciar gravação. Verifique as permissões do microfone.');
+      }
+    } else {
+      throw new Error('Janela principal não disponível');
+    }
   }
 
   async stopRecording(): Promise<void> {
@@ -66,8 +115,11 @@ export class VoiceFlowApp extends EventEmitter {
     }
 
     try {
-      const recordingData = await this.recorder.stopRecording();
-      await this.processRecording(recordingData);
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        await this.mainWindow.webContents.executeJavaScript(`
+          window.audioRecorder.stopRecording()
+        `);
+      }
     } catch (error) {
       console.error('Erro ao parar gravação:', error);
       this.emit('error', error);
@@ -112,7 +164,7 @@ export class VoiceFlowApp extends EventEmitter {
       }
 
       // Limpar arquivo temporário
-      this.recorder.cleanup();
+      this.cleanupTempFile(recordingData.audioFile);
       
     } catch (error) {
       console.error('Erro ao processar gravação:', error);
@@ -156,8 +208,8 @@ export class VoiceFlowApp extends EventEmitter {
     }
     
     if (category === 'audio') {
-      this.recorder = new AudioRecorder(newSettings.audio.sampleRate, newSettings.audio.deviceId);
-      this.setupEventListeners();
+      // Configurações de áudio serão aplicadas na próxima gravação
+      console.log('Configurações de áudio atualizadas');
     }
     
     this.emit('settings-updated', newSettings);
@@ -180,11 +232,78 @@ export class VoiceFlowApp extends EventEmitter {
     }
   }
 
+  setMainWindow(mainWindow: any): void {
+    this.mainWindow = mainWindow;
+  }
+
   destroy(): void {
     if (this.recordingState.isRecording) {
-      this.recorder.stopRecording().catch(console.error);
+      this.stopRecording().catch(console.error);
     }
-    this.recorder.cleanup();
     this.removeAllListeners();
+  }
+
+  private setupIPCHandlers(): void {
+    // Settings
+    ipcMain.handle('get-settings', () => {
+      return this.settingsManager.loadSettings();
+    });
+
+    ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: any) => {
+      this.updateSettings(category, setting);
+      
+      // Notificar main process se hotkeys foram atualizadas
+      if (category === 'hotkeys') {
+        // Emitir evento para o main process reregistrar hotkeys
+        process.nextTick(() => {
+          ipcMain.emit('hotkeys-updated');
+        });
+      }
+      
+      return true;
+    });
+
+    // Recording
+    ipcMain.handle('start-recording', async () => {
+      await this.startRecording();
+    });
+
+    ipcMain.handle('stop-recording', async () => {
+      await this.stopRecording();
+    });
+
+    ipcMain.handle('get-recording-state', () => {
+      return this.getRecordingState();
+    });
+
+    // History
+    ipcMain.handle('get-history', () => {
+      return this.getTranscriptionHistory();
+    });
+
+    ipcMain.handle('clear-history', () => {
+      this.clearHistory();
+    });
+
+    // Text insertion
+    ipcMain.handle('insert-text', async (_, text: string) => {
+      await this.insertTranscriptionText(text);
+    });
+
+    // Test API
+    ipcMain.handle('test-api', async () => {
+      return await this.testApiConnection();
+    });
+  }
+
+  private cleanupTempFile(filePath: string): void {
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log('Arquivo temporário removido:', filePath);
+      }
+    } catch (err) {
+      console.error('Erro ao remover arquivo temporário:', err);
+    }
   }
 }

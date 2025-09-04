@@ -23,6 +23,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // API test
   testApi: (): Promise<boolean> => ipcRenderer.invoke('test-api'),
 
+  // Audio processing
+  processAudioData: (audioData: number[], duration: number): Promise<any> => 
+    ipcRenderer.invoke('process-audio-data', audioData, duration),
+  sendAudioEvent: (eventType: string, data?: any): void => 
+    ipcRenderer.send('audio-event', eventType, data),
+
   // Event listeners
   onRecordingStarted: (callback: () => void) => {
     ipcRenderer.on('recording-started', callback);
@@ -65,6 +71,8 @@ export interface ElectronAPI {
   clearHistory(): Promise<void>;
   insertText(text: string): Promise<void>;
   testApi(): Promise<boolean>;
+  processAudioData(audioData: number[], duration: number): Promise<any>;
+  sendAudioEvent(eventType: string, data?: any): void;
   onRecordingStarted(callback: () => void): () => void;
   onRecordingStopped(callback: () => void): () => void;
   onProcessingStarted(callback: () => void): () => void;
@@ -77,5 +85,11 @@ export interface ElectronAPI {
 declare global {
   interface Window {
     electronAPI: ElectronAPI;
+    audioRecorder: {
+      startRecording(): Promise<boolean>;
+      stopRecording(): Promise<any>;
+      getRecordingState(): { isRecording: boolean };
+      getAudioDevices(): Promise<MediaDeviceInfo[]>;
+    };
   }
 }

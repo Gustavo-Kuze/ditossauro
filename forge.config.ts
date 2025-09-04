@@ -10,7 +10,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: {
-      unpack: '**/node_modules/{robotjs,node-record-lpcm16}/**/*',
+      unpack: '**/node_modules/{robotjs}/**/*',
     },
     ignore: [
       /^\/src\//,
@@ -19,7 +19,7 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {
     buildPath: './node_modules',
-    onlyModules: ['robotjs', 'node-record-lpcm16'],
+    onlyModules: ['robotjs'],
     force: true,
   },
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],

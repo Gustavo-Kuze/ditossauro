@@ -33,10 +33,4 @@ export interface RecordingState {
   audioBuffer?: Buffer[];
 }
 
-export interface AssemblyAIResponse {
-  id: string;
-  status: 'queued' | 'processing' | 'completed' | 'error';
-  text: string;
-  confidence: number;
-  error?: string;
-}
+// AssemblyAIResponse removido - agora usando tipos do SDK oficial

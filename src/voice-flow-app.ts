@@ -69,11 +69,39 @@ export class VoiceFlowApp extends EventEmitter {
     // Converter array de volta para Buffer
     const buffer = Buffer.from(audioData);
     
-    // Salvar em arquivo temporário
-    const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}.webm`);
+    console.log(`📦 Dados de áudio recebidos: ${buffer.length} bytes`);
+    
+    // Determinar extensão baseada no cabeçalho do arquivo
+    let extension = '.webm';
+    let mimeType = 'audio/webm';
+    
+    // Verificar o cabeçalho para identificar o formato
+    if (buffer.length > 4) {
+      const header = buffer.toString('hex', 0, 4);
+      console.log(`🔍 Cabeçalho do arquivo: ${header}`);
+      
+      // WebM header starts with 0x1A45DFA3
+      if (buffer[0] === 0x1A && buffer[1] === 0x45) {
+        extension = '.webm';
+        mimeType = 'audio/webm';
+      }
+      // WAV header "RIFF"
+      else if (buffer.toString('ascii', 0, 4) === 'RIFF') {
+        extension = '.wav';
+        mimeType = 'audio/wav';
+      }
+      // MP4/M4A header
+      else if (buffer.toString('ascii', 4, 8) === 'ftyp') {
+        extension = '.m4a';
+        mimeType = 'audio/mp4';
+      }
+    }
+    
+    // Salvar em arquivo temporário com extensão correta
+    const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}${extension}`);
     await fs.promises.writeFile(tempFilePath, buffer);
     
-    console.log(`Áudio processado: ${tempFilePath} (${buffer.length} bytes)`);
+    console.log(`💾 Áudio salvo: ${tempFilePath} (${buffer.length} bytes, ${mimeType})`);
     
     // Processar a transcrição
     await this.processRecording({ audioFile: tempFilePath, duration });
@@ -223,11 +251,10 @@ export class VoiceFlowApp extends EventEmitter {
 
   async testApiConnection(): Promise<boolean> {
     try {
-      const settings = this.settingsManager.loadSettings();
-      // Testar com um áudio muito pequeno (seria implementado)
-      return true;
+      console.log('🧪 Testando conexão com API...');
+      return await this.assemblyClient.testConnection();
     } catch (error) {
-      console.error('Erro ao testar conexão API:', error);
+      console.error('❌ Erro ao testar conexão API:', error);
       return false;
     }
   }

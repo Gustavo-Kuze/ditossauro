@@ -245,13 +245,70 @@ class VoiceFlowElectronApp {
   updateTrayMenu(): void {
     if (!this.tray) return;
     
+    // Recriar o menu ao invés de tentar atualizar o existente
     const isRecording = this.voiceFlowApp.getRecordingState().isRecording;
-    const contextMenu = this.tray.getContextMenu();
     
-    if (contextMenu) {
-      // Atualizar itens do menu baseado no estado
-      // Esta implementação seria expandida conforme necessário
-    }
+    const contextMenu = Menu.buildFromTemplate([
+      {
+        label: 'VoiceFlow AI',
+        type: 'normal',
+        enabled: false,
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Abrir Interface',
+        type: 'normal',
+        click: () => this.showWindow(),
+      },
+      {
+        label: 'Status',
+        type: 'submenu',
+        submenu: [
+          {
+            label: isRecording ? '🎤 Gravando...' : '⏹️ Parado',
+            enabled: false,
+          },
+          {
+            type: 'separator',
+          },
+          {
+            label: 'Iniciar Gravação',
+            click: () => this.voiceFlowApp.startRecording().catch(console.error),
+            enabled: !isRecording,
+          },
+          {
+            label: 'Parar Gravação',
+            click: () => this.voiceFlowApp.stopRecording().catch(console.error),
+            enabled: isRecording,
+          },
+        ],
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Configurações',
+        type: 'normal',
+        click: () => this.showWindow('settings'),
+      },
+      {
+        label: 'Histórico',
+        type: 'normal',
+        click: () => this.showWindow('history'),
+      },
+      {
+        type: 'separator',
+      },
+      {
+        label: 'Sair',
+        type: 'normal',
+        click: () => this.quit(),
+      },
+    ]);
+
+    this.tray.setContextMenu(contextMenu);
   }
 
   showWindow(page?: string): void {
@@ -315,15 +372,23 @@ class VoiceFlowElectronApp {
               }
             });
 
-            let options = { mimeType: 'audio/webm;codecs=opus' };
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-              if (MediaRecorder.isTypeSupported('audio/wav')) {
-                options.mimeType = 'audio/wav';
-              } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
-                options.mimeType = 'audio/mp4';
-              } else {
-                options = {};
-              }
+            // Tentar diferentes formatos em ordem de preferência
+            let options = {};
+            
+            if (MediaRecorder.isTypeSupported('audio/wav')) {
+              options = { mimeType: 'audio/wav' };
+              console.log('📻 Usando formato: audio/wav');
+            } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+              options = { mimeType: 'audio/webm;codecs=opus' };
+              console.log('📻 Usando formato: audio/webm;codecs=opus');
+            } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+              options = { mimeType: 'audio/webm' };
+              console.log('📻 Usando formato: audio/webm');
+            } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
+              options = { mimeType: 'audio/mp4' };
+              console.log('📻 Usando formato: audio/mp4');
+            } else {
+              console.log('📻 Usando formato padrão do navegador');
             }
 
             this.mediaRecorder = new MediaRecorder(this.stream, options);
@@ -372,14 +437,25 @@ class VoiceFlowElectronApp {
                   throw new Error('Nenhum áudio foi gravado');
                 }
 
-                const audioBlob = new Blob(this.audioChunks, { 
-                  type: this.audioChunks[0]?.type || 'audio/webm' 
-                });
+                // Obter o tipo MIME do primeiro chunk
+                const mimeType = this.audioChunks[0]?.type || 'audio/webm';
+                console.log(\`🎵 Tipo MIME detectado: \${mimeType}\`);
+                
+                const audioBlob = new Blob(this.audioChunks, { type: mimeType });
+                
+                // Verificar se o blob tem conteúdo
+                if (audioBlob.size === 0) {
+                  throw new Error('Arquivo de áudio vazio');
+                }
                 
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
-                console.log(\`📦 Áudio capturado: \${uint8Array.length} bytes, \${duration.toFixed(1)}s\`);
+                console.log(\`📦 Áudio capturado: \${uint8Array.length} bytes, \${duration.toFixed(1)}s, tipo: \${mimeType}\`);
+                
+                // Log dos primeiros bytes para debug
+                const firstBytes = Array.from(uint8Array.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
+                console.log(\`🔍 Primeiros bytes: \${firstBytes}\`);
                 
                 // Enviar dados para o main process
                 const result = await window.electronAPI.processAudioData(Array.from(uint8Array), duration);

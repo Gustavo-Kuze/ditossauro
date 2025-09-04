@@ -17,8 +17,7 @@ export default defineConfig({
       external: [
         'electron',
         'robotjs',
-        'form-data',
-        'axios',
+        'assemblyai',
         'uuid',
         'fs',
         'path',

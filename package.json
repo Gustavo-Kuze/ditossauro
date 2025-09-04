@@ -38,11 +38,10 @@
     "vite": "^5.4.19"
   },
   "dependencies": {
+    "assemblyai": "^4.16.0",
     "dotenv": "^17.2.2",
     "electron-squirrel-startup": "^1.0.1",
     "robotjs": "^0.6.0",
-    "axios": "^1.7.2",
-    "form-data": "^4.0.0",
     "uuid": "^10.0.0"
   }
 }

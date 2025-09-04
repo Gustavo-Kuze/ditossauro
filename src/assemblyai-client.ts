@@ -1,109 +1,132 @@
-import axios from 'axios';
-import * as fs from 'fs';
-import * as FormData from 'form-data';
-import { AssemblyAIResponse } from './types';
+import { AssemblyAI } from 'assemblyai';
 
 export class AssemblyAIClient {
+  private client: AssemblyAI | null = null;
   private apiKey: string;
-  private baseURL = 'https://api.assemblyai.com/v2';
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
+    this.initializeClient();
+  }
+
+  private initializeClient(): void {
+    if (this.apiKey && this.apiKey.trim()) {
+      this.client = new AssemblyAI({
+        apiKey: this.apiKey,
+      });
+      console.log('✅ Cliente AssemblyAI inicializado');
+    } else {
+      this.client = null;
+      console.log('⚠️ Chave API não fornecida - cliente não inicializado');
+    }
   }
 
   async transcribeAudio(audioFilePath: string, language: string = 'pt'): Promise<string> {
+    if (!this.client) {
+      throw new Error('Cliente AssemblyAI não foi inicializado. Verifique a chave API.');
+    }
+
     try {
-      console.log('Iniciando transcrição com AssemblyAI...');
+      console.log('🚀 Iniciando transcrição com AssemblyAI SDK...');
+      console.log(`📁 Arquivo: ${audioFilePath}`);
+      console.log(`🌍 Idioma: ${language}`);
       
-      // Primeiro, fazer upload do arquivo de áudio
-      const uploadUrl = await this.uploadAudio(audioFilePath);
+      // Configurar parâmetros da transcrição
+      const params = {
+        audio: audioFilePath,
+        language_code: language === 'pt' ? 'pt' : 'en',
+        punctuate: true,
+        format_text: true,
+        // Opções adicionais para melhor qualidade
+        speaker_labels: false, // Não precisamos de identificação de falantes
+        auto_chapters: false,  // Não precisamos de capítulos
+        summarization: false,  // Não precisamos de resumo
+        sentiment_analysis: false, // Não precisamos de análise de sentimento
+      };
+
+      console.log('📤 Enviando arquivo para transcrição...');
       
-      // Depois, solicitar a transcrição
-      const transcriptionId = await this.requestTranscription(uploadUrl, language);
+      // Usar o SDK para transcrever (cuida automaticamente do upload e polling)
+      const transcript = await this.client.transcripts.transcribe(params);
       
-      // Aguardar e obter o resultado
-      const result = await this.waitForTranscription(transcriptionId);
+      // Verificar se houve erro
+      if (transcript.status === 'error') {
+        const errorMessage = transcript.error || 'Erro desconhecido na transcrição';
+        console.error('❌ Erro na transcrição:', errorMessage);
+        throw new Error(`Erro na transcrição: ${errorMessage}`);
+      }
       
-      return result.text || '';
+      // Verificar se a transcrição foi concluída
+      if (transcript.status !== 'completed') {
+        console.error('❌ Transcrição não foi concluída:', transcript.status);
+        throw new Error(`Transcrição falhou com status: ${transcript.status}`);
+      }
+
+      const transcriptionText = transcript.text || '';
+      
+      if (!transcriptionText.trim()) {
+        console.warn('⚠️ Transcrição retornou vazia');
+        throw new Error('Nenhum texto foi transcrito. Verifique se há fala no áudio.');
+      }
+
+      console.log('✅ Transcrição concluída com sucesso!');
+      console.log(`📝 Texto (${transcriptionText.length} caracteres): ${transcriptionText.substring(0, 100)}...`);
+      console.log(`📊 Confiança: ${transcript.confidence ? (transcript.confidence * 100).toFixed(1) : 'N/A'}%`);
+      console.log(`⏱️ Duração do áudio: ${transcript.audio_duration || 'N/A'}s`);
+      
+      return transcriptionText;
+      
     } catch (error) {
-      console.error('Erro na transcrição:', error);
+      console.error('❌ Erro durante transcrição:', error);
+      
+      // Melhorar mensagens de erro
+      if (error instanceof Error) {
+        if (error.message.includes('Invalid file format')) {
+          throw new Error('Formato de áudio não suportado. Tente gravar novamente.');
+        } else if (error.message.includes('File too large')) {
+          throw new Error('Arquivo de áudio muito grande. Tente uma gravação mais curta.');
+        } else if (error.message.includes('Invalid API key')) {
+          throw new Error('Chave API inválida. Verifique sua configuração.');
+        } else if (error.message.includes('Insufficient credits')) {
+          throw new Error('Créditos insuficientes na sua conta AssemblyAI.');
+        }
+      }
+      
       throw error;
     }
   }
 
-  private async uploadAudio(audioFilePath: string): Promise<string> {
-    const form = new FormData();
-    form.append('audio', fs.createReadStream(audioFilePath));
-
-    const response = await axios.post(`${this.baseURL}/upload`, form, {
-      headers: {
-        ...form.getHeaders(),
-        'authorization': this.apiKey,
-      },
-    });
-
-    if (response.data && response.data.upload_url) {
-      console.log('Upload do áudio concluído');
-      return response.data.upload_url;
-    } else {
-      throw new Error('Falha no upload do áudio');
+  async testConnection(): Promise<boolean> {
+    if (!this.client) {
+      return false;
     }
-  }
 
-  private async requestTranscription(audioUrl: string, language: string): Promise<string> {
-    const data = {
-      audio_url: audioUrl,
-      language_code: language === 'pt' ? 'pt' : 'en',
-      punctuate: true,
-      format_text: true,
-    };
-
-    const response = await axios.post(`${this.baseURL}/transcript`, data, {
-      headers: {
-        'authorization': this.apiKey,
-        'content-type': 'application/json',
-      },
-    });
-
-    if (response.data && response.data.id) {
-      console.log('Transcrição solicitada, ID:', response.data.id);
-      return response.data.id;
-    } else {
-      throw new Error('Falha ao solicitar transcrição');
-    }
-  }
-
-  private async waitForTranscription(transcriptionId: string): Promise<AssemblyAIResponse> {
-    const maxAttempts = 60; // 5 minutos máximo
-    let attempts = 0;
-
-    while (attempts < maxAttempts) {
-      const response = await axios.get(`${this.baseURL}/transcript/${transcriptionId}`, {
-        headers: {
-          'authorization': this.apiKey,
-        },
-      });
-
-      const result = response.data as AssemblyAIResponse;
+    try {
+      console.log('🧪 Testando conexão com AssemblyAI...');
       
-      console.log(`Status da transcrição: ${result.status}`);
-
-      if (result.status === 'completed') {
-        console.log('Transcrição concluída!');
-        return result;
-      } else if (result.status === 'error') {
-        throw new Error(`Erro na transcrição: ${result.error}`);
-      }
-
-      // Aguardar 5 segundos antes de verificar novamente
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      attempts++;
+      // Fazer uma chamada simples para testar a conexão e chave API
+      // Vamos tentar listar transcrições (sem usar nenhuma)
+      const response = await this.client.transcripts.list({ limit: 1 });
+      
+      console.log('✅ Conexão com AssemblyAI funcionando!');
+      return true;
+      
+    } catch (error) {
+      console.error('❌ Erro ao testar conexão:', error);
+      return false;
     }
-
-    throw new Error('Timeout aguardando transcrição');
   }
 
   setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
+    this.initializeClient();
+  }
+
+  getApiKey(): string {
+    return this.apiKey;
+  }
+
+  isConfigured(): boolean {
+    return this.client !== null && this.apiKey.trim().length > 0;
   }
 }

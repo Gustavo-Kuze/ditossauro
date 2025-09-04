@@ -1,8 +1,8 @@
 {
-  "name": "my-app",
-  "productName": "my-app",
+  "name": "voiceflow-ai",
+  "productName": "VoiceFlow AI",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Uma alternativa open source ao WisprFlow para transcrição de voz em tempo real",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",
@@ -28,6 +28,7 @@
     "@electron-forge/plugin-vite": "^7.8.3",
     "@electron/fuses": "^1.8.0",
     "@types/electron-squirrel-startup": "^1.0.2",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "electron": "38.0.0",
@@ -38,6 +39,11 @@
   },
   "dependencies": {
     "dotenv": "^17.2.2",
-    "electron-squirrel-startup": "^1.0.1"
+    "electron-squirrel-startup": "^1.0.1",
+    "node-record-lpcm16": "^1.0.1",
+    "robotjs": "^0.6.0",
+    "axios": "^1.7.2",
+    "form-data": "^4.0.0",
+    "uuid": "^10.0.0"
   }
 }

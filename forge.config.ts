@@ -9,9 +9,19 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    asar: {
+      unpack: '**/node_modules/{robotjs,node-record-lpcm16}/**/*',
+    },
+    ignore: [
+      /^\/src\//,
+      /(.eslintrc.json)|(.gitignore)|(electron.vite.config.ts)|(forge.env.d.ts)|(tsconfig.*\.json)|(vite.config.ts)/,
+    ],
   },
-  rebuildConfig: {},
+  rebuildConfig: {
+    buildPath: './node_modules',
+    onlyModules: ['robotjs', 'node-record-lpcm16'],
+    force: true,
+  },
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
   plugins: [
     new VitePlugin({

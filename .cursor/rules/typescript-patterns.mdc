@@ -1,0 +1,175 @@
+---
+globs: *.ts,*.tsx
+---
+
+# TypeScript Coding Patterns for OpenWispr
+
+## Type Definitions
+Always use the centralized type definitions from [types.ts](mdc:src/types.ts). Key interfaces:
+- `AppSettings`: Application configuration structure with nested objects (hotkeys, audio, api, behavior)
+- `TranscriptionSession`: Transcription results with metadata (id, timestamp, duration, confidence)
+- `RecordingState`: Current recording status with optional timing information
+
+## Class Architecture Patterns
+
+### Service Classes
+Follow the established service class pattern:
+```typescript
+export class ServiceName {
+  private dependency: DependencyType;
+  private config: ConfigType;
+
+  constructor(initialConfig: ConfigType) {
+    this.config = initialConfig;
+    this.initializeService();
+  }
+
+  private initializeService(): void {
+    // Setup logic here
+  }
+
+  public async mainMethod(): Promise<ResultType> {
+    // Main functionality
+  }
+
+  public setConfig(newConfig: ConfigType): void {
+    this.config = newConfig;
+    this.initializeService();
+  }
+}
+```
+
+### EventEmitter Pattern
+Core application classes extend EventEmitter for state change notifications:
+```typescript
+export class CoreClass extends EventEmitter {
+  constructor() {
+    super();
+    // initialization
+  }
+
+  private notifyStateChange(eventName: string, data?: any): void {
+    this.emit(eventName, data);
+  }
+}
+```
+
+## Error Handling Patterns
+
+### API Client Error Handling
+Follow the AssemblyAI client pattern for comprehensive error handling:
+```typescript
+try {
+  // API operation
+} catch (error) {
+  console.error('❌ Operation failed:', error);
+  
+  if (error instanceof Error) {
+    if (error.message.includes('specific_error_pattern')) {
+      throw new Error('User-friendly error message');
+    }
+  }
+  
+  throw error; // Re-throw if not handled
+}
+```
+
+### Console Logging
+Use emoji-prefixed console messages for better readability:
+- `✅` for successful operations
+- `❌` for errors
+- `⚠️` for warnings
+- `🔄` for processing states
+- `📦` for data operations
+- `🎤` for audio-related operations
+- `📝` for text operations
+
+## Async/Await Patterns
+Always use async/await instead of promises for better readability:
+```typescript
+// Good
+async method(): Promise<ResultType> {
+  try {
+    const result = await asyncOperation();
+    return result;
+  } catch (error) {
+    this.handleError(error);
+    throw error;
+  }
+}
+
+// Avoid
+method(): Promise<ResultType> {
+  return asyncOperation()
+    .then(result => result)
+    .catch(error => {
+      this.handleError(error);
+      throw error;
+    });
+}
+```
+
+## Settings Management Pattern
+Use the type-safe settings update pattern:
+```typescript
+updateSetting<K extends keyof AppSettings>(
+  category: K, 
+  setting: Partial<AppSettings[K]>
+): void {
+  const currentSettings = this.loadSettings();
+  currentSettings[category] = { ...currentSettings[category], ...setting };
+  this.saveSettings(currentSettings);
+}
+```
+
+## File System Operations
+Always use async file operations with proper error handling:
+```typescript
+try {
+  await fs.promises.writeFile(filePath, data);
+  console.log('File saved successfully');
+} catch (error) {
+  console.error('Failed to save file:', error);
+  throw error;
+}
+```
+
+## Buffer and Data Handling
+For audio data processing, use proper Buffer operations:
+```typescript
+// Convert between Buffer and arrays
+const buffer = Buffer.from(audioData);
+const arrayData = Array.from(buffer);
+
+// Always validate data before processing
+if (buffer.length === 0) {
+  throw new Error('Empty audio data');
+}
+```
+
+## IPC Type Safety
+Define handler return types explicitly:
+```typescript
+ipcMain.handle('handler-name', async (_, param: ParamType): Promise<ReturnType> => {
+  return await this.operation(param);
+});
+```
+
+## Cleanup Patterns
+Always implement proper cleanup in classes:
+```typescript
+destroy(): void {
+  // Stop ongoing operations
+  if (this.ongoingOperation) {
+    this.stopOperation().catch(console.error);
+  }
+  
+  // Remove event listeners
+  this.removeAllListeners();
+  
+  // Clear intervals/timeouts
+  if (this.interval) {
+    clearInterval(this.interval);
+  }
+}
+```

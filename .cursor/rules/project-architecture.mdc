@@ -1,0 +1,71 @@
+---
+alwaysApply: true
+---
+
+# OpenWispr Project Architecture Guide
+
+## Project Overview
+OpenWispr is an Electron-based voice transcription application that serves as an open-source alternative to WisprFlow. It provides real-time voice transcription using AssemblyAI API with global hotkeys and automatic text insertion.
+
+## Core Architecture
+
+### Main Process ([main.ts](mdc:src/main.ts))
+The main Electron process that:
+- Manages the application lifecycle, window creation, and system tray
+- Handles global shortcuts (F2 for start/stop recording, Escape for cancel)
+- Contains the `OpenWisprElectronApp` class managing the entire application
+- Injects Web Audio Recorder code into the renderer process
+- Manages IPC communication between main and renderer processes
+
+### Core Application Logic ([openwispr-app.ts](mdc:src/openwispr-app.ts))
+The `OpenWisprApp` class is the heart of the application, handling:
+- Recording state management and audio processing coordination
+- AssemblyAI client integration for transcription
+- Settings management and configuration updates
+- Transcription history tracking (last 50 sessions)
+- IPC handlers for all main functionality
+- Event emission for UI updates and notifications
+
+### Renderer Process ([renderer.ts](mdc:src/renderer.ts))
+The frontend interface that:
+- Provides the main UI with tabs for recording, settings, and history
+- Communicates with main process via IPC for all operations
+- Handles audio recording through injected Web Audio Recorder
+
+### Services Layer
+- **[assemblyai-client.ts](mdc:src/assemblyai-client.ts)**: AssemblyAI SDK integration with error handling and connection testing
+- **[audio-recorder.ts](mdc:src/audio-recorder.ts)**: Legacy audio recording (replaced by Web Audio API injection)
+- **[web-audio-recorder.ts](mdc:src/web-audio-recorder.ts)**: Web Audio API recorder implementation
+- **[text-inserter.ts](mdc:src/text-inserter.ts)**: Automated text insertion using robotjs
+- **[settings-manager.ts](mdc:src/settings-manager.ts)**: JSON-based settings persistence in userData directory
+
+## File Structure
+```
+src/
+├── main.ts              # Main Electron process & app lifecycle
+├── openwispr-app.ts     # Core application logic & state management  
+├── renderer.ts          # Frontend UI & user interaction
+├── preload.ts           # Secure IPC bridge for renderer
+├── types.ts             # TypeScript interfaces & type definitions
+├── assemblyai-client.ts # AssemblyAI API integration
+├── audio-recorder.ts    # Legacy audio recording (deprecated)
+├── web-audio-recorder.ts # Web Audio API implementation
+├── text-inserter.ts     # Automated text insertion
+├── settings-manager.ts  # Settings persistence & management
+├── audio-manager.ts     # Audio device management utilities
+└── index.css           # Application styling
+```
+
+## Communication Patterns
+- **Main ↔ Renderer**: IPC (Inter-Process Communication) via preload script
+- **Audio Capture**: Web Audio API in renderer → IPC → main process
+- **Settings**: JSON persistence in Electron userData directory
+- **Events**: EventEmitter pattern for internal state changes
+
+## Key Technologies
+- **Electron 38**: Desktop application framework
+- **TypeScript**: Type-safe development
+- **AssemblyAI SDK**: Voice transcription service
+- **Web Audio API**: Browser-based audio recording
+- **robotjs**: Cross-platform text insertion
+- **Vite**: Build tooling and development server

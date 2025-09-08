@@ -1,0 +1,86 @@
+---
+alwaysApply: true
+---
+
+# OpenWispr Development Rules Overview
+
+## Rule Categories
+
+This project uses focused Cursor Rules for different aspects of the OpenWispr Electron application:
+
+### 1. [Project Architecture](mdc:.cursor/rules/project-architecture.mdc)
+- **Always applies** - Core project structure and component relationships
+- Use when: Understanding overall architecture, adding new features, or onboarding
+- Key topics: Main process, core app logic, services layer, file structure
+
+### 2. [TypeScript Patterns](mdc:.cursor/rules/typescript-patterns.mdc)
+- **Applies to**: `*.ts`, `*.tsx` files
+- Use when: Writing TypeScript code, defining interfaces, error handling
+- Key topics: Class patterns, async/await, settings management, console logging
+
+### 3. [Electron Patterns](mdc:.cursor/rules/electron-patterns.mdc)
+- **Applies to**: `**/main.ts`, `**/preload.ts`
+- Use when: Working with Electron main process, system tray, global shortcuts
+- Key topics: Window management, tray integration, app lifecycle, security
+
+### 4. [API Integration](mdc:.cursor/rules/api-integration.mdc)
+- **Manual application** - AssemblyAI and external service patterns
+- Use when: Working with APIs, handling transcription, managing external services
+- Key topics: Client initialization, error handling, file processing
+
+### 5. [IPC Patterns](mdc:.cursor/rules/ipc-patterns.mdc)
+- **Manual application** - Inter-Process Communication patterns
+- Use when: Adding communication between main and renderer processes
+- Key topics: Handler registration, event broadcasting, preload security
+
+### 6. [Audio Processing](mdc:.cursor/rules/audio-processing.mdc)
+- **Manual application** - Audio capture and processing patterns
+- Use when: Working with audio recording, Web Audio API, or media handling
+- Key topics: Web Audio API, format detection, resource cleanup
+
+## Quick Reference Commands
+
+Ask Cursor to apply specific rules when needed:
+- "Apply the API integration patterns"
+- "Follow the audio processing patterns"
+- "Use the IPC communication patterns"
+
+## Development Workflow
+
+### New Features
+1. Check [project architecture](mdc:.cursor/rules/project-architecture.mdc) for component placement
+2. Follow [TypeScript patterns](mdc:.cursor/rules/typescript-patterns.mdc) for implementation
+3. Use [IPC patterns](mdc:.cursor/rules/ipc-patterns.mdc) for main↔renderer communication
+
+### Audio Features
+1. Reference [audio processing](mdc:.cursor/rules/audio-processing.mdc) for Web Audio API
+2. Follow [API integration](mdc:.cursor/rules/api-integration.mdc) for transcription services
+
+### Electron Features
+1. Use [Electron patterns](mdc:.cursor/rules/electron-patterns.mdc) for system integration
+2. Follow [IPC patterns](mdc:.cursor/rules/ipc-patterns.mdc) for process communication
+
+## Common Tasks
+
+### Adding New Settings
+1. Update [types.ts](mdc:src/types.ts) `AppSettings` interface
+2. Modify [settings-manager.ts](mdc:src/settings-manager.ts) defaults
+3. Add IPC handlers in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+4. Update renderer UI to use new settings
+
+### Adding New Recording Features
+1. Extend Web Audio Recorder injection in [main.ts](mdc:src/main.ts)
+2. Add processing logic in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+3. Follow [audio processing](mdc:.cursor/rules/audio-processing.mdc) patterns
+
+### Adding New API Integrations
+1. Create new client following [api-integration.mdc](mdc:.cursor/rules/api-integration.mdc)
+2. Add initialization in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+3. Implement proper error handling and logging
+
+## Key Files Reference
+- **[main.ts](mdc:src/main.ts)**: Main Electron process, system integration
+- **[openwispr-app.ts](mdc:src/openwispr-app.ts)**: Core application logic
+- **[types.ts](mdc:src/types.ts)**: TypeScript definitions
+- **[settings-manager.ts](mdc:src/settings-manager.ts)**: Configuration persistence
+- **[assemblyai-client.ts](mdc:src/assemblyai-client.ts)**: API integration

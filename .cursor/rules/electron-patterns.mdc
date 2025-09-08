@@ -1,0 +1,194 @@
+---
+globs: **/main.ts,**/preload.ts
+---
+
+# Electron Application Patterns for OpenWispr
+
+## Main Process Architecture
+
+### Application Class Structure
+Organize the main Electron process with a dedicated class:
+```typescript
+class ElectronApp {
+  private mainWindow: BrowserWindow | null = null;
+  private tray: Tray | null = null;
+  private isQuitting = false;
+
+  constructor() {
+    // Initialize core application logic
+  }
+
+  createWindow(): void { /* */ }
+  createTray(): void { /* */ }
+  setupGlobalShortcuts(): void { /* */ }
+  quit(): void { /* */ }
+}
+```
+
+### Window Management
+Always handle window lifecycle properly:
+```typescript
+createWindow(): void {
+  this.mainWindow = new BrowserWindow({
+    show: false, // Don't show initially
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  // Handle window close to minimize to tray instead of quitting
+  this.mainWindow.on('close', (event) => {
+    if (!this.isQuitting) {
+      event.preventDefault();
+      this.mainWindow?.hide();
+    }
+  });
+
+  // Show window only when ready
+  this.mainWindow.on('ready-to-show', () => {
+    this.mainWindow?.show();
+  });
+}
+```
+
+### System Tray Integration
+Implement comprehensive tray functionality:
+```typescript
+createTray(): void {
+  this.tray = new Tray(this.getAppIcon());
+  
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'App Name',
+      enabled: false, // Header item
+    },
+    { type: 'separator' },
+    {
+      label: 'Show App',
+      click: () => this.showWindow(),
+    },
+    {
+      label: 'Status',
+      type: 'submenu',
+      submenu: [
+        // Dynamic status items
+      ],
+    },
+  ]);
+
+  this.tray.setContextMenu(contextMenu);
+  this.tray.setToolTip('Application Name');
+}
+```
+
+### Global Shortcuts
+Register shortcuts with proper cleanup:
+```typescript
+setupGlobalShortcuts(): void {
+  const success = globalShortcut.register('F2', async () => {
+    // Shortcut handler
+  });
+
+  if (!success) {
+    console.error('Failed to register global shortcut');
+  }
+}
+
+// Always cleanup shortcuts
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
+```
+
+## Script Injection Pattern
+For browser-based functionality, inject scripts into renderer:
+```typescript
+private injectScripts(): void {
+  if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+
+  this.mainWindow.webContents.executeJavaScript(`
+    // Injected functionality here
+    class InjectedClass {
+      // Implementation
+    }
+    
+    window.injectedFeature = new InjectedClass();
+  `).catch(console.error);
+}
+```
+
+## App Lifecycle Management
+
+### Initialization Sequence
+```typescript
+app.whenReady().then(() => {
+  electronApp.createWindow();
+  electronApp.createTray();
+  electronApp.setupGlobalShortcuts();
+  electronApp.setupIpcHandlers();
+});
+```
+
+### Platform-specific Behavior
+```typescript
+app.on('window-all-closed', () => {
+  // Keep running on macOS when windows are closed
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', () => {
+  // Re-create window on macOS dock click
+  if (BrowserWindow.getAllWindows().length === 0) {
+    electronApp.createWindow();
+  }
+});
+```
+
+### Proper Cleanup
+```typescript
+quit(): void {
+  this.isQuitting = true;
+  globalShortcut.unregisterAll();
+  this.coreApp?.destroy(); // Cleanup application logic
+  app.quit();
+}
+```
+
+## Development vs Production
+Handle environment-specific behavior:
+```typescript
+// Development DevTools
+if (process.env.NODE_ENV === 'development') {
+  this.mainWindow.webContents.openDevTools();
+}
+
+// Load appropriate content
+if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+  this.mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+} else {
+  this.mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+}
+```
+
+## Notifications
+Use Electron notifications with proper checks:
+```typescript
+if (Notification.isSupported()) {
+  new Notification({
+    title: 'Application Name',
+    body: 'Notification message',
+  }).show();
+}
+```
+
+## Security Best Practices
+Always follow Electron security guidelines:
+- Set `nodeIntegration: false`
+- Set `contextIsolation: true`
+- Use preload scripts for safe IPC communication
+- Validate all IPC messages
+- Use CSP headers when possible

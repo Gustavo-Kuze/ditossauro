@@ -1,0 +1,274 @@
+---
+description: "IPC communication patterns between main and renderer processes"
+---
+
+# IPC Communication Patterns for OpenWispr
+
+## Main Process IPC Handlers
+
+### Handler Registration Pattern
+Register all IPC handlers in a dedicated setup method:
+```typescript
+private setupIPCHandlers(): void {
+  // Settings handlers
+  ipcMain.handle('get-settings', () => {
+    return this.settingsManager.loadSettings();
+  });
+
+  ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: any) => {
+    this.updateSettings(category, setting);
+    return true;
+  });
+
+  // Recording handlers
+  ipcMain.handle('start-recording', async () => {
+    await this.startRecording();
+  });
+
+  ipcMain.handle('stop-recording', async () => {
+    await this.stopRecording();
+  });
+
+  ipcMain.handle('get-recording-state', () => {
+    return this.getRecordingState();
+  });
+}
+```
+
+### Event-based Communication
+Use `ipcMain.on` for fire-and-forget events:
+```typescript
+// Audio events from renderer
+ipcMain.on('audio-event', (_, eventType: string, data?: any) => {
+  switch (eventType) {
+    case 'recording-started':
+      this.recordingState = { isRecording: true, startTime: new Date() };
+      this.emit('recording-started');
+      break;
+    case 'recording-stopped':
+      this.recordingState = { isRecording: false };
+      this.emit('recording-stopped', data);
+      break;
+    case 'error':
+      this.emit('error', new Error(data));
+      break;
+  }
+});
+
+// Hotkey update notifications
+ipcMain.on('hotkeys-updated', () => {
+  globalShortcut.unregisterAll();
+  this.setupGlobalShortcuts();
+});
+```
+
+### Data Processing Handlers
+Handle large data transfers (like audio) with proper error handling:
+```typescript
+ipcMain.handle('process-audio-data', async (_, audioData: number[], duration: number) => {
+  try {
+    return await this.processAudioData(audioData, duration);
+  } catch (error) {
+    console.error('Erro ao processar áudio:', error);
+    throw error;
+  }
+});
+```
+
+## Main to Renderer Communication
+
+### Event Broadcasting Pattern
+Send events from main to renderer for UI updates:
+```typescript
+private sendToRenderer(event: string, data?: any): void {
+  if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+    this.mainWindow.webContents.send(event, data);
+  }
+}
+
+// Usage in event handlers
+this.openWisprApp.on('transcription-completed', (session) => {
+  this.sendToRenderer('transcription-completed', session);
+});
+
+this.openWisprApp.on('recording-started', () => {
+  this.sendToRenderer('recording-started');
+  this.updateTrayMenu();
+});
+```
+
+### Navigation Commands
+Send navigation instructions to renderer:
+```typescript
+showWindow(page?: string): void {
+  if (!this.mainWindow) {
+    this.createWindow();
+  }
+
+  if (this.mainWindow) {
+    if (page) {
+      this.mainWindow.webContents.send('navigate-to', page);
+    }
+    
+    this.mainWindow.show();
+    this.mainWindow.focus();
+  }
+}
+```
+
+## Renderer Process IPC Usage
+
+### API Abstraction Layer
+Create a clean API abstraction in the renderer:
+```typescript
+// In renderer.ts
+const api = {
+  // Settings
+  getSettings: () => window.electronAPI.invoke('get-settings'),
+  updateSettings: (category: string, setting: any) => 
+    window.electronAPI.invoke('update-settings', category, setting),
+
+  // Recording
+  startRecording: () => window.electronAPI.invoke('start-recording'),
+  stopRecording: () => window.electronAPI.invoke('stop-recording'),
+  getRecordingState: () => window.electronAPI.invoke('get-recording-state'),
+
+  // Audio events
+  sendAudioEvent: (eventType: string, data?: any) => 
+    window.electronAPI.send('audio-event', eventType, data),
+  
+  // Data processing
+  processAudioData: (audioData: number[], duration: number) => 
+    window.electronAPI.invoke('process-audio-data', audioData, duration),
+};
+```
+
+### Event Listeners in Renderer
+Set up event listeners for main process events:
+```typescript
+// Listen for main process events
+window.electronAPI.on('recording-started', () => {
+  updateRecordingUI(true);
+});
+
+window.electronAPI.on('recording-stopped', () => {
+  updateRecordingUI(false);
+});
+
+window.electronAPI.on('transcription-completed', (session) => {
+  addTranscriptionToHistory(session);
+  showTranscriptionResult(session);
+});
+
+window.electronAPI.on('error', (errorMessage) => {
+  showErrorMessage(errorMessage);
+});
+
+window.electronAPI.on('navigate-to', (page) => {
+  navigateToPage(page);
+});
+```
+
+## Preload Script Patterns
+
+### Secure IPC Bridge
+Create a secure bridge in preload.ts:
+```typescript
+// In preload.ts
+import { contextBridge, ipcRenderer } from 'electron';
+
+const electronAPI = {
+  // Invoke-based handlers (async operations)
+  invoke: (channel: string, ...args: any[]) => {
+    const validChannels = [
+      'get-settings', 'update-settings',
+      'start-recording', 'stop-recording',
+      'process-audio-data', 'test-api'
+    ];
+    if (validChannels.includes(channel)) {
+      return ipcRenderer.invoke(channel, ...args);
+    }
+  },
+
+  // Send-based handlers (fire and forget)
+  send: (channel: string, ...args: any[]) => {
+    const validChannels = ['audio-event', 'hotkeys-updated'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.send(channel, ...args);
+    }
+  },
+
+  // Event listeners
+  on: (channel: string, func: (...args: any[]) => void) => {
+    const validChannels = [
+      'recording-started', 'recording-stopped',
+      'transcription-completed', 'error', 'navigate-to'
+    ];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.on(channel, (_, ...args) => func(...args));
+    }
+  },
+
+  // Remove listeners
+  removeListener: (channel: string, func: (...args: any[]) => void) => {
+    ipcRenderer.removeListener(channel, func);
+  }
+};
+
+contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+```
+
+## Error Handling in IPC
+
+### Async Handler Error Propagation
+Always propagate errors properly in async IPC handlers:
+```typescript
+ipcMain.handle('async-operation', async (_, param: any) => {
+  try {
+    const result = await performOperation(param);
+    return { success: true, data: result };
+  } catch (error) {
+    console.error('IPC handler error:', error);
+    // Return structured error or let it throw
+    throw error;
+  }
+});
+```
+
+### Renderer Error Handling
+Handle IPC errors gracefully in renderer:
+```typescript
+async function performUIAction() {
+  try {
+    const result = await window.electronAPI.invoke('async-operation', params);
+    handleSuccess(result);
+  } catch (error) {
+    console.error('IPC operation failed:', error);
+    showErrorMessage(error.message || 'Operation failed');
+  }
+}
+```
+
+## Type Safety for IPC
+
+### Channel Validation
+Always validate IPC channels to prevent security issues:
+```typescript
+const VALID_CHANNELS = {
+  invoke: [
+    'get-settings', 'update-settings',
+    'start-recording', 'stop-recording'
+  ],
+  send: [
+    'audio-event', 'hotkeys-updated'
+  ],
+  on: [
+    'recording-started', 'recording-stopped',
+    'transcription-completed'
+  ]
+} as const;
+
+function isValidChannel(type: keyof typeof VALID_CHANNELS, channel: string): boolean {
+  return VALID_CHANNELS[type].includes(channel as any);
+}
+```

@@ -1,0 +1,232 @@
+---
+description: "AssemblyAI API integration and external service patterns"
+---
+
+# AssemblyAI and External API Integration Patterns
+
+## AssemblyAI Client Architecture
+
+### Client Initialization Pattern
+Follow the lazy initialization pattern from [assemblyai-client.ts](mdc:src/assemblyai-client.ts):
+```typescript
+export class ApiClient {
+  private client: ExternalClient | null = null;
+  private apiKey: string;
+
+  constructor(apiKey: string) {
+    this.apiKey = apiKey;
+    this.initializeClient();
+  }
+
+  private initializeClient(): void {
+    if (this.apiKey && this.apiKey.trim()) {
+      this.client = new ExternalClient({ apiKey: this.apiKey });
+      console.log('✅ Client initialized');
+    } else {
+      this.client = null;
+      console.log('⚠️ API key not provided');
+    }
+  }
+
+  setApiKey(apiKey: string): void {
+    this.apiKey = apiKey;
+    this.initializeClient();
+  }
+
+  isConfigured(): boolean {
+    return this.client !== null && this.apiKey.trim().length > 0;
+  }
+}
+```
+
+### Transcription Parameters
+Use AssemblyAI optimized settings for voice transcription:
+```typescript
+const params = {
+  audio: audioFilePath,
+  language_code: language === 'pt' ? 'pt' : 'en',
+  punctuate: true,
+  format_text: true,
+  // Disable unnecessary features for performance
+  speaker_labels: false,
+  auto_chapters: false,
+  summarization: false,
+  sentiment_analysis: false,
+};
+```
+
+### Error Handling for API Services
+Implement comprehensive error handling with user-friendly messages:
+```typescript
+async performApiOperation(): Promise<ResultType> {
+  if (!this.client) {
+    throw new Error('Client not initialized. Check API configuration.');
+  }
+
+  try {
+    console.log('🚀 Starting API operation...');
+    const result = await this.client.operation(params);
+    
+    // Validate result status
+    if (result.status === 'error') {
+      throw new Error(`API error: ${result.error || 'Unknown error'}`);
+    }
+    
+    if (result.status !== 'completed') {
+      throw new Error(`Operation failed with status: ${result.status}`);
+    }
+
+    console.log('✅ API operation completed successfully!');
+    return result;
+    
+  } catch (error) {
+    console.error('❌ API operation failed:', error);
+    
+    // Transform technical errors into user-friendly messages
+    if (error instanceof Error) {
+      if (error.message.includes('Invalid file format')) {
+        throw new Error('Audio format not supported. Try recording again.');
+      } else if (error.message.includes('Invalid API key')) {
+        throw new Error('Invalid API key. Check your configuration.');
+      } else if (error.message.includes('Insufficient credits')) {
+        throw new Error('Insufficient API credits.');
+      }
+    }
+    
+    throw error;
+  }
+}
+```
+
+### Connection Testing
+Always provide API connection testing capability:
+```typescript
+async testConnection(): Promise<boolean> {
+  if (!this.client) {
+    return false;
+  }
+
+  try {
+    console.log('🧪 Testing API connection...');
+    
+    // Make a minimal API call to verify connection
+    await this.client.simpleOperation({ limit: 1 });
+    
+    console.log('✅ API connection working!');
+    return true;
+    
+  } catch (error) {
+    console.error('❌ API connection test failed:', error);
+    return false;
+  }
+}
+```
+
+## Audio File Processing for APIs
+
+### File Format Detection
+Detect and handle different audio formats:
+```typescript
+private detectAudioFormat(buffer: Buffer): { extension: string; mimeType: string } {
+  if (buffer.length < 4) {
+    return { extension: '.webm', mimeType: 'audio/webm' };
+  }
+
+  const header = buffer.toString('hex', 0, 4);
+  
+  // WebM header starts with 0x1A45DFA3
+  if (buffer[0] === 0x1A && buffer[1] === 0x45) {
+    return { extension: '.webm', mimeType: 'audio/webm' };
+  }
+  // WAV header "RIFF"
+  else if (buffer.toString('ascii', 0, 4) === 'RIFF') {
+    return { extension: '.wav', mimeType: 'audio/wav' };
+  }
+  // MP4/M4A header
+  else if (buffer.toString('ascii', 4, 8) === 'ftyp') {
+    return { extension: '.m4a', mimeType: 'audio/mp4' };
+  }
+  
+  return { extension: '.webm', mimeType: 'audio/webm' };
+}
+```
+
+### Temporary File Management
+Handle temporary files for API uploads:
+```typescript
+private async createTempAudioFile(audioData: number[]): Promise<string> {
+  const buffer = Buffer.from(audioData);
+  const { extension } = this.detectAudioFormat(buffer);
+  const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}${extension}`);
+  
+  await fs.promises.writeFile(tempFilePath, buffer);
+  console.log(`💾 Audio saved: ${tempFilePath} (${buffer.length} bytes)`);
+  
+  return tempFilePath;
+}
+
+private cleanupTempFile(filePath: string): void {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('🗑️ Temporary file removed:', filePath);
+    }
+  } catch (error) {
+    console.error('❌ Error removing temporary file:', error);
+  }
+}
+```
+
+## API Response Processing
+
+### Result Validation and Logging
+Always validate and log API responses comprehensively:
+```typescript
+private processApiResult(result: ApiResult): string {
+  const transcription = result.text || '';
+  
+  if (!transcription.trim()) {
+    console.warn('⚠️ Empty transcription returned');
+    throw new Error('No text was transcribed. Check audio quality.');
+  }
+
+  console.log('✅ Transcription completed successfully!');
+  console.log(`📝 Text (${transcription.length} chars): ${transcription.substring(0, 100)}...`);
+  console.log(`📊 Confidence: ${result.confidence ? (result.confidence * 100).toFixed(1) : 'N/A'}%`);
+  console.log(`⏱️ Duration: ${result.audio_duration || 'N/A'}s`);
+  
+  return transcription;
+}
+```
+
+## Environment Configuration
+
+### API Key Management
+Handle API keys from environment and settings:
+```typescript
+// In settings defaults
+api: {
+  assemblyAiKey: process.env.ASSEMBLYAI_API_KEY || '',
+  language: 'pt'
+}
+
+// Validate API key format
+private isValidApiKey(apiKey: string): boolean {
+  return apiKey && apiKey.trim().length > 10 && !apiKey.includes(' ');
+}
+```
+
+### Language Configuration
+Support multiple languages with proper mapping:
+```typescript
+private getLanguageCode(language: string): string {
+  const languageMap: Record<string, string> = {
+    'pt': 'pt',
+    'en': 'en',
+    'português': 'pt',
+    'english': 'en'
+  };
+  
+  return languageMap[language.toLowerCase()] || 'en';
+}
+```

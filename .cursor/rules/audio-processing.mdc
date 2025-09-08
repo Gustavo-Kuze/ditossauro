@@ -1,0 +1,315 @@
+---
+description: "Audio processing patterns and Web Audio API integration"
+---
+
+# Audio Processing and Web Audio API Patterns
+
+## Web Audio API Integration
+
+### Audio Recorder Class Structure
+Create a comprehensive audio recorder class in the renderer process:
+```typescript
+class WebAudioRecorderRenderer {
+  private mediaRecorder: MediaRecorder | null = null;
+  private audioChunks: Blob[] = [];
+  private isRecording: boolean = false;
+  private startTime: number | null = null;
+  private stream: MediaStream | null = null;
+
+  constructor() {
+    // Initialize properties
+  }
+
+  async startRecording(): Promise<boolean> { /* Implementation */ }
+  async stopRecording(): Promise<any> { /* Implementation */ }
+  getRecordingState(): { isRecording: boolean } { /* Implementation */ }
+  async getAudioDevices(): Promise<MediaDeviceInfo[]> { /* Implementation */ }
+}
+```
+
+### Audio Constraints Configuration
+Use optimized audio constraints for speech recognition:
+```typescript
+const audioConstraints = {
+  audio: {
+    sampleRate: 16000,        // Optimal for speech recognition
+    channelCount: 1,          // Mono audio sufficient for speech
+    echoCancellation: true,   // Remove echo
+    noiseSuppression: true,   // Reduce background noise
+    autoGainControl: true,    // Normalize volume levels
+  }
+};
+
+const stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+```
+
+### Media Recorder Format Detection
+Implement format fallback for cross-platform compatibility:
+```typescript
+private getMediaRecorderOptions(): MediaRecorderOptions {
+  // Try formats in order of preference
+  const preferredFormats = [
+    'audio/wav',
+    'audio/webm;codecs=opus',
+    'audio/webm',
+    'audio/mp4'
+  ];
+
+  for (const format of preferredFormats) {
+    if (MediaRecorder.isTypeSupported(format)) {
+      console.log(`📻 Using format: ${format}`);
+      return { mimeType: format };
+    }
+  }
+
+  console.log('📻 Using browser default format');
+  return {};
+}
+```
+
+### Audio Recording Workflow
+Implement complete recording workflow with proper error handling:
+```typescript
+async startRecording(): Promise<boolean> {
+  if (this.isRecording) {
+    console.log('⚠️ Already recording...');
+    return false;
+  }
+
+  try {
+    console.log('🎤 Starting Web Audio recording...');
+    
+    this.stream = await navigator.mediaDevices.getUserMedia(audioConstraints);
+    const options = this.getMediaRecorderOptions();
+    
+    this.mediaRecorder = new MediaRecorder(this.stream, options);
+    this.audioChunks = [];
+    this.isRecording = true;
+    this.startTime = Date.now();
+
+    this.mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        this.audioChunks.push(event.data);
+      }
+    };
+
+    this.mediaRecorder.start(100); // Collect data every 100ms
+    
+    // Notify main process
+    window.electronAPI.sendAudioEvent('recording-started');
+    return true;
+    
+  } catch (error) {
+    this.isRecording = false;
+    const errorMessage = this.getAudioErrorMessage(error);
+    window.electronAPI.sendAudioEvent('error', errorMessage);
+    throw new Error(errorMessage);
+  }
+}
+```
+
+## Audio Error Handling
+
+### User-Friendly Error Messages
+Transform browser audio errors into actionable messages:
+```typescript
+private getAudioErrorMessage(error: any): string {
+  if (error.name === 'NotAllowedError') {
+    return 'Microphone access denied. Please allow microphone access in browser settings.';
+  } else if (error.name === 'NotFoundError') {
+    return 'No microphone found. Please connect a microphone and try again.';
+  } else if (error.name === 'NotReadableError') {
+    return 'Microphone is being used by another application. Please close other apps and try again.';
+  } else if (error.name === 'OverconstrainedError') {
+    return 'Microphone does not support the required settings. Try a different microphone.';
+  }
+  return 'Unable to access microphone. Please check your audio settings.';
+}
+```
+
+## Audio Data Processing
+
+### Audio Format Detection in Main Process
+Detect audio format from binary data:
+```typescript
+private detectAudioFormat(buffer: Buffer): { extension: string; mimeType: string } {
+  if (buffer.length < 8) {
+    return { extension: '.webm', mimeType: 'audio/webm' };
+  }
+
+  // WebM header: starts with 0x1A45DFA3
+  if (buffer[0] === 0x1A && buffer[1] === 0x45) {
+    return { extension: '.webm', mimeType: 'audio/webm' };
+  }
+  
+  // WAV header: "RIFF" at start, "WAVE" at offset 8
+  if (buffer.toString('ascii', 0, 4) === 'RIFF' && 
+      buffer.toString('ascii', 8, 12) === 'WAVE') {
+    return { extension: '.wav', mimeType: 'audio/wav' };
+  }
+  
+  // MP4/M4A header: "ftyp" at offset 4
+  if (buffer.toString('ascii', 4, 8) === 'ftyp') {
+    return { extension: '.m4a', mimeType: 'audio/mp4' };
+  }
+
+  // Default to WebM
+  return { extension: '.webm', mimeType: 'audio/webm' };
+}
+```
+
+### Audio Data Transfer Pattern
+Transfer audio data from renderer to main process:
+```typescript
+// In renderer (Web Audio Recorder)
+async stopRecording(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const duration = this.startTime ? (Date.now() - this.startTime) / 1000 : 0;
+    
+    this.mediaRecorder!.onstop = async () => {
+      try {
+        if (this.audioChunks.length === 0) {
+          throw new Error('No audio data recorded');
+        }
+
+        const mimeType = this.audioChunks[0]?.type || 'audio/webm';
+        const audioBlob = new Blob(this.audioChunks, { type: mimeType });
+        
+        if (audioBlob.size === 0) {
+          throw new Error('Empty audio file');
+        }
+        
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        console.log(`📦 Audio captured: ${uint8Array.length} bytes, ${duration.toFixed(1)}s`);
+        
+        // Send to main process for processing
+        const result = await window.electronAPI.processAudioData(
+          Array.from(uint8Array), 
+          duration
+        );
+        resolve(result);
+      } catch (error) {
+        reject(error);
+      }
+    };
+
+    this.mediaRecorder!.stop();
+    this.cleanup();
+  });
+}
+```
+
+### Audio Buffer Management
+Handle audio buffer operations safely:
+```typescript
+// In main process
+private async processAudioData(audioData: number[], duration: number): Promise<any> {
+  const buffer = Buffer.from(audioData);
+  
+  if (buffer.length === 0) {
+    throw new Error('Empty audio buffer received');
+  }
+  
+  console.log(`📦 Processing audio: ${buffer.length} bytes, ${duration.toFixed(1)}s`);
+  
+  const { extension, mimeType } = this.detectAudioFormat(buffer);
+  const tempFilePath = this.createTempAudioFile(buffer, extension);
+  
+  try {
+    await this.processRecording({ audioFile: tempFilePath, duration });
+    return { audioFile: tempFilePath, duration };
+  } finally {
+    this.cleanupTempFile(tempFilePath);
+  }
+}
+```
+
+## Audio Device Management
+
+### Device Enumeration
+Provide audio device selection functionality:
+```typescript
+async getAudioDevices(): Promise<MediaDeviceInfo[]> {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioInputs = devices.filter(device => device.kind === 'audioinput');
+    
+    console.log(`🎤 Found ${audioInputs.length} audio input devices`);
+    return audioInputs;
+  } catch (error) {
+    console.error('Error enumerating devices:', error);
+    return [];
+  }
+}
+```
+
+### Device Selection
+Allow users to select specific audio input devices:
+```typescript
+async startRecordingWithDevice(deviceId?: string): Promise<boolean> {
+  const constraints = {
+    audio: {
+      deviceId: deviceId ? { exact: deviceId } : undefined,
+      sampleRate: 16000,
+      channelCount: 1,
+      // ... other constraints
+    }
+  };
+
+  try {
+    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+    // Continue with recording setup...
+  } catch (error) {
+    if (error.name === 'OverconstrainedError') {
+      // Fallback to default device
+      return this.startRecordingWithDevice();
+    }
+    throw error;
+  }
+}
+```
+
+## Cleanup and Resource Management
+
+### Proper Resource Cleanup
+Always clean up audio resources:
+```typescript
+private cleanup(): void {
+  this.isRecording = false;
+  
+  if (this.stream) {
+    this.stream.getTracks().forEach(track => track.stop());
+    this.stream = null;
+  }
+  
+  if (this.mediaRecorder) {
+    this.mediaRecorder = null;
+  }
+  
+  this.audioChunks = [];
+  this.startTime = null;
+}
+```
+
+### Temporary File Management
+Handle temporary audio files securely:
+```typescript
+private createTempAudioFile(buffer: Buffer, extension: string): string {
+  const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}${extension}`);
+  fs.writeFileSync(tempFilePath, buffer);
+  return tempFilePath;
+}
+
+private cleanupTempFile(filePath: string): void {
+  try {
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      console.log('🗑️ Temporary audio file cleaned up');
+    }
+  } catch (error) {
+    console.error('❌ Error cleaning up temporary file:', error);
+  }
+}
+```

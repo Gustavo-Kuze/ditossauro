@@ -1,6 +1,6 @@
 import './index.css';
 
-class VoiceFlowUI {
+class OpenWisprUI {
   private currentTab = 'home';
   private settings: any = null;
   private recordingState = { isRecording: false };
@@ -19,7 +19,7 @@ class VoiceFlowUI {
       this.setupUI();
       this.setupEventListeners();
       this.updateRecordingStatus();
-      console.log('✅ VoiceFlow AI inicializado');
+      console.log('✅ OpenWispr inicializado');
     } catch (error) {
       console.error('❌ Erro:', error);
       alert('Erro ao inicializar aplicativo');
@@ -30,7 +30,7 @@ class VoiceFlowUI {
     const app = document.getElementById('app')!;
     app.innerHTML = `
       <div class="header">
-        <div class="logo"><h1>🎤 VoiceFlow AI</h1></div>
+        <div class="logo"><h1>🎤 OpenWispr</h1></div>
         <div class="header-controls">
           <div class="status-indicator" id="globalStatus">
             <span>Pronto</span>
@@ -110,7 +110,7 @@ class VoiceFlowUI {
 
         <div id="aboutTab" class="tab-content hidden">
           <div class="card text-center">
-            <h2>🎤 VoiceFlow AI</h2>
+            <h2>🎤 OpenWispr</h2>
             <p>Alternativa open source para transcrição de voz</p>
             <p><strong>Versão:</strong> 1.0.0</p>
           </div>
@@ -277,5 +277,5 @@ class VoiceFlowUI {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new VoiceFlowUI();
+  new OpenWisprUI();
 });

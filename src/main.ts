@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, N
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
-import { VoiceFlowApp } from './voice-flow-app';
+import { OpenWisprApp } from './openwispr-app';
 import { AppSettings } from './types';
 
 dotenv.config();
@@ -12,16 +12,16 @@ if (started) {
   app.quit();
 }
 
-class VoiceFlowElectronApp {
+class OpenWisprElectronApp {
   private mainWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
-  private voiceFlowApp: VoiceFlowApp;
+  private openWisprApp: OpenWisprApp;
   private isQuitting = false;
 
   constructor() {
-    // Inicializar VoiceFlowApp para registrar handlers IPC
-    this.voiceFlowApp = new VoiceFlowApp();
-    this.setupVoiceFlowListeners();
+    // Inicializar OpenWisprApp para registrar handlers IPC
+    this.openWisprApp = new OpenWisprApp();
+    this.setupOpenWisprListeners();
   }
 
   createWindow(): void {
@@ -56,7 +56,7 @@ class VoiceFlowElectronApp {
         // Mostrar notificação informando que o app continua rodando
         if (Notification.isSupported()) {
           new Notification({
-            title: 'VoiceFlow AI',
+            title: 'OpenWispr',
             body: 'Aplicativo minimizado para a bandeja do sistema',
           }).show();
         }
@@ -64,14 +64,14 @@ class VoiceFlowElectronApp {
     });
 
     this.mainWindow.on('ready-to-show', () => {
-      // Atualizar referência da janela no VoiceFlowApp
-      this.voiceFlowApp.setMainWindow(this.mainWindow);
+      // Atualizar referência da janela no OpenWisprApp
+      this.openWisprApp.setMainWindow(this.mainWindow);
       
       // Injetar Web Audio Recorder
       this.injectWebAudioRecorder();
       
       // Mostrar apenas se não for para iniciar minimizado
-      const settings = this.voiceFlowApp.getSettings();
+      const settings = this.openWisprApp.getSettings();
       if (!settings.behavior?.startMinimized) {
         this.mainWindow?.show();
       }
@@ -89,7 +89,7 @@ class VoiceFlowElectronApp {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'VoiceFlow AI',
+        label: 'OpenWispr',
         type: 'normal',
         enabled: false,
       },
@@ -106,7 +106,7 @@ class VoiceFlowElectronApp {
         type: 'submenu',
         submenu: [
           {
-            label: this.voiceFlowApp.getRecordingState().isRecording ? '🎤 Gravando...' : '⏹️ Parado',
+            label: this.openWisprApp.getRecordingState().isRecording ? '🎤 Gravando...' : '⏹️ Parado',
             enabled: false,
           },
           {
@@ -114,13 +114,13 @@ class VoiceFlowElectronApp {
           },
           {
             label: 'Iniciar Gravação',
-            click: () => this.voiceFlowApp.startRecording().catch(console.error),
-            enabled: !this.voiceFlowApp.getRecordingState().isRecording,
+            click: () => this.openWisprApp.startRecording().catch(console.error),
+            enabled: !this.openWisprApp.getRecordingState().isRecording,
           },
           {
             label: 'Parar Gravação',
-            click: () => this.voiceFlowApp.stopRecording().catch(console.error),
-            enabled: this.voiceFlowApp.getRecordingState().isRecording,
+            click: () => this.openWisprApp.stopRecording().catch(console.error),
+            enabled: this.openWisprApp.getRecordingState().isRecording,
           },
         ],
       },
@@ -148,7 +148,7 @@ class VoiceFlowElectronApp {
     ]);
 
     this.tray.setContextMenu(contextMenu);
-    this.tray.setToolTip('VoiceFlow AI - Transcrição de Voz');
+    this.tray.setToolTip('OpenWispr - Transcrição de Voz');
 
     this.tray.on('click', () => {
       this.showWindow();
@@ -156,18 +156,18 @@ class VoiceFlowElectronApp {
   }
 
   setupGlobalShortcuts(): void {
-    const settings = this.voiceFlowApp.getSettings();
+    const settings = this.openWisprApp.getSettings();
 
     // Registrar hotkey para iniciar/parar gravação
     const startStopShortcut = settings.hotkeys.startStop;
     if (startStopShortcut) {
       const success = globalShortcut.register(startStopShortcut, async () => {
-        const isRecording = this.voiceFlowApp.getRecordingState().isRecording;
+        const isRecording = this.openWisprApp.getRecordingState().isRecording;
         
         if (isRecording) {
-          await this.voiceFlowApp.stopRecording();
+          await this.openWisprApp.stopRecording();
         } else {
-          await this.voiceFlowApp.startRecording();
+          await this.openWisprApp.startRecording();
         }
       });
 
@@ -182,7 +182,7 @@ class VoiceFlowElectronApp {
     const cancelShortcut = settings.hotkeys.cancel;
     if (cancelShortcut) {
       globalShortcut.register(cancelShortcut, () => {
-        if (this.voiceFlowApp.getRecordingState().isRecording) {
+        if (this.openWisprApp.getRecordingState().isRecording) {
           // Para a gravação sem processar
           console.log('⏹️ Gravação cancelada pelo usuário');
         }
@@ -191,7 +191,7 @@ class VoiceFlowElectronApp {
   }
 
   setupIpcHandlers(): void {
-    // Handlers específicos do Electron App (não do VoiceFlowApp)
+    // Handlers específicos do Electron App (não do OpenWisprApp)
     
     // Reregistrar hotkeys quando configurações de hotkey mudarem
     ipcMain.on('hotkeys-updated', () => {
@@ -200,22 +200,22 @@ class VoiceFlowElectronApp {
     });
   }
 
-  setupVoiceFlowListeners(): void {
-    this.voiceFlowApp.on('recording-started', () => {
+  setupOpenWisprListeners(): void {
+    this.openWisprApp.on('recording-started', () => {
       this.sendToRenderer('recording-started');
       this.updateTrayMenu();
     });
 
-    this.voiceFlowApp.on('recording-stopped', () => {
+    this.openWisprApp.on('recording-stopped', () => {
       this.sendToRenderer('recording-stopped');
       this.updateTrayMenu();
     });
 
-    this.voiceFlowApp.on('processing-started', () => {
+    this.openWisprApp.on('processing-started', () => {
       this.sendToRenderer('processing-started');
     });
 
-    this.voiceFlowApp.on('transcription-completed', (session) => {
+    this.openWisprApp.on('transcription-completed', (session) => {
       this.sendToRenderer('transcription-completed', session);
       
       if (Notification.isSupported()) {
@@ -226,12 +226,12 @@ class VoiceFlowElectronApp {
       }
     });
 
-    this.voiceFlowApp.on('text-inserted', (text) => {
+    this.openWisprApp.on('text-inserted', (text) => {
       this.sendToRenderer('text-inserted', text);
     });
 
-    this.voiceFlowApp.on('error', (error) => {
-      console.error('VoiceFlow Error:', error);
+    this.openWisprApp.on('error', (error) => {
+      console.error('OpenWispr Error:', error);
       this.sendToRenderer('error', error.message);
     });
   }
@@ -246,11 +246,11 @@ class VoiceFlowElectronApp {
     if (!this.tray) return;
     
     // Recriar o menu ao invés de tentar atualizar o existente
-    const isRecording = this.voiceFlowApp.getRecordingState().isRecording;
+    const isRecording = this.openWisprApp.getRecordingState().isRecording;
     
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'VoiceFlow AI',
+        label: 'OpenWispr',
         type: 'normal',
         enabled: false,
       },
@@ -275,12 +275,12 @@ class VoiceFlowElectronApp {
           },
           {
             label: 'Iniciar Gravação',
-            click: () => this.voiceFlowApp.startRecording().catch(console.error),
+            click: () => this.openWisprApp.startRecording().catch(console.error),
             enabled: !isRecording,
           },
           {
             label: 'Parar Gravação',
-            click: () => this.voiceFlowApp.stopRecording().catch(console.error),
+            click: () => this.openWisprApp.stopRecording().catch(console.error),
             enabled: isRecording,
           },
         ],
@@ -329,7 +329,7 @@ class VoiceFlowElectronApp {
   quit(): void {
     this.isQuitting = true;
     globalShortcut.unregisterAll();
-    this.voiceFlowApp.destroy();
+    this.openWisprApp.destroy();
     app.quit();
   }
 
@@ -501,19 +501,19 @@ class VoiceFlowElectronApp {
 }
 
 // Inicializar aplicação
-const voiceFlowElectronApp = new VoiceFlowElectronApp();
+const openWisprElectronApp = new OpenWisprElectronApp();
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.whenReady().then(() => {
-  voiceFlowElectronApp.createWindow();
-  voiceFlowElectronApp.createTray();
-  voiceFlowElectronApp.setupGlobalShortcuts();
-  voiceFlowElectronApp.setupIpcHandlers();
+  openWisprElectronApp.createWindow();
+  openWisprElectronApp.createTray();
+  openWisprElectronApp.setupGlobalShortcuts();
+  openWisprElectronApp.setupIpcHandlers();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      voiceFlowElectronApp.createWindow();
+      openWisprElectronApp.createWindow();
     }
   });
 });
@@ -521,7 +521,7 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    voiceFlowElectronApp.quit();
+    openWisprElectronApp.quit();
   }
 });
 

@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ipcMain } from 'electron';
 
-export class VoiceFlowApp extends EventEmitter {
+export class OpenWisprApp extends EventEmitter {
   private assemblyClient: AssemblyAIClient;
   private settingsManager: SettingsManager;
   private recordingState: RecordingState = { isRecording: false };

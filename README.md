@@ -1,4 +1,4 @@
-# 🎤 VoiceFlow AI
+# 🎤 OpenWispr
 
 Uma alternativa open source ao WisprFlow para transcrição de voz em tempo real.
 
@@ -26,7 +26,7 @@ Uma alternativa open source ao WisprFlow para transcrição de voz em tempo real
 1. **Clone o repositório:**
    \`\`\`bash
    git clone <repo-url>
-   cd voiceflow-ai
+   cd openwispr
    \`\`\`
 
 2. **Instale as dependências:**
@@ -76,7 +76,7 @@ src/
 ├── preload.ts           # Script de preload (API segura)
 ├── renderer.ts          # Interface de usuário
 ├── types.ts             # Definições TypeScript
-├── voice-flow-app.ts    # Lógica principal da aplicação
+├── openwispr-app.ts     # Lógica principal da aplicação
 ├── audio-recorder.ts    # Captura de áudio
 ├── assemblyai-client.ts # Cliente da API AssemblyAI
 ├── text-inserter.ts     # Inserção de texto

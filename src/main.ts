@@ -1,9 +1,8 @@
-import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, Notification } from 'electron';
+import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, Notification, NativeImage } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 import { OpenWisprApp } from './openwispr-app';
-import { AppSettings } from './types';
 
 dotenv.config();
 
@@ -236,7 +235,7 @@ class OpenWisprElectronApp {
     });
   }
 
-  sendToRenderer(event: string, data?: any): void {
+  sendToRenderer(event: string, data?: unknown): void {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       this.mainWindow.webContents.send(event, data);
     }
@@ -333,7 +332,7 @@ class OpenWisprElectronApp {
     app.quit();
   }
 
-  private getAppIcon(): nativeImage {
+  private getAppIcon(): NativeImage {
     // Criar um ícone simples programaticamente ou usar um arquivo
     // Por simplicidade, retornamos um ícone vazio
     return nativeImage.createEmpty();

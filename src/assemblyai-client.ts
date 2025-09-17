@@ -1,6 +1,7 @@
 import { AssemblyAI } from 'assemblyai';
+import { ITranscriptionProvider, AssemblyAIConfig } from './transcription-provider';
 
-export class AssemblyAIClient {
+export class AssemblyAIClient implements ITranscriptionProvider {
   private client: AssemblyAI | null = null;
   private apiKey: string;
 
@@ -21,7 +22,7 @@ export class AssemblyAIClient {
     }
   }
 
-  async transcribeAudio(audioFilePath: string, language: string = 'pt'): Promise<string> {
+  async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<string> {
     if (!this.client) {
       throw new Error('Cliente AssemblyAI não foi inicializado. Verifique a chave API.');
     }
@@ -106,7 +107,7 @@ export class AssemblyAIClient {
       
       // Fazer uma chamada simples para testar a conexão e chave API
       // Vamos tentar listar transcrições (sem usar nenhuma)
-      const response = await this.client.transcripts.list({ limit: 1 });
+      await this.client.transcripts.list({ limit: 1 });
       
       console.log('✅ Conexão com AssemblyAI funcionando!');
       return true;
@@ -114,6 +115,17 @@ export class AssemblyAIClient {
     } catch (error) {
       console.error('❌ Erro ao testar conexão:', error);
       return false;
+    }
+  }
+
+  getProviderName(): string {
+    return 'AssemblyAI';
+  }
+
+  setConfig(config: Record<string, unknown>): void {
+    const assemblyConfig = config as unknown as AssemblyAIConfig;
+    if (assemblyConfig.apiKey) {
+      this.setApiKey(assemblyConfig.apiKey);
     }
   }
 

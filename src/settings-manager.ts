@@ -18,10 +18,20 @@ export class SettingsManager {
       assemblyAiKey: process.env.ASSEMBLYAI_API_KEY || '',
       language: 'pt'
     },
+    transcription: {
+      provider: 'assemblyai' as const,
+      fasterWhisper: {
+        modelSize: 'base' as const,
+        device: 'cpu' as const,
+        computeType: 'int8' as const,
+        pythonPath: 'python'
+      }
+    },
     behavior: {
       autoInsert: true,
       showConfirmation: false,
-      useClipboard: true
+      useClipboard: true,
+      startMinimized: false
     }
   };
 
@@ -49,6 +59,14 @@ export class SettingsManager {
         hotkeys: { ...this.defaultSettings.hotkeys, ...settings.hotkeys },
         audio: { ...this.defaultSettings.audio, ...settings.audio },
         api: { ...this.defaultSettings.api, ...settings.api },
+        transcription: { 
+          ...this.defaultSettings.transcription, 
+          ...settings.transcription,
+          fasterWhisper: { 
+            ...this.defaultSettings.transcription.fasterWhisper, 
+            ...(settings.transcription?.fasterWhisper || {}) 
+          }
+        },
         behavior: { ...this.defaultSettings.behavior, ...settings.behavior }
       };
     } catch (error) {

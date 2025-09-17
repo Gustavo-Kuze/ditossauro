@@ -356,3 +356,70 @@ body {
 .mt-3 { margin-top: 1rem; }
 .mb-3 { margin-bottom: 1rem; }
 .hidden { display: none !important; }
+
+/* Provider Configuration Styles */
+.provider-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-ok {
+  color: #16a085;
+}
+
+.status-error {
+  color: #e74c3c;
+}
+
+.form-help {
+  display: block;
+  font-size: 0.8rem;
+  color: #666;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+}
+
+.form-help a {
+  color: #667eea;
+  text-decoration: none;
+}
+
+.form-help a:hover {
+  text-decoration: underline;
+}
+
+.alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.alert-info {
+  background: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  color: #2980b9;
+}
+
+.alert strong {
+  font-weight: 600;
+}
+
+.alert code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.85em;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-header .provider-status {
+  margin-left: auto;
+}

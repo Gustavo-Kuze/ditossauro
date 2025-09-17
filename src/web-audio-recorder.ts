@@ -41,7 +41,7 @@ export class WebAudioRecorder extends EventEmitter {
       };
 
       // Fallback para outros formatos se webm não for suportado
-      if (!MediaRecorder.isTypeSupported(options.mimeType!)) {
+      if (!MediaRecorder.isTypeSupported(options.mimeType || '')) {
         if (MediaRecorder.isTypeSupported('audio/wav')) {
           options.mimeType = 'audio/wav';
         } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
@@ -116,14 +116,16 @@ export class WebAudioRecorder extends EventEmitter {
       
       // Configurar callback para quando a gravação parar
       const originalOnStop = this.mediaRecorder.onstop;
-      this.mediaRecorder.onstop = async (event) => {
+      this.mediaRecorder.onstop = async () => {
         try {
           const audioFile = await this.processRecording();
           resolve({ audioFile, duration });
         } catch (error) {
           reject(error);
         } finally {
-          this.mediaRecorder!.onstop = originalOnStop;
+          if (this.mediaRecorder) {
+            this.mediaRecorder.onstop = originalOnStop;
+          }
         }
       };
 

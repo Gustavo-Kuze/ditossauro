@@ -1,10 +1,10 @@
 import './index.css';
+import { AppSettings, TranscriptionSession } from './types';
 
 class OpenWisprUI {
-  private currentTab = 'home';
-  private settings: any = null;
+  private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
-  private transcriptionHistory: any[] = [];
+  private transcriptionHistory: TranscriptionSession[] = [];
 
   constructor() {
     this.init();
@@ -27,7 +27,10 @@ class OpenWisprUI {
   }
 
   setupUI() {
-    const app = document.getElementById('app')!;
+    const app = document.getElementById('app');
+    if (!app) {
+      throw new Error('App element not found');
+    }
     app.innerHTML = `
       <div class="header">
         <div class="logo"><h1>🎤 OpenWispr</h1></div>
@@ -79,10 +82,26 @@ class OpenWisprUI {
           </div>
 
           <div class="card">
-            <div class="card-header"><h3 class="card-title">🌐 API</h3></div>
+            <div class="card-header">
+              <h3 class="card-title">🎯 Provedor de Transcrição</h3>
+              <div id="providerStatus" class="provider-status"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Escolha o provedor</label>
+              <select class="form-select" id="transcriptionProvider">
+                <option value="assemblyai">AssemblyAI (Nuvem)</option>
+                <option value="faster-whisper">Faster Whisper (Local)</option>
+              </select>
+              <small class="form-help">AssemblyAI requer internet e chave API. Faster Whisper roda localmente.</small>
+            </div>
+          </div>
+
+          <div class="card" id="assemblyaiConfig">
+            <div class="card-header"><h3 class="card-title">🌐 Configurações AssemblyAI</h3></div>
             <div class="form-group">
               <label class="form-label">Chave API AssemblyAI</label>
               <input type="password" class="form-input" id="apiKey" placeholder="Sua chave da API">
+              <small class="form-help">Obtenha sua chave em <a href="https://www.assemblyai.com/" target="_blank">assemblyai.com</a></small>
             </div>
             <div class="form-group">
               <label class="form-label">Idioma</label>
@@ -91,10 +110,60 @@ class OpenWisprUI {
                 <option value="en">Inglês</option>
               </select>
             </div>
+            <div class="form-group">
+              <button class="btn btn-secondary" id="testAssemblyBtn">🧪 Testar Conexão</button>
+            </div>
+          </div>
+
+          <div class="card hidden" id="whisperConfig">
+            <div class="card-header"><h3 class="card-title">🤖 Configurações Faster Whisper</h3></div>
+            <div class="form-group">
+              <label class="form-label">Tamanho do Modelo</label>
+              <select class="form-select" id="whisperModelSize">
+                <option value="tiny">Tiny (~39 MB) - Mais rápido</option>
+                <option value="base">Base (~74 MB) - Recomendado</option>
+                <option value="small">Small (~244 MB) - Boa qualidade</option>
+                <option value="medium">Medium (~769 MB) - Alta qualidade</option>
+                <option value="large">Large (~1550 MB) - Máxima qualidade</option>
+                <option value="large-v2">Large-v2 (~1550 MB) - Melhorado</option>
+                <option value="large-v3">Large-v3 (~1550 MB) - Mais recente</option>
+              </select>
+              <small class="form-help">Modelos maiores têm melhor qualidade mas são mais lentos</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Dispositivo</label>
+              <select class="form-select" id="whisperDevice">
+                <option value="cpu">CPU - Compatível com qualquer sistema</option>
+                <option value="cuda">CUDA - GPU NVIDIA (requer CUDA instalado)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Tipo de Computação</label>
+              <select class="form-select" id="whisperComputeType">
+                <option value="int8">INT8 - Mais rápido, menor memória</option>
+                <option value="int8_float16">INT8 + Float16 - Balanceado</option>
+                <option value="float16">Float16 - Melhor qualidade (GPU)</option>
+                <option value="float32">Float32 - Máxima qualidade</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Caminho do Python</label>
+              <input type="text" class="form-input" id="whisperPythonPath" value="python" placeholder="python">
+              <small class="form-help">Comando para executar Python (ex: python, python3, C:\\Python\\python.exe)</small>
+            </div>
+            <div class="form-group">
+              <button class="btn btn-secondary" id="testWhisperBtn">🧪 Testar Whisper</button>
+            </div>
+            <div class="alert alert-info">
+              <strong>📋 Requisitos:</strong><br>
+              • Python 3.8+ instalado<br>
+              • Execute: <code>pip install faster-whisper</code><br>
+              • Para GPU: CUDA Toolkit instalado
+            </div>
           </div>
 
           <div class="text-center">
-            <button class="btn btn-primary" id="saveSettingsBtn">💾 Salvar</button>
+            <button class="btn btn-primary" id="saveSettingsBtn">💾 Salvar Configurações</button>
           </div>
         </div>
 
@@ -124,7 +193,8 @@ class OpenWisprUI {
   setupEventListeners() {
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
-        const tabName = (e.target as HTMLElement).dataset.tab!;
+        const tabName = (e.target as HTMLElement).dataset.tab;
+        if (!tabName) return;
         this.switchTab(tabName);
       });
     });
@@ -145,6 +215,20 @@ class OpenWisprUI {
       this.clearHistory();
     });
 
+    // Event listeners para configurações de transcrição
+    document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
+      const provider = (e.target as HTMLSelectElement).value;
+      this.toggleProviderConfig(provider);
+    });
+
+    document.getElementById('testAssemblyBtn')?.addEventListener('click', () => {
+      this.testAssemblyAI();
+    });
+
+    document.getElementById('testWhisperBtn')?.addEventListener('click', () => {
+      this.testFasterWhisper();
+    });
+
     window.electronAPI.onRecordingStarted(() => {
       this.recordingState.isRecording = true;
       this.updateRecordingStatus();
@@ -155,7 +239,7 @@ class OpenWisprUI {
       this.updateRecordingStatus();
     });
 
-    window.electronAPI.onTranscriptionCompleted((session: any) => {
+    window.electronAPI.onTranscriptionCompleted((session: TranscriptionSession) => {
       this.transcriptionHistory.unshift(session);
       this.updateLastTranscription(session.transcription);
       this.updateHistoryUI();
@@ -217,13 +301,33 @@ class OpenWisprUI {
   updateUI() {
     if (!this.settings) return;
     
+    // Configurações da API
     const apiKey = document.getElementById('apiKey') as HTMLInputElement;
     const language = document.getElementById('language') as HTMLSelectElement;
     
     if (apiKey) apiKey.value = this.settings.api.assemblyAiKey;
     if (language) language.value = this.settings.api.language;
 
+    // Configurações de transcrição
+    const providerSelect = document.getElementById('transcriptionProvider') as HTMLSelectElement;
+    if (providerSelect) {
+      providerSelect.value = this.settings.transcription.provider;
+      this.toggleProviderConfig(this.settings.transcription.provider);
+    }
+
+    // Configurações do Faster Whisper
+    const whisperModelSize = document.getElementById('whisperModelSize') as HTMLSelectElement;
+    const whisperDevice = document.getElementById('whisperDevice') as HTMLSelectElement;
+    const whisperComputeType = document.getElementById('whisperComputeType') as HTMLSelectElement;
+    const whisperPythonPath = document.getElementById('whisperPythonPath') as HTMLInputElement;
+
+    if (whisperModelSize) whisperModelSize.value = this.settings.transcription.fasterWhisper.modelSize;
+    if (whisperDevice) whisperDevice.value = this.settings.transcription.fasterWhisper.device;
+    if (whisperComputeType) whisperComputeType.value = this.settings.transcription.fasterWhisper.computeType;
+    if (whisperPythonPath) whisperPythonPath.value = this.settings.transcription.fasterWhisper.pythonPath;
+
     this.updateHistoryUI();
+    this.updateProviderStatus();
   }
 
   updateHistoryUI() {
@@ -248,6 +352,7 @@ class OpenWisprUI {
 
   async saveSettings() {
     try {
+      // Configurações da API
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
 
@@ -256,8 +361,30 @@ class OpenWisprUI {
         language: language,
       });
 
+      // Configurações de transcrição
+      const provider = (document.getElementById('transcriptionProvider') as HTMLSelectElement)?.value;
+      const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
+      const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
+      const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
+      const whisperPythonPath = (document.getElementById('whisperPythonPath') as HTMLInputElement)?.value;
+
+      await window.electronAPI.updateSettings('transcription', {
+        provider: provider,
+        fasterWhisper: {
+          modelSize: whisperModelSize,
+          device: whisperDevice,
+          computeType: whisperComputeType,
+          pythonPath: whisperPythonPath
+        }
+      });
+
+      // Atualizar configurações locais
+      this.settings = await window.electronAPI.getSettings();
+      this.updateProviderStatus();
+
       alert('✅ Configurações salvas!');
     } catch (error) {
+      console.error('Erro ao salvar configurações:', error);
       alert('Erro ao salvar configurações');
     }
   }
@@ -272,6 +399,102 @@ class OpenWisprUI {
       } catch (error) {
         alert('Erro ao limpar histórico');
       }
+    }
+  }
+
+  toggleProviderConfig(provider: string) {
+    const assemblyConfig = document.getElementById('assemblyaiConfig');
+    const whisperConfig = document.getElementById('whisperConfig');
+
+    if (provider === 'assemblyai') {
+      assemblyConfig?.classList.remove('hidden');
+      whisperConfig?.classList.add('hidden');
+    } else if (provider === 'faster-whisper') {
+      assemblyConfig?.classList.add('hidden');
+      whisperConfig?.classList.remove('hidden');
+    }
+  }
+
+  async updateProviderStatus() {
+    try {
+      const providerInfo = await window.electronAPI.getCurrentProvider();
+      const statusElement = document.getElementById('providerStatus');
+      
+      if (statusElement && providerInfo) {
+        const statusClass = providerInfo.isConfigured ? 'status-ok' : 'status-error';
+        const statusIcon = providerInfo.isConfigured ? '✅' : '❌';
+        statusElement.innerHTML = `
+          <span class="${statusClass}">
+            ${statusIcon} ${providerInfo.name} ${providerInfo.isConfigured ? '(Configurado)' : '(Não configurado)'}
+          </span>
+        `;
+      }
+    } catch (error) {
+      console.error('Erro ao obter status do provedor:', error);
+    }
+  }
+
+  async testAssemblyAI() {
+    const button = document.getElementById('testAssemblyBtn') as HTMLButtonElement;
+    const originalText = button.textContent;
+    
+    try {
+      button.textContent = '🔄 Testando...';
+      button.disabled = true;
+
+      const result = await window.electronAPI.testAPI();
+      
+      if (result) {
+        alert('✅ Conexão com AssemblyAI funcionando!');
+      } else {
+        alert('❌ Falha na conexão com AssemblyAI. Verifique sua chave API.');
+      }
+    } catch (error) {
+      console.error('Erro ao testar AssemblyAI:', error);
+      alert('❌ Erro ao testar AssemblyAI: ' + error);
+    } finally {
+      button.textContent = originalText;
+      button.disabled = false;
+    }
+  }
+
+  async testFasterWhisper() {
+    const button = document.getElementById('testWhisperBtn') as HTMLButtonElement;
+    const originalText = button.textContent;
+    
+    try {
+      button.textContent = '🔄 Testando...';
+      button.disabled = true;
+
+      // Primeiro, salvar as configurações atuais do Whisper
+      const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
+      const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
+      const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
+      const whisperPythonPath = (document.getElementById('whisperPythonPath') as HTMLInputElement)?.value;
+
+      await window.electronAPI.updateSettings('transcription', {
+        provider: 'faster-whisper',
+        fasterWhisper: {
+          modelSize: whisperModelSize,
+          device: whisperDevice,
+          computeType: whisperComputeType,
+          pythonPath: whisperPythonPath
+        }
+      });
+
+      const result = await window.electronAPI.testAPI();
+      
+      if (result) {
+        alert('✅ Faster Whisper funcionando!\n\nPython encontrado e biblioteca faster-whisper disponível.');
+      } else {
+        alert('❌ Faster Whisper não está funcionando.\n\nVerifique:\n• Python está instalado\n• Execute: pip install faster-whisper\n• Caminho do Python está correto');
+      }
+    } catch (error) {
+      console.error('Erro ao testar Faster Whisper:', error);
+      alert('❌ Erro ao testar Faster Whisper: ' + error);
+    } finally {
+      button.textContent = originalText;
+      button.disabled = false;
     }
   }
 }

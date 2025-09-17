@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
-import { AssemblyAIClient } from './assemblyai-client';
+import { ITranscriptionProvider } from './transcription-provider';
+import { TranscriptionFactory } from './transcription-factory';
 import { TextInserter } from './text-inserter';
 import { SettingsManager } from './settings-manager';
 import { TranscriptionSession, AppSettings, RecordingState } from './types';
@@ -9,24 +10,48 @@ import * as path from 'path';
 import { ipcMain } from 'electron';
 
 export class OpenWisprApp extends EventEmitter {
-  private assemblyClient: AssemblyAIClient;
+  private transcriptionProvider: ITranscriptionProvider;
   private settingsManager: SettingsManager;
   private recordingState: RecordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
-  private mainWindow: any = null;
+  private mainWindow: Electron.BrowserWindow | null = null;
 
-  constructor(mainWindow?: any) {
+  constructor(mainWindow?: Electron.BrowserWindow) {
     super();
     
     this.mainWindow = mainWindow;
     this.settingsManager = new SettingsManager();
     const settings = this.settingsManager.loadSettings();
     
-    this.assemblyClient = new AssemblyAIClient(settings.api.assemblyAiKey);
+    // Inicializar o provedor de transcrição baseado nas configurações
+    this.transcriptionProvider = this.createTranscriptionProvider(settings);
     
     this.setupEventListeners();
     this.setupAudioHandlers();
     this.setupIPCHandlers();
+  }
+
+  private createTranscriptionProvider(settings: AppSettings): ITranscriptionProvider {
+    const providerType = settings.transcription.provider;
+    
+    switch (providerType) {
+      case 'assemblyai':
+        return TranscriptionFactory.createProvider('assemblyai', {
+          apiKey: settings.api.assemblyAiKey
+        });
+        
+      case 'faster-whisper':
+        return TranscriptionFactory.createProvider('faster-whisper', {
+          ...settings.transcription.fasterWhisper,
+          scriptPath: path.join(__dirname, '..', '..', 'whisper_transcribe.py')
+        });
+        
+      default:
+        console.warn(`Provedor desconhecido: ${providerType}, usando AssemblyAI como padrão`);
+        return TranscriptionFactory.createProvider('assemblyai', {
+          apiKey: settings.api.assemblyAiKey
+        });
+    }
   }
 
   private setupEventListeners(): void {
@@ -45,7 +70,7 @@ export class OpenWisprApp extends EventEmitter {
     });
 
     // Handler para eventos de áudio
-    ipcMain.on('audio-event', (_, eventType: string, data?: any) => {
+    ipcMain.on('audio-event', (_, eventType: string, data?: unknown) => {
       switch (eventType) {
         case 'recording-started':
           this.recordingState = { isRecording: true, startTime: new Date() };
@@ -58,7 +83,7 @@ export class OpenWisprApp extends EventEmitter {
           console.log('⏹️ Gravação parada');
           break;
         case 'error':
-          this.emit('error', new Error(data));
+          this.emit('error', new Error(data as string));
           console.error('❌ Erro de áudio:', data);
           break;
       }
@@ -114,11 +139,10 @@ export class OpenWisprApp extends EventEmitter {
       console.log('⚠️ Já está gravando');
       return;
     }
-
-    const settings = this.settingsManager.loadSettings();
     
-    if (!settings.api.assemblyAiKey) {
-      throw new Error('Chave API da AssemblyAI não configurada');
+    if (!this.transcriptionProvider.isConfigured()) {
+      const providerName = this.transcriptionProvider.getProviderName();
+      throw new Error(`${providerName} não está configurado corretamente`);
     }
 
     // Delegar para o renderer process via Web Audio API
@@ -160,7 +184,7 @@ export class OpenWisprApp extends EventEmitter {
       console.log('🔄 Processando transcrição...');
 
       const settings = this.settingsManager.loadSettings();
-      const transcriptionText = await this.assemblyClient.transcribeAudio(
+      const transcriptionText = await this.transcriptionProvider.transcribeAudio(
         recordingData.audioFile, 
         settings.api.language
       );
@@ -172,7 +196,7 @@ export class OpenWisprApp extends EventEmitter {
         transcription: transcriptionText,
         duration: recordingData.duration,
         language: settings.api.language,
-        confidence: 0.95 // AssemblyAI não retorna confiança individual
+        confidence: 0.95 // Confiança padrão (pode variar por provedor)
       };
 
       // Adicionar ao histórico
@@ -226,14 +250,15 @@ export class OpenWisprApp extends EventEmitter {
     return this.settingsManager.loadSettings();
   }
 
-  updateSettings(category: keyof AppSettings, setting: any): void {
+  updateSettings(category: keyof AppSettings, setting: Record<string, unknown>): void {
     this.settingsManager.updateSetting(category, setting);
     
     // Recarregar configurações nos componentes necessários
     const newSettings = this.settingsManager.loadSettings();
     
-    if (category === 'api') {
-      this.assemblyClient.setApiKey(newSettings.api.assemblyAiKey);
+    if (category === 'api' || category === 'transcription') {
+      // Recriar o provedor de transcrição se as configurações mudaram
+      this.transcriptionProvider = this.createTranscriptionProvider(newSettings);
     }
     
     if (category === 'audio') {
@@ -252,15 +277,16 @@ export class OpenWisprApp extends EventEmitter {
 
   async testApiConnection(): Promise<boolean> {
     try {
-      console.log('🧪 Testando conexão com API...');
-      return await this.assemblyClient.testConnection();
+      const providerName = this.transcriptionProvider.getProviderName();
+      console.log(`🧪 Testando conexão com ${providerName}...`);
+      return await this.transcriptionProvider.testConnection();
     } catch (error) {
-      console.error('❌ Erro ao testar conexão API:', error);
+      console.error('❌ Erro ao testar conexão:', error);
       return false;
     }
   }
 
-  setMainWindow(mainWindow: any): void {
+  setMainWindow(mainWindow: Electron.BrowserWindow): void {
     this.mainWindow = mainWindow;
   }
 
@@ -277,7 +303,7 @@ export class OpenWisprApp extends EventEmitter {
       return this.settingsManager.loadSettings();
     });
 
-    ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: any) => {
+    ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: Record<string, unknown>) => {
       this.updateSettings(category, setting);
       
       // Notificar main process se hotkeys foram atualizadas
@@ -321,6 +347,18 @@ export class OpenWisprApp extends EventEmitter {
     // Test API
     ipcMain.handle('test-api', async () => {
       return await this.testApiConnection();
+    });
+
+    // Transcription providers
+    ipcMain.handle('get-available-providers', () => {
+      return TranscriptionFactory.getAvailableProviders();
+    });
+
+    ipcMain.handle('get-current-provider', () => {
+      return {
+        name: this.transcriptionProvider.getProviderName(),
+        isConfigured: this.transcriptionProvider.isConfigured()
+      };
     });
   }
 

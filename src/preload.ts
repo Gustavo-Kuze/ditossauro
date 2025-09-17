@@ -5,7 +5,7 @@ import { AppSettings, TranscriptionSession, RecordingState } from './types';
 contextBridge.exposeInMainWorld('electronAPI', {
   // Settings
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),
-  updateSettings: (category: keyof AppSettings, setting: any): Promise<boolean> => 
+  updateSettings: (category: keyof AppSettings, setting: Record<string, unknown>): Promise<boolean> => 
     ipcRenderer.invoke('update-settings', category, setting),
 
   // Recording
@@ -21,12 +21,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   insertText: (text: string): Promise<void> => ipcRenderer.invoke('insert-text', text),
 
   // API test
-  testApi: (): Promise<boolean> => ipcRenderer.invoke('test-api'),
+  testAPI: (): Promise<boolean> => ipcRenderer.invoke('test-api'),
+
+  // Transcription providers
+  getAvailableProviders: () => ipcRenderer.invoke('get-available-providers'),
+  getCurrentProvider: () => ipcRenderer.invoke('get-current-provider'),
 
   // Audio processing
-  processAudioData: (audioData: number[], duration: number): Promise<any> => 
+  processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> => 
     ipcRenderer.invoke('process-audio-data', audioData, duration),
-  sendAudioEvent: (eventType: string, data?: any): void => 
+  sendAudioEvent: (eventType: string, data?: unknown): void => 
     ipcRenderer.send('audio-event', eventType, data),
 
   // Event listeners
@@ -43,36 +47,42 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('processing-started', callback);
   },
   onTranscriptionCompleted: (callback: (session: TranscriptionSession) => void) => {
-    ipcRenderer.on('transcription-completed', (_, session) => callback(session));
-    return () => ipcRenderer.removeListener('transcription-completed', callback);
+    const wrappedCallback = (_: Electron.IpcRendererEvent, session: TranscriptionSession) => callback(session);
+    ipcRenderer.on('transcription-completed', wrappedCallback);
+    return () => ipcRenderer.removeListener('transcription-completed', wrappedCallback);
   },
   onTextInserted: (callback: (text: string) => void) => {
-    ipcRenderer.on('text-inserted', (_, text) => callback(text));
-    return () => ipcRenderer.removeListener('text-inserted', callback);
+    const wrappedCallback = (_: Electron.IpcRendererEvent, text: string) => callback(text);
+    ipcRenderer.on('text-inserted', wrappedCallback);
+    return () => ipcRenderer.removeListener('text-inserted', wrappedCallback);
   },
   onError: (callback: (error: string) => void) => {
-    ipcRenderer.on('error', (_, error) => callback(error));
-    return () => ipcRenderer.removeListener('error', callback);
+    const wrappedCallback = (_: Electron.IpcRendererEvent, error: string) => callback(error);
+    ipcRenderer.on('error', wrappedCallback);
+    return () => ipcRenderer.removeListener('error', wrappedCallback);
   },
   onNavigateTo: (callback: (page: string) => void) => {
-    ipcRenderer.on('navigate-to', (_, page) => callback(page));
-    return () => ipcRenderer.removeListener('navigate-to', callback);
+    const wrappedCallback = (_: Electron.IpcRendererEvent, page: string) => callback(page);
+    ipcRenderer.on('navigate-to', wrappedCallback);
+    return () => ipcRenderer.removeListener('navigate-to', wrappedCallback);
   },
 });
 
 // Tipos para TypeScript
 export interface ElectronAPI {
   getSettings(): Promise<AppSettings>;
-  updateSettings(category: keyof AppSettings, setting: any): Promise<boolean>;
+  updateSettings(category: keyof AppSettings, setting: Record<string, unknown>): Promise<boolean>;
   startRecording(): Promise<void>;
   stopRecording(): Promise<void>;
   getRecordingState(): Promise<RecordingState>;
   getHistory(): Promise<TranscriptionSession[]>;
   clearHistory(): Promise<void>;
   insertText(text: string): Promise<void>;
-  testApi(): Promise<boolean>;
-  processAudioData(audioData: number[], duration: number): Promise<any>;
-  sendAudioEvent(eventType: string, data?: any): void;
+  testAPI(): Promise<boolean>;
+  getAvailableProviders(): Promise<any>;
+  getCurrentProvider(): Promise<any>;
+  processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
+  sendAudioEvent(eventType: string, data?: unknown): void;
   onRecordingStarted(callback: () => void): () => void;
   onRecordingStopped(callback: () => void): () => void;
   onProcessingStarted(callback: () => void): () => void;
@@ -87,7 +97,7 @@ declare global {
     electronAPI: ElectronAPI;
     audioRecorder: {
       startRecording(): Promise<boolean>;
-      stopRecording(): Promise<any>;
+      stopRecording(): Promise<{ audioFile: string; duration: number }>;
       getRecordingState(): { isRecording: boolean };
       getAudioDevices(): Promise<MediaDeviceInfo[]>;
     };

@@ -91,3 +91,8 @@ typings/
 # Electron-Forge
 out/
 .env
+
+dist-renderer/
+dist-main/
+dist/
+__pycache__/

@@ -31,11 +31,12 @@ export class AssemblyAIClient implements ITranscriptionProvider {
       console.log('🚀 Iniciando transcrição com AssemblyAI SDK...');
       console.log(`📁 Arquivo: ${audioFilePath}`);
       console.log(`🌍 Idioma: ${language}`);
-      
+
       // Configurar parâmetros da transcrição
       const params = {
         audio: audioFilePath,
-        language_code: language === 'pt' ? 'pt' : 'en',
+        // language_code: language === 'pt' ? 'pt' : 'en',
+        language_detection: true,
         punctuate: true,
         format_text: true,
         // Opções adicionais para melhor qualidade
@@ -46,17 +47,17 @@ export class AssemblyAIClient implements ITranscriptionProvider {
       };
 
       console.log('📤 Enviando arquivo para transcrição...');
-      
+
       // Usar o SDK para transcrever (cuida automaticamente do upload e polling)
       const transcript = await this.client.transcripts.transcribe(params);
-      
+
       // Verificar se houve erro
       if (transcript.status === 'error') {
         const errorMessage = transcript.error || 'Erro desconhecido na transcrição';
         console.error('❌ Erro na transcrição:', errorMessage);
         throw new Error(`Erro na transcrição: ${errorMessage}`);
       }
-      
+
       // Verificar se a transcrição foi concluída
       if (transcript.status !== 'completed') {
         console.error('❌ Transcrição não foi concluída:', transcript.status);
@@ -64,7 +65,7 @@ export class AssemblyAIClient implements ITranscriptionProvider {
       }
 
       const transcriptionText = transcript.text || '';
-      
+
       if (!transcriptionText.trim()) {
         console.warn('⚠️ Transcrição retornou vazia');
         throw new Error('Nenhum texto foi transcrito. Verifique se há fala no áudio.');
@@ -74,12 +75,12 @@ export class AssemblyAIClient implements ITranscriptionProvider {
       console.log(`📝 Texto (${transcriptionText.length} caracteres): ${transcriptionText.substring(0, 100)}...`);
       console.log(`📊 Confiança: ${transcript.confidence ? (transcript.confidence * 100).toFixed(1) : 'N/A'}%`);
       console.log(`⏱️ Duração do áudio: ${transcript.audio_duration || 'N/A'}s`);
-      
+
       return transcriptionText;
-      
+
     } catch (error) {
       console.error('❌ Erro durante transcrição:', error);
-      
+
       // Melhorar mensagens de erro
       if (error instanceof Error) {
         if (error.message.includes('Invalid file format')) {
@@ -92,7 +93,7 @@ export class AssemblyAIClient implements ITranscriptionProvider {
           throw new Error('Créditos insuficientes na sua conta AssemblyAI.');
         }
       }
-      
+
       throw error;
     }
   }
@@ -104,14 +105,14 @@ export class AssemblyAIClient implements ITranscriptionProvider {
 
     try {
       console.log('🧪 Testando conexão com AssemblyAI...');
-      
+
       // Fazer uma chamada simples para testar a conexão e chave API
       // Vamos tentar listar transcrições (sem usar nenhuma)
       await this.client.transcripts.list({ limit: 1 });
-      
+
       console.log('✅ Conexão com AssemblyAI funcionando!');
       return true;
-      
+
     } catch (error) {
       console.error('❌ Erro ao testar conexão:', error);
       return false;

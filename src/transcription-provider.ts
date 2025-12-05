@@ -63,7 +63,6 @@ export interface FasterWhisperConfig {
   device: 'cpu' | 'cuda';
   computeType: 'int8' | 'int8_float16' | 'int16' | 'float16' | 'float32';
   pythonPath?: string;
-  scriptPath?: string;
 }
 
 /**

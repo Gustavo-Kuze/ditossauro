@@ -14,13 +14,15 @@ export class TranscriptionFactory {
     config?: FasterWhisperConfig | AssemblyAIConfig
   ): ITranscriptionProvider {
     switch (type) {
-      case 'assemblyai':
+      case 'assemblyai': {
         const assemblyConfig = config as AssemblyAIConfig;
         return new AssemblyAIClient(assemblyConfig?.apiKey || '');
+      }
 
-      case 'faster-whisper':
+      case 'faster-whisper': {
         const whisperConfig = config as FasterWhisperConfig;
         return new FasterWhisperClient(whisperConfig);
+      }
 
       default:
         throw new Error(`Provedor de transcrição não suportado: ${type}`);
@@ -50,18 +52,20 @@ export class TranscriptionFactory {
    */
   static getDefaultConfig(type: TranscriptionProviderType): FasterWhisperConfig | AssemblyAIConfig {
     switch (type) {
-      case 'assemblyai':
+      case 'assemblyai': {
         return {
           apiKey: ''
         } as AssemblyAIConfig;
+      }
 
-      case 'faster-whisper':
+      case 'faster-whisper': {
         return {
           modelSize: 'base',
           device: 'cpu',
           computeType: 'int8',
           pythonPath: 'python'
         } as FasterWhisperConfig;
+      }
 
       default:
         throw new Error(`Provedor não suportado: ${type}`);

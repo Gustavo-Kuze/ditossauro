@@ -12,7 +12,6 @@ export class FasterWhisperClient implements ITranscriptionProvider {
       device: 'cpu',
       computeType: 'int8',
       pythonPath: 'python',
-      scriptPath: path.join(__dirname, '..', 'whisper_transcribe.py'),
       ...config
     };
   }
@@ -34,10 +33,6 @@ export class FasterWhisperClient implements ITranscriptionProvider {
         throw new Error(`Arquivo de áudio não encontrado: ${audioFilePath}`);
       }
 
-      // Verificar se o script Python existe
-      if (!fs.existsSync(this.config.scriptPath!)) {
-        throw new Error(`Script Python não encontrado: ${this.config.scriptPath}`);
-      }
 
       // Criar script Python temporário com as configurações
       const tempScriptPath = await this.createTempScript(audioFilePath, language);
@@ -158,7 +153,8 @@ except Exception as e:
 
   private async executePythonScript(scriptPath: string): Promise<TranscriptionResult> {
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn(this.config.pythonPath!, [scriptPath],
+      const pythonPath = this.config.pythonPath || 'python';
+      const pythonProcess = spawn(pythonPath, [scriptPath],
         {
           stdio: ['pipe', 'pipe', 'pipe'],
           shell: true,
@@ -275,7 +271,8 @@ except Exception as e:
 
   private async checkPythonVersion(): Promise<string> {
     return new Promise((resolve, reject) => {
-      const pythonProcess = spawn(this.config.pythonPath!, ['--version'],
+      const pythonPath = this.config.pythonPath || 'python';
+      const pythonProcess = spawn(pythonPath, ['--version'],
         {
           stdio: 'pipe',
           shell: true,
@@ -303,7 +300,8 @@ except Exception as e:
 
   private async checkWhisperInstallation(): Promise<boolean> {
     return new Promise((resolve) => {
-      const pythonProcess = spawn(this.config.pythonPath!, ['-c', 'import faster_whisper; print("OK")'], {
+      const pythonPath = this.config.pythonPath || 'python';
+      const pythonProcess = spawn(pythonPath, ['-c', 'import faster_whisper; print("OK")'], {
         stdio: 'pipe',
         shell: true,
         env: {
@@ -329,9 +327,8 @@ except Exception as e:
 
   isConfigured(): boolean {
     console.log('🔍 Verificando configuração do Faster Whisper...');
-    console.log(`📁 Script: ${this.config.scriptPath}`);
     console.log(`🐍 Python: ${this.config.pythonPath}`);
-    const theReturn = fs.existsSync(this.config.scriptPath!) && this.config.pythonPath !== '';
+    const theReturn = this.config.pythonPath !== '';
     console.log(`🔍 Resultado: ${theReturn}`);
     return theReturn;
   }

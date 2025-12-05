@@ -42,8 +42,7 @@ export class OpenWisprApp extends EventEmitter {
         
       case 'faster-whisper':
         return TranscriptionFactory.createProvider('faster-whisper', {
-          ...settings.transcription.fasterWhisper,
-          scriptPath: path.join(__dirname, '..', '..', 'whisper_transcribe.py')
+          ...settings.transcription.fasterWhisper
         });
         
       default:

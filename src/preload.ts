@@ -79,8 +79,8 @@ export interface ElectronAPI {
   clearHistory(): Promise<void>;
   insertText(text: string): Promise<void>;
   testAPI(): Promise<boolean>;
-  getAvailableProviders(): Promise<any>;
-  getCurrentProvider(): Promise<any>;
+  getAvailableProviders(): Promise<{ type: string; name: string; description: string }[]>;
+  getCurrentProvider(): Promise<{ name: string; isConfigured: boolean }>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   onRecordingStarted(callback: () => void): () => void;

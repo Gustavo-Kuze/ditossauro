@@ -1,0 +1,195 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    background: transparent;
+    -webkit-app-region: drag;
+    user-select: none;
+    overflow: hidden;
+}
+
+.wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.glow {
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: radial-gradient(circle, rgba(19, 91, 236, 0.2) 0%, transparent 70%);
+    filter: blur(20px);
+    z-index: -1;
+    pointer-events: none;
+}
+
+.container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(28, 31, 39, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    padding: 8px 20px 8px 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    -webkit-app-region: drag;
+}
+
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: rgba(255, 255, 255, 0.4);
+    cursor: grab;
+    flex-shrink: 0;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mic-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #6b7280;
+    border-radius: 50%;
+    box-shadow: 0 0 15px rgba(107, 114, 128, 0.5);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    -webkit-app-region: no-drag;
+}
+
+.mic-button svg {
+    width: 18px;
+    height: 18px;
+    fill: white;
+}
+
+.mic-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px rgba(107, 114, 128, 0.7);
+}
+
+/* Idle state - Gray */
+.mic-button.idle {
+    background: #6b7280;
+    box-shadow: 0 0 15px rgba(107, 114, 128, 0.5);
+}
+
+.mic-button.idle:hover {
+    background: #7c8591;
+    box-shadow: 0 0 20px rgba(107, 114, 128, 0.7);
+}
+
+/* Processing state - Orange with spin */
+.mic-button.processing {
+    background: #f59e0b;
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    animation: spin 2s linear infinite;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.status-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.status-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.02em;
+}
+
+.status-time {
+    font-size: 10px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Courier New', monospace;
+}
+
+.visualizer {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    height: 32px;
+    padding: 0 8px;
+}
+
+.bar {
+    width: 4px;
+    height: 8px;
+    background: #135bec;
+    border-radius: 2px;
+    transition: height 0.1s ease;
+}
+
+.control-btn {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    -webkit-app-region: no-drag;
+}
+
+.control-btn.stop {
+    background: #ef4444;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+    color: white;
+}
+
+.control-btn.stop:hover {
+    background: #dc2626;
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.7);
+    transform: scale(1.1);
+}
+
+.control-btn svg {
+    width: 14px;
+    height: 14px;
+    fill: currentColor;
+}

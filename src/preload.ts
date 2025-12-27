@@ -36,6 +36,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Hotkeys
   notifyHotkeysUpdated: (): void => ipcRenderer.send('hotkeys-updated'),
 
+  // Floating window
+  sendFloatingCommand: (command: string): void => ipcRenderer.send('floating-command', command),
+  onFloatingEvent: (callback: (event: string, data?: unknown) => void) => {
+    const wrappedCallback = (_: Electron.IpcRendererEvent, event: string, data?: unknown) => callback(event, data);
+    ipcRenderer.on('recording-started', () => callback('recording-started'));
+    ipcRenderer.on('recording-stopped', () => callback('recording-stopped'));
+    return () => {
+      ipcRenderer.removeListener('recording-started', wrappedCallback);
+      ipcRenderer.removeListener('recording-stopped', wrappedCallback);
+    };
+  },
+
   // Event listeners
   onRecordingStarted: (callback: () => void) => {
     ipcRenderer.on('recording-started', callback);
@@ -87,6 +99,8 @@ export interface ElectronAPI {
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   notifyHotkeysUpdated(): void;
+  sendFloatingCommand(command: string): void;
+  onFloatingEvent(callback: (event: string, data?: unknown) => void): () => void;
   onRecordingStarted(callback: () => void): () => void;
   onRecordingStopped(callback: () => void): () => void;
   onProcessingStarted(callback: () => void): () => void;

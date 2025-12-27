@@ -2,6 +2,7 @@ import { EventEmitter } from 'events';
 import * as fs from 'fs';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { app } from 'electron';
 
 export class WebAudioRecorder extends EventEmitter {
   private mediaRecorder: MediaRecorder | null = null;
@@ -22,7 +23,7 @@ export class WebAudioRecorder extends EventEmitter {
 
     try {
       console.log('Solicitando acesso ao microfone...');
-      
+
       // Obter stream do microfone
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -80,14 +81,14 @@ export class WebAudioRecorder extends EventEmitter {
 
       // Iniciar gravação
       this.mediaRecorder.start(100); // Coletar dados a cada 100ms
-      
+
       console.log('Gravação iniciada com Web Audio API');
       this.emit('recording-started');
 
     } catch (error) {
       console.error('Erro ao iniciar gravação:', error);
       this.isRecording = false;
-      
+
       let errorMessage = 'Erro ao acessar microfone';
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
@@ -98,7 +99,7 @@ export class WebAudioRecorder extends EventEmitter {
           errorMessage = 'Microfone está sendo usado por outro aplicativo';
         }
       }
-      
+
       this.emit('error', new Error(errorMessage));
     }
   }
@@ -111,9 +112,9 @@ export class WebAudioRecorder extends EventEmitter {
       }
 
       console.log('Parando gravação...');
-      
+
       const duration = this.startTime ? (Date.now() - this.startTime.getTime()) / 1000 : 0;
-      
+
       // Configurar callback para quando a gravação parar
       const originalOnStop = this.mediaRecorder.onstop;
       this.mediaRecorder.onstop = async () => {
@@ -131,7 +132,7 @@ export class WebAudioRecorder extends EventEmitter {
 
       this.mediaRecorder.stop();
       this.isRecording = false;
-      
+
       // Parar todas as tracks do stream
       if (this.stream) {
         this.stream.getTracks().forEach(track => track.stop());
@@ -148,8 +149,8 @@ export class WebAudioRecorder extends EventEmitter {
     }
 
     // Combinar chunks em um blob
-    const audioBlob = new Blob(this.audioChunks, { 
-      type: this.audioChunks[0].type || 'audio/webm' 
+    const audioBlob = new Blob(this.audioChunks, {
+      type: this.audioChunks[0].type || 'audio/webm'
     });
 
     // Converter para buffer
@@ -157,10 +158,10 @@ export class WebAudioRecorder extends EventEmitter {
     const buffer = Buffer.from(arrayBuffer);
 
     // Salvar em arquivo temporário
-    const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}.webm`);
-    
+    const tempFilePath = path.join(app.getPath('temp'), `temp_audio_${uuidv4()}.webm`);
+
     await fs.promises.writeFile(tempFilePath, buffer);
-    
+
     console.log(`Áudio salvo: ${tempFilePath} (${buffer.length} bytes)`);
     return tempFilePath;
   }
@@ -183,12 +184,12 @@ export class WebAudioRecorder extends EventEmitter {
     if (this.mediaRecorder && this.isRecording) {
       this.mediaRecorder.stop();
     }
-    
+
     if (this.stream) {
       this.stream.getTracks().forEach(track => track.stop());
       this.stream = null;
     }
-    
+
     this.isRecording = false;
     this.audioChunks = [];
   }

@@ -7,7 +7,10 @@ export class SettingsManager {
   private settingsPath: string;
   private defaultSettings: AppSettings = {
     hotkeys: {
-      startStop: 'F2',
+      startStop: {
+        keys: ['Control', 'Meta'], // Control + Windows (Meta)
+        mode: 'push-to-talk'
+      },
       cancel: 'Escape'
     },
     audio: {
@@ -50,21 +53,39 @@ export class SettingsManager {
   loadSettings(): AppSettings {
     try {
       const settingsData = fs.readFileSync(this.settingsPath, 'utf8');
-      const settings = JSON.parse(settingsData) as AppSettings;
-      
+      const settings = JSON.parse(settingsData) as any;
+
+      // Migrar configurações antigas (startStop como string) para novo formato
+      let startStopConfig = this.defaultSettings.hotkeys.startStop;
+      if (settings.hotkeys?.startStop) {
+        if (typeof settings.hotkeys.startStop === 'string') {
+          // Formato antigo: converter para novo formato em modo toggle
+          startStopConfig = {
+            keys: [settings.hotkeys.startStop],
+            mode: 'toggle' as const
+          };
+        } else {
+          startStopConfig = settings.hotkeys.startStop;
+        }
+      }
+
       // Mesclar com configurações padrão para garantir que todas as propriedades existam
       return {
         ...this.defaultSettings,
         ...settings,
-        hotkeys: { ...this.defaultSettings.hotkeys, ...settings.hotkeys },
+        hotkeys: {
+          ...this.defaultSettings.hotkeys,
+          ...settings.hotkeys,
+          startStop: startStopConfig
+        },
         audio: { ...this.defaultSettings.audio, ...settings.audio },
         api: { ...this.defaultSettings.api, ...settings.api },
-        transcription: { 
-          ...this.defaultSettings.transcription, 
+        transcription: {
+          ...this.defaultSettings.transcription,
           ...settings.transcription,
-          fasterWhisper: { 
-            ...this.defaultSettings.transcription.fasterWhisper, 
-            ...(settings.transcription?.fasterWhisper || {}) 
+          fasterWhisper: {
+            ...this.defaultSettings.transcription.fasterWhisper,
+            ...(settings.transcription?.fasterWhisper || {})
           }
         },
         behavior: { ...this.defaultSettings.behavior, ...settings.behavior }

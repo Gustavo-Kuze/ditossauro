@@ -10,7 +10,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 const config: ForgeConfig = {
   packagerConfig: {
     asar: {
-      unpack: '**/node_modules/{robotjs}/**/*',
+      unpack: '**/node_modules/{robotjs,uiohook-napi}/**/*',
     },
     ignore: [
       /^\/src\//,
@@ -19,7 +19,7 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {
     buildPath: './node_modules',
-    onlyModules: ['robotjs'],
+    onlyModules: ['robotjs', 'uiohook-napi'],
     force: true,
   },
   makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],

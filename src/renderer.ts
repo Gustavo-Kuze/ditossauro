@@ -52,7 +52,7 @@ class OpenWisprUI {
         <div id="homeTab" class="tab-content">
           <div class="recording-section">
             <h2>Transcrição de Voz</h2>
-            <p class="text-muted">Pressione <strong>F2</strong> para gravar</p>
+            <p class="text-muted" id="hotkeyHint">Pressione <strong>Ctrl + Win</strong> para gravar</p>
             
             <div class="recording-controls">
               <button class="record-btn start" id="startRecordBtn">🎤</button>
@@ -75,9 +75,58 @@ class OpenWisprUI {
         <div id="settingsTab" class="tab-content hidden">
           <div class="card">
             <div class="card-header"><h3 class="card-title">⌨️ Hotkeys</h3></div>
+
             <div class="form-group">
-              <label class="form-label">Iniciar/Parar Gravação</label>
-              <input type="text" class="form-input" id="hotkeyStartStop" value="F2">
+              <label class="form-label">Modo de Gravação</label>
+              <select class="form-select" id="hotkeyMode">
+                <option value="toggle">Toggle - Pressione uma vez para gravar, pressione novamente para parar</option>
+                <option value="push-to-talk">Push-to-Talk - Mantenha pressionado para gravar, solte para parar</option>
+              </select>
+              <small class="form-help">Push-to-Talk é ideal para gravações rápidas. Segure as teclas para gravar e solte para transcrever automaticamente.</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Combinação de Teclas</label>
+              <div id="hotkeyKeysContainer" style="margin-bottom: 10px;">
+                <!-- As teclas selecionadas aparecerão aqui -->
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <label style="display: flex; align-items: center; gap: 5px;">
+                  <input type="checkbox" class="hotkey-modifier" value="Control"> Ctrl
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px;">
+                  <input type="checkbox" class="hotkey-modifier" value="Shift"> Shift
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px;">
+                  <input type="checkbox" class="hotkey-modifier" value="Alt"> Alt
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px;">
+                  <input type="checkbox" class="hotkey-modifier" value="Meta"> Win/Cmd
+                </label>
+              </div>
+              <div style="margin-top: 10px;">
+                <label class="form-label">Tecla Adicional (Opcional)</label>
+                <select class="form-select" id="hotkeyExtraKey">
+                  <option value="">Nenhuma (apenas modificadores)</option>
+                  <option value="Space">Espaço</option>
+                  <option value="F1">F1</option>
+                  <option value="F2">F2</option>
+                  <option value="F3">F3</option>
+                  <option value="F4">F4</option>
+                  <option value="F5">F5</option>
+                  <option value="F6">F6</option>
+                  <option value="F7">F7</option>
+                  <option value="F8">F8</option>
+                  <option value="F9">F9</option>
+                  <option value="F10">F10</option>
+                  <option value="F11">F11</option>
+                  <option value="F12">F12</option>
+                </select>
+              </div>
+              <small class="form-help">
+                <strong>Configuração Atual:</strong> <span id="currentHotkeyDisplay">Control + Meta</span><br>
+                Exemplo: Para gravar com Ctrl+Win, marque "Ctrl" e "Win/Cmd"
+              </small>
             </div>
           </div>
 
@@ -229,6 +278,21 @@ class OpenWisprUI {
       this.testFasterWhisper();
     });
 
+    // Event listeners para hotkey modifiers
+    document.querySelectorAll('.hotkey-modifier').forEach(checkbox => {
+      checkbox.addEventListener('change', () => {
+        this.updateHotkeyDisplay();
+      });
+    });
+
+    document.getElementById('hotkeyExtraKey')?.addEventListener('change', () => {
+      this.updateHotkeyDisplay();
+    });
+
+    document.getElementById('hotkeyMode')?.addEventListener('change', () => {
+      this.updateHotkeyModeInfo();
+    });
+
     window.electronAPI.onRecordingStarted(() => {
       this.recordingState.isRecording = true;
       this.updateRecordingStatus();
@@ -300,11 +364,33 @@ class OpenWisprUI {
 
   updateUI() {
     if (!this.settings) return;
-    
+
+    // Configurações de Hotkeys
+    const hotkeyMode = document.getElementById('hotkeyMode') as HTMLSelectElement;
+    if (hotkeyMode) {
+      hotkeyMode.value = this.settings.hotkeys.startStop.mode;
+    }
+
+    // Marcar os modificadores corretos
+    const keys = this.settings.hotkeys.startStop.keys;
+    document.querySelectorAll('.hotkey-modifier').forEach(checkbox => {
+      const input = checkbox as HTMLInputElement;
+      input.checked = keys.includes(input.value);
+    });
+
+    // Selecionar tecla extra se houver
+    const extraKeySelect = document.getElementById('hotkeyExtraKey') as HTMLSelectElement;
+    if (extraKeySelect) {
+      const extraKey = keys.find(k => !['Control', 'Shift', 'Alt', 'Meta'].includes(k));
+      extraKeySelect.value = extraKey || '';
+    }
+
+    this.updateHotkeyDisplay();
+
     // Configurações da API
     const apiKey = document.getElementById('apiKey') as HTMLInputElement;
     const language = document.getElementById('language') as HTMLSelectElement;
-    
+
     if (apiKey) apiKey.value = this.settings.api.assemblyAiKey;
     if (language) language.value = this.settings.api.language;
 
@@ -328,6 +414,7 @@ class OpenWisprUI {
 
     this.updateHistoryUI();
     this.updateProviderStatus();
+    this.updateHotkeyHint();
   }
 
   updateHistoryUI() {
@@ -352,6 +439,35 @@ class OpenWisprUI {
 
   async saveSettings() {
     try {
+      // Configurações de Hotkeys
+      const hotkeyMode = (document.getElementById('hotkeyMode') as HTMLSelectElement)?.value as 'toggle' | 'push-to-talk';
+
+      const selectedKeys: string[] = [];
+      document.querySelectorAll('.hotkey-modifier:checked').forEach(checkbox => {
+        selectedKeys.push((checkbox as HTMLInputElement).value);
+      });
+
+      const extraKey = (document.getElementById('hotkeyExtraKey') as HTMLSelectElement)?.value;
+      if (extraKey) {
+        selectedKeys.push(extraKey);
+      }
+
+      if (selectedKeys.length === 0) {
+        alert('⚠️ Selecione pelo menos uma tecla para a gravação!');
+        return;
+      }
+
+      await window.electronAPI.updateSettings('hotkeys', {
+        startStop: {
+          keys: selectedKeys,
+          mode: hotkeyMode
+        },
+        cancel: 'Escape'
+      });
+
+      // Notificar que as hotkeys foram atualizadas
+      window.electronAPI.notifyHotkeysUpdated();
+
       // Configurações da API
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
@@ -461,7 +577,7 @@ class OpenWisprUI {
   async testFasterWhisper() {
     const button = document.getElementById('testWhisperBtn') as HTMLButtonElement;
     const originalText = button.textContent;
-    
+
     try {
       button.textContent = '🔄 Testando...';
       button.disabled = true;
@@ -483,7 +599,7 @@ class OpenWisprUI {
       });
 
       const result = await window.electronAPI.testAPI();
-      
+
       if (result) {
         alert('✅ Faster Whisper funcionando!\n\nPython encontrado e biblioteca faster-whisper disponível.');
       } else {
@@ -495,6 +611,66 @@ class OpenWisprUI {
     } finally {
       button.textContent = originalText;
       button.disabled = false;
+    }
+  }
+
+  updateHotkeyDisplay() {
+    const selectedKeys: string[] = [];
+    document.querySelectorAll('.hotkey-modifier:checked').forEach(checkbox => {
+      selectedKeys.push((checkbox as HTMLInputElement).value);
+    });
+
+    const extraKey = (document.getElementById('hotkeyExtraKey') as HTMLSelectElement)?.value;
+    if (extraKey) {
+      selectedKeys.push(extraKey);
+    }
+
+    const displayElement = document.getElementById('currentHotkeyDisplay');
+    if (displayElement) {
+      if (selectedKeys.length === 0) {
+        displayElement.textContent = 'Nenhuma tecla selecionada';
+        displayElement.style.color = 'red';
+      } else {
+        const keyNames = selectedKeys.map(key => {
+          switch(key) {
+            case 'Control': return 'Ctrl';
+            case 'Meta': return 'Win';
+            case 'Space': return 'Espaço';
+            default: return key;
+          }
+        });
+        displayElement.textContent = keyNames.join(' + ');
+        displayElement.style.color = '#4CAF50';
+      }
+    }
+  }
+
+  updateHotkeyModeInfo() {
+    this.updateHotkeyHint();
+  }
+
+  updateHotkeyHint() {
+    const homeHint = document.getElementById('hotkeyHint');
+
+    if (homeHint && this.settings) {
+      const keys = this.settings.hotkeys.startStop.keys;
+      const mode = this.settings.hotkeys.startStop.mode;
+
+      const keyNames = keys.map(key => {
+        switch(key) {
+          case 'Control': return 'Ctrl';
+          case 'Meta': return 'Win';
+          case 'Space': return 'Espaço';
+          default: return key;
+        }
+      });
+      const keysDisplay = keyNames.join(' + ');
+
+      if (mode === 'push-to-talk') {
+        homeHint.innerHTML = `Mantenha <strong>${keysDisplay}</strong> pressionado para gravar, solte para transcrever`;
+      } else {
+        homeHint.innerHTML = `Pressione <strong>${keysDisplay}</strong> para gravar`;
+      }
     }
   }
 }

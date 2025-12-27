@@ -7,7 +7,7 @@ import { TranscriptionSession, AppSettings, RecordingState } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ipcMain } from 'electron';
+import { ipcMain, app } from 'electron';
 
 export class OpenWisprApp extends EventEmitter {
   private transcriptionProvider: ITranscriptionProvider;
@@ -122,7 +122,7 @@ export class OpenWisprApp extends EventEmitter {
     }
     
     // Salvar em arquivo temporário com extensão correta
-    const tempFilePath = path.join(__dirname, `temp_audio_${uuidv4()}${extension}`);
+    const tempFilePath = path.join(app.getPath('temp'), `temp_audio_${uuidv4()}${extension}`);
     await fs.promises.writeFile(tempFilePath, buffer);
     
     console.log(`💾 Áudio salvo: ${tempFilePath} (${buffer.length} bytes, ${mimeType})`);

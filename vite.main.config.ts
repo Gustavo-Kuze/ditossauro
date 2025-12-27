@@ -19,6 +19,7 @@ export default defineConfig({
         'robotjs',
         'assemblyai',
         'uuid',
+        'uiohook-napi',
         'fs',
         'path',
         'os'

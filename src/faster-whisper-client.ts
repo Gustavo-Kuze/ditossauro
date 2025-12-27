@@ -1,6 +1,7 @@
 import { spawn } from 'child_process';
 import * as path from 'path';
 import * as fs from 'fs';
+import { app } from 'electron';
 import { ITranscriptionProvider, FasterWhisperConfig, TranscriptionResult } from './transcription-provider';
 
 export class FasterWhisperClient implements ITranscriptionProvider {
@@ -79,7 +80,7 @@ export class FasterWhisperClient implements ITranscriptionProvider {
   }
 
   private async createTempScript(audioFilePath: string, language: string): Promise<string> {
-    const tempScriptPath = path.join(__dirname, `temp_whisper_${Date.now()}.py`);
+    const tempScriptPath = path.join(app.getPath('temp'), `temp_whisper_${Date.now()}.py`);
 
     // Mapear idioma para código Whisper se necessário
     const whisperLanguage = this.mapLanguageCode(language);

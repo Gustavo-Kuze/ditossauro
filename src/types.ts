@@ -8,10 +8,17 @@ export interface TranscriptionSession {
   confidence: number;
 }
 
+export type HotkeyMode = 'toggle' | 'push-to-talk';
+
+export interface HotkeyConfig {
+  keys: string[]; // Array de teclas (ex: ['Control', 'Meta'] para Ctrl+Windows)
+  mode: HotkeyMode; // 'toggle' para alternar com uma pressão, 'push-to-talk' para gravar enquanto pressionado
+}
+
 export interface AppSettings {
   hotkeys: {
-    startStop: string;
-    cancel: string;
+    startStop: HotkeyConfig;
+    cancel: string; // Mantido como string para compatibilidade
   };
   audio: {
     deviceId: string;

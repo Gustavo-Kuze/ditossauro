@@ -3,6 +3,7 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 import { OpenWisprApp } from './openwispr-app';
+import { HotkeyManager } from './hotkey-manager';
 
 dotenv.config();
 
@@ -15,12 +16,15 @@ class OpenWisprElectronApp {
   private mainWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
   private openWisprApp: OpenWisprApp;
+  private hotkeyManager: HotkeyManager;
   private isQuitting = false;
 
   constructor() {
     // Inicializar OpenWisprApp para registrar handlers IPC
     this.openWisprApp = new OpenWisprApp();
+    this.hotkeyManager = new HotkeyManager();
     this.setupOpenWisprListeners();
+    this.setupHotkeyListeners();
   }
 
   createWindow(): void {
@@ -157,36 +161,52 @@ class OpenWisprElectronApp {
   setupGlobalShortcuts(): void {
     const settings = this.openWisprApp.getSettings();
 
-    // Registrar hotkey para iniciar/parar gravação
-    const startStopShortcut = settings.hotkeys.startStop;
-    if (startStopShortcut) {
-      const success = globalShortcut.register(startStopShortcut, async () => {
-        const isRecording = this.openWisprApp.getRecordingState().isRecording;
-        
+    // Registrar hotkeys usando o novo HotkeyManager
+    this.hotkeyManager.register(
+      settings.hotkeys.startStop,
+      settings.hotkeys.cancel
+    );
+  }
+
+  setupHotkeyListeners(): void {
+    // Listener para quando a hotkey é pressionada
+    this.hotkeyManager.on('hotkey-pressed', async () => {
+      const settings = this.openWisprApp.getSettings();
+      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+
+      if (settings.hotkeys.startStop.mode === 'toggle') {
+        // Modo toggle: alternar entre gravar e parar
         if (isRecording) {
           await this.openWisprApp.stopRecording();
         } else {
           await this.openWisprApp.startRecording();
         }
-      });
-
-      if (success) {
-        console.log(`✅ Hotkey ${startStopShortcut} registrada`);
-  } else {
-        console.error(`❌ Falha ao registrar hotkey ${startStopShortcut}`);
-      }
-    }
-
-    // Registrar hotkey para cancelar
-    const cancelShortcut = settings.hotkeys.cancel;
-    if (cancelShortcut) {
-      globalShortcut.register(cancelShortcut, () => {
-        if (this.openWisprApp.getRecordingState().isRecording) {
-          // Para a gravação sem processar
-          console.log('⏹️ Gravação cancelada pelo usuário');
+      } else {
+        // Modo push-to-talk: iniciar gravação
+        if (!isRecording) {
+          await this.openWisprApp.startRecording();
         }
-      });
-    }
+      }
+    });
+
+    // Listener para quando a hotkey é solta (apenas em push-to-talk)
+    this.hotkeyManager.on('hotkey-released', async () => {
+      const settings = this.openWisprApp.getSettings();
+      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+
+      if (settings.hotkeys.startStop.mode === 'push-to-talk' && isRecording) {
+        // Parar gravação quando soltar as teclas
+        await this.openWisprApp.stopRecording();
+      }
+    });
+
+    // Listener para cancelamento
+    this.hotkeyManager.on('cancel-pressed', () => {
+      if (this.openWisprApp.getRecordingState().isRecording) {
+        console.log('⏹️ Gravação cancelada pelo usuário');
+        // Implementar lógica de cancelamento se necessário
+      }
+    });
   }
 
   setupIpcHandlers(): void {
@@ -194,7 +214,7 @@ class OpenWisprElectronApp {
     
     // Reregistrar hotkeys quando configurações de hotkey mudarem
     ipcMain.on('hotkeys-updated', () => {
-      globalShortcut.unregisterAll();
+      this.hotkeyManager.unregister();
       this.setupGlobalShortcuts();
     });
   }
@@ -327,6 +347,7 @@ class OpenWisprElectronApp {
 
   quit(): void {
     this.isQuitting = true;
+    this.hotkeyManager.destroy();
     globalShortcut.unregisterAll();
     this.openWisprApp.destroy();
     app.quit();

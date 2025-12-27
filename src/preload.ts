@@ -28,10 +28,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCurrentProvider: () => ipcRenderer.invoke('get-current-provider'),
 
   // Audio processing
-  processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> => 
+  processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> =>
     ipcRenderer.invoke('process-audio-data', audioData, duration),
-  sendAudioEvent: (eventType: string, data?: unknown): void => 
+  sendAudioEvent: (eventType: string, data?: unknown): void =>
     ipcRenderer.send('audio-event', eventType, data),
+
+  // Hotkeys
+  notifyHotkeysUpdated: (): void => ipcRenderer.send('hotkeys-updated'),
 
   // Event listeners
   onRecordingStarted: (callback: () => void) => {
@@ -83,6 +86,7 @@ export interface ElectronAPI {
   getCurrentProvider(): Promise<{ name: string; isConfigured: boolean }>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
+  notifyHotkeysUpdated(): void;
   onRecordingStarted(callback: () => void): () => void;
   onRecordingStopped(callback: () => void): () => void;
   onProcessingStarted(callback: () => void): () => void;

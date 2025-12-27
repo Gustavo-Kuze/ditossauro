@@ -33,22 +33,31 @@ export class OpenWisprApp extends EventEmitter {
 
   private createTranscriptionProvider(settings: AppSettings): ITranscriptionProvider {
     const providerType = settings.transcription.provider;
-    
+
     switch (providerType) {
       case 'assemblyai':
         return TranscriptionFactory.createProvider('assemblyai', {
           apiKey: settings.api.assemblyAiKey
         });
-        
+
       case 'faster-whisper':
         return TranscriptionFactory.createProvider('faster-whisper', {
           ...settings.transcription.fasterWhisper
         });
-        
+
+      case 'groq':
+        return TranscriptionFactory.createProvider('groq', {
+          apiKey: settings.api.groqApiKey,
+          modelName: settings.transcription.groq.modelName,
+          language: settings.transcription.groq.language
+        });
+
       default:
-        console.warn(`Provedor desconhecido: ${providerType}, usando AssemblyAI como padrão`);
-        return TranscriptionFactory.createProvider('assemblyai', {
-          apiKey: settings.api.assemblyAiKey
+        console.warn(`Provedor desconhecido: ${providerType}, usando Groq como padrão`);
+        return TranscriptionFactory.createProvider('groq', {
+          apiKey: settings.api.groqApiKey,
+          modelName: settings.transcription.groq.modelName,
+          language: settings.transcription.groq.language
         });
     }
   }
@@ -183,9 +192,16 @@ export class OpenWisprApp extends EventEmitter {
       console.log('🔄 Processando transcrição...');
 
       const settings = this.settingsManager.loadSettings();
+
+      // Get language based on provider
+      let language = settings.api.language; // Default fallback
+      if (settings.transcription.provider === 'groq') {
+        language = settings.transcription.groq.language;
+      }
+
       const transcriptionText = await this.transcriptionProvider.transcribeAudio(
-        recordingData.audioFile, 
-        settings.api.language
+        recordingData.audioFile,
+        language
       );
 
       // Criar sessão de transcrição

@@ -18,6 +18,7 @@ export default defineConfig({
         'electron',
         'robotjs',
         'assemblyai',
+        'groq-sdk',
         'uuid',
         'uiohook-napi',
         'fs',

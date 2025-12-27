@@ -1,6 +1,7 @@
-import { ITranscriptionProvider, TranscriptionProviderType, FasterWhisperConfig, AssemblyAIConfig } from './transcription-provider';
+import { ITranscriptionProvider, TranscriptionProviderType, FasterWhisperConfig, AssemblyAIConfig, GroqConfig } from './transcription-provider';
 import { AssemblyAIClient } from './assemblyai-client';
 import { FasterWhisperClient } from './faster-whisper-client';
+import { GroqClient } from './groq-client';
 
 /**
  * Factory para criar instâncias de provedores de transcrição
@@ -11,7 +12,7 @@ export class TranscriptionFactory {
    */
   static createProvider(
     type: TranscriptionProviderType,
-    config?: FasterWhisperConfig | AssemblyAIConfig
+    config?: FasterWhisperConfig | AssemblyAIConfig | GroqConfig
   ): ITranscriptionProvider {
     switch (type) {
       case 'assemblyai': {
@@ -24,6 +25,11 @@ export class TranscriptionFactory {
         return new FasterWhisperClient(whisperConfig);
       }
 
+      case 'groq': {
+        const groqConfig = config as GroqConfig;
+        return new GroqClient(groqConfig);
+      }
+
       default:
         throw new Error(`Provedor de transcrição não suportado: ${type}`);
     }
@@ -34,6 +40,11 @@ export class TranscriptionFactory {
    */
   static getAvailableProviders(): { type: TranscriptionProviderType; name: string; description: string }[] {
     return [
+      {
+        type: 'groq',
+        name: 'Groq',
+        description: 'Transcrição em nuvem ultra-rápida usando Whisper Large V3'
+      },
       {
         type: 'assemblyai',
         name: 'AssemblyAI',
@@ -50,7 +61,7 @@ export class TranscriptionFactory {
   /**
    * Retorna as configurações padrão para um provedor
    */
-  static getDefaultConfig(type: TranscriptionProviderType): FasterWhisperConfig | AssemblyAIConfig {
+  static getDefaultConfig(type: TranscriptionProviderType): FasterWhisperConfig | AssemblyAIConfig | GroqConfig {
     switch (type) {
       case 'assemblyai': {
         return {
@@ -65,6 +76,14 @@ export class TranscriptionFactory {
           computeType: 'int8',
           pythonPath: 'python'
         } as FasterWhisperConfig;
+      }
+
+      case 'groq': {
+        return {
+          apiKey: '',
+          modelName: 'whisper-large-v3',
+          language: '' // Empty for auto-detect
+        } as GroqConfig;
       }
 
       default:

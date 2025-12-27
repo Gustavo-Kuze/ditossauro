@@ -138,10 +138,48 @@ class OpenWisprUI {
             <div class="form-group">
               <label class="form-label">Escolha o provedor</label>
               <select class="form-select" id="transcriptionProvider">
+                <option value="groq">Groq (Nuvem - Ultra Rápido) ⚡</option>
                 <option value="assemblyai">AssemblyAI (Nuvem)</option>
                 <option value="faster-whisper">Faster Whisper (Local)</option>
               </select>
-              <small class="form-help">AssemblyAI requer internet e chave API. Faster Whisper roda localmente.</small>
+              <small class="form-help">Groq oferece transcrição ultra-rápida com Whisper Large V3. AssemblyAI tem alta precisão. Faster Whisper roda localmente.</small>
+            </div>
+          </div>
+
+          <div class="card" id="groqConfig">
+            <div class="card-header"><h3 class="card-title">⚡ Configurações Groq</h3></div>
+            <div class="form-group">
+              <label class="form-label">Chave API Groq</label>
+              <input type="password" class="form-input" id="groqApiKey" placeholder="Sua chave da API Groq">
+              <small class="form-help">Obtenha sua chave em <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a></small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Modelo</label>
+              <select class="form-select" id="groqModelName">
+                <option value="whisper-large-v3">Whisper Large V3 - Melhor qualidade (10.3% WER)</option>
+                <option value="whisper-large-v3-turbo">Whisper Large V3 Turbo - Mais rápido (12% WER)</option>
+              </select>
+              <small class="form-help">V3 tem melhor precisão. Turbo é mais rápido e econômico.</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Idioma</label>
+              <select class="form-select" id="groqLanguage">
+                <option value="">Auto - Detectar automaticamente</option>
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+              </select>
+              <small class="form-help">Auto deixa o Whisper detectar o idioma automaticamente. Selecionar o idioma pode melhorar a precisão.</small>
+            </div>
+            <div class="form-group">
+              <button class="btn btn-secondary" id="testGroqBtn">🧪 Testar Conexão</button>
+            </div>
+            <div class="alert alert-info">
+              <strong>💡 Groq Info:</strong><br>
+              • Transcrição ultra-rápida em nuvem<br>
+              • Usa Whisper Large V3 da OpenAI<br>
+              • Suporta detecção automática de idioma<br>
+              • Limite: 25 MB por arquivo (grátis)<br>
+              • Suporta múltiplos formatos de áudio
             </div>
           </div>
 
@@ -278,6 +316,10 @@ class OpenWisprUI {
       this.testFasterWhisper();
     });
 
+    document.getElementById('testGroqBtn')?.addEventListener('click', () => {
+      this.testGroq();
+    });
+
     // Event listeners para hotkey modifiers
     document.querySelectorAll('.hotkey-modifier').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
@@ -365,6 +407,10 @@ class OpenWisprUI {
   updateUI() {
     if (!this.settings) return;
 
+    // Configurações de API
+    const groqApiKey = document.getElementById('groqApiKey') as HTMLInputElement;
+    if (groqApiKey) groqApiKey.value = this.settings.api.groqApiKey;
+
     // Configurações de Hotkeys
     const hotkeyMode = document.getElementById('hotkeyMode') as HTMLSelectElement;
     if (hotkeyMode) {
@@ -400,6 +446,12 @@ class OpenWisprUI {
       providerSelect.value = this.settings.transcription.provider;
       this.toggleProviderConfig(this.settings.transcription.provider);
     }
+
+    // Configurações do Groq
+    const groqModelName = document.getElementById('groqModelName') as HTMLSelectElement;
+    const groqLanguage = document.getElementById('groqLanguage') as HTMLSelectElement;
+    if (groqModelName) groqModelName.value = this.settings.transcription.groq.modelName;
+    if (groqLanguage) groqLanguage.value = this.settings.transcription.groq.language;
 
     // Configurações do Faster Whisper
     const whisperModelSize = document.getElementById('whisperModelSize') as HTMLSelectElement;
@@ -470,15 +522,19 @@ class OpenWisprUI {
 
       // Configurações da API
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
+      const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
 
       await window.electronAPI.updateSettings('api', {
         assemblyAiKey: apiKey,
+        groqApiKey: groqApiKey,
         language: language,
       });
 
       // Configurações de transcrição
       const provider = (document.getElementById('transcriptionProvider') as HTMLSelectElement)?.value;
+      const groqModelName = (document.getElementById('groqModelName') as HTMLSelectElement)?.value;
+      const groqLanguage = (document.getElementById('groqLanguage') as HTMLSelectElement)?.value;
       const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
       const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
       const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
@@ -486,6 +542,10 @@ class OpenWisprUI {
 
       await window.electronAPI.updateSettings('transcription', {
         provider: provider,
+        groq: {
+          modelName: groqModelName,
+          language: groqLanguage
+        },
         fasterWhisper: {
           modelSize: whisperModelSize,
           device: whisperDevice,
@@ -519,14 +579,21 @@ class OpenWisprUI {
   }
 
   toggleProviderConfig(provider: string) {
+    const groqConfig = document.getElementById('groqConfig');
     const assemblyConfig = document.getElementById('assemblyaiConfig');
     const whisperConfig = document.getElementById('whisperConfig');
 
-    if (provider === 'assemblyai') {
+    // Hide all first
+    groqConfig?.classList.add('hidden');
+    assemblyConfig?.classList.add('hidden');
+    whisperConfig?.classList.add('hidden');
+
+    // Show the selected one
+    if (provider === 'groq') {
+      groqConfig?.classList.remove('hidden');
+    } else if (provider === 'assemblyai') {
       assemblyConfig?.classList.remove('hidden');
-      whisperConfig?.classList.add('hidden');
     } else if (provider === 'faster-whisper') {
-      assemblyConfig?.classList.add('hidden');
       whisperConfig?.classList.remove('hidden');
     }
   }
@@ -568,6 +635,50 @@ class OpenWisprUI {
     } catch (error) {
       console.error('Erro ao testar AssemblyAI:', error);
       alert('❌ Erro ao testar AssemblyAI: ' + error);
+    } finally {
+      button.textContent = originalText;
+      button.disabled = false;
+    }
+  }
+
+  async testGroq() {
+    const button = document.getElementById('testGroqBtn') as HTMLButtonElement;
+    const originalText = button.textContent;
+
+    try {
+      button.textContent = '🔄 Testando...';
+      button.disabled = true;
+
+      // Salvar configurações do Groq
+      const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
+      const groqModelName = (document.getElementById('groqModelName') as HTMLSelectElement)?.value;
+      const groqLanguage = (document.getElementById('groqLanguage') as HTMLSelectElement)?.value;
+
+      await window.electronAPI.updateSettings('api', {
+        assemblyAiKey: this.settings?.api.assemblyAiKey || '',
+        groqApiKey: groqApiKey,
+        language: this.settings?.api.language || 'pt'
+      });
+
+      await window.electronAPI.updateSettings('transcription', {
+        provider: 'groq',
+        groq: {
+          modelName: groqModelName,
+          language: groqLanguage
+        },
+        fasterWhisper: this.settings?.transcription.fasterWhisper || {}
+      });
+
+      const result = await window.electronAPI.testAPI();
+
+      if (result) {
+        alert('✅ Groq funcionando!\n\nConexão estabelecida e modelo pronto para transcrição.');
+      } else {
+        alert('❌ Groq não está funcionando.\n\nVerifique:\n• Chave API está correta\n• Você tem acesso à API Groq\n• Internet está funcionando');
+      }
+    } catch (error) {
+      console.error('Erro ao testar Groq:', error);
+      alert('❌ Erro ao testar Groq: ' + error);
     } finally {
       button.textContent = originalText;
       button.disabled = false;

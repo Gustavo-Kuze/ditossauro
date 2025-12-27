@@ -19,15 +19,20 @@ export class SettingsManager {
     },
     api: {
       assemblyAiKey: process.env.ASSEMBLYAI_API_KEY || '',
+      groqApiKey: process.env.GROQ_API_KEY || '',
       language: 'pt'
     },
     transcription: {
-      provider: 'assemblyai' as const,
+      provider: 'groq' as const,
       fasterWhisper: {
         modelSize: 'base' as const,
         device: 'cpu' as const,
         computeType: 'int8' as const,
         pythonPath: 'python'
+      },
+      groq: {
+        modelName: 'whisper-large-v3' as const,
+        language: '' // Empty for auto-detect
       }
     },
     behavior: {
@@ -86,6 +91,10 @@ export class SettingsManager {
           fasterWhisper: {
             ...this.defaultSettings.transcription.fasterWhisper,
             ...(settings.transcription?.fasterWhisper || {})
+          },
+          groq: {
+            ...this.defaultSettings.transcription.groq,
+            ...(settings.transcription?.groq || {})
           }
         },
         behavior: { ...this.defaultSettings.behavior, ...settings.behavior }

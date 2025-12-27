@@ -73,6 +73,15 @@ export interface AssemblyAIConfig {
 }
 
 /**
+ * Configurações para Groq
+ */
+export interface GroqConfig {
+  apiKey: string;
+  modelName?: 'whisper-large-v3' | 'whisper-large-v3-turbo';
+  language?: string; // Empty string or undefined for auto-detect
+}
+
+/**
  * Tipos de provedores disponíveis
  */
-export type TranscriptionProviderType = 'assemblyai' | 'faster-whisper';
+export type TranscriptionProviderType = 'assemblyai' | 'faster-whisper' | 'groq';

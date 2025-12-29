@@ -123,21 +123,14 @@ class OpenWisprElectronApp {
       },
     });
 
-    // Load the floating window using Vite
-    // In development, Vite serves each renderer on a different port
-    // The floating_window renderer should be available
-    if (process.env.NODE_ENV === 'development') {
-      // Try to load from the Vite dev server
-      // Electron Forge serves renderers on sequential ports starting from 5173
-      console.log('🔍 Loading floating window from Vite dev server...');
-      this.floatingWindow.loadURL('http://localhost:5174').catch((err) => {
-        console.log('⚠️ Port 5174 failed, trying 5173 with floating_window.html:', err.message);
-        // Fallback: try the main dev server with the floating_window.html
-        this.floatingWindow?.loadURL('http://localhost:5173/floating_window.html');
-      });
+    // Load the floating window
+    // Check if we're in development mode using the main window constant
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+      // In development, floating window is served on port 5174
+      this.floatingWindow.loadURL('http://localhost:5174');
     } else {
       // In production, load the built file
-      this.floatingWindow.loadFile(path.join(__dirname, `../renderer/floating_window/index.html`));
+      this.floatingWindow.loadFile(path.join(__dirname, '../renderer/floating_window/floating_window.html'));
     }
 
     // Debug: Log when the page finishes loading

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, Notification, NativeImage } from 'electron';
+import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, Notification, NativeImage, screen } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
@@ -106,9 +106,23 @@ class OpenWisprElectronApp {
       return;
     }
 
+    // Get primary display dimensions
+    const primaryDisplay = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
+
+    // Window dimensions
+    const windowWidth = 300;
+    const windowHeight = 100;
+
+    // Calculate position: centered horizontally, at bottom of screen
+    const x = Math.floor((screenWidth - windowWidth) / 2);
+    const y = screenHeight - windowHeight;
+
     this.floatingWindow = new BrowserWindow({
-      width: 800,
-      height: 100,
+      width: windowWidth,
+      height: windowHeight,
+      x,
+      y,
       transparent: true,
       frame: false,
       alwaysOnTop: true,
@@ -122,6 +136,8 @@ class OpenWisprElectronApp {
         contextIsolation: true,
       },
     });
+
+    // this.floatingWindow.center();
 
     // Load the floating window
     // Check if we're in development mode using the main window constant

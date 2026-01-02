@@ -66,6 +66,8 @@ const KEY_CODE_MAP: Record<string, number> = {
 export interface HotkeyManagerEvents {
   'hotkey-pressed': () => void;
   'hotkey-released': () => void;
+  'code-snippet-hotkey-pressed': () => void;
+  'code-snippet-hotkey-released': () => void;
   'cancel-pressed': () => void;
 }
 
@@ -83,11 +85,14 @@ export declare interface HotkeyManager {
 
 export class HotkeyManager extends EventEmitter {
   private startStopConfig: HotkeyConfig | null = null;
+  private codeSnippetConfig: HotkeyConfig | null = null;
   private cancelKey: string | null = null;
   private pressedKeys = new Set<number>();
-  private isHotkeyActive = false;
+  private isStartStopHotkeyActive = false;
+  private isCodeSnippetHotkeyActive = false;
   private isListening = false;
-  private lastToggleTime = 0;
+  private lastStartStopToggleTime = 0;
+  private lastCodeSnippetToggleTime = 0;
   private readonly DEBOUNCE_MS = 100; // Debounce para evitar múltiplos toggles
 
   constructor() {
@@ -97,16 +102,19 @@ export class HotkeyManager extends EventEmitter {
   /**
    * Registra as hotkeys
    */
-  register(startStopConfig: HotkeyConfig, cancelKey?: string): void {
+  register(startStopConfig: HotkeyConfig, codeSnippetConfig: HotkeyConfig, cancelKey?: string): void {
     this.startStopConfig = startStopConfig;
+    this.codeSnippetConfig = codeSnippetConfig;
     this.cancelKey = cancelKey || null;
 
     if (!this.isListening) {
       this.startListening();
     }
 
-    const keysStr = startStopConfig.keys.join('+');
-    console.log(`✅ Hotkey registrada: ${keysStr} (modo: ${startStopConfig.mode})`);
+    const startStopKeysStr = startStopConfig.keys.join('+');
+    const codeSnippetKeysStr = codeSnippetConfig.keys.join('+');
+    console.log(`✅ Hotkey registrada (start/stop): ${startStopKeysStr} (modo: ${startStopConfig.mode})`);
+    console.log(`✅ Hotkey registrada (code snippet): ${codeSnippetKeysStr} (modo: ${codeSnippetConfig.mode})`);
     if (cancelKey) {
       console.log(`✅ Tecla de cancelamento: ${cancelKey}`);
     }
@@ -118,9 +126,11 @@ export class HotkeyManager extends EventEmitter {
   unregister(): void {
     this.stopListening();
     this.startStopConfig = null;
+    this.codeSnippetConfig = null;
     this.cancelKey = null;
     this.pressedKeys.clear();
-    this.isHotkeyActive = false;
+    this.isStartStopHotkeyActive = false;
+    this.isCodeSnippetHotkeyActive = false;
     console.log('🔇 Hotkeys desregistradas');
   }
 
@@ -132,17 +142,27 @@ export class HotkeyManager extends EventEmitter {
 
     uIOhook.on('keydown', (event) => {
       this.pressedKeys.add(event.keycode);
-      this.checkHotkey();
+      this.checkHotkeys();
     });
 
     uIOhook.on('keyup', (event) => {
-      const wasHotkeyActive = this.isHotkeyActive;
+      const wasStartStopActive = this.isStartStopHotkeyActive;
+      const wasCodeSnippetActive = this.isCodeSnippetHotkeyActive;
       this.pressedKeys.delete(event.keycode);
 
-      // Se era uma hotkey ativa e foi solta
-      if (wasHotkeyActive && !this.checkHotkey()) {
+      this.checkHotkeys();
+
+      // Se a hotkey start/stop foi solta
+      if (wasStartStopActive && !this.isStartStopHotkeyActive) {
         if (this.startStopConfig?.mode === 'push-to-talk') {
           this.emit('hotkey-released');
+        }
+      }
+
+      // Se a hotkey code snippet foi solta
+      if (wasCodeSnippetActive && !this.isCodeSnippetHotkeyActive) {
+        if (this.codeSnippetConfig?.mode === 'push-to-talk') {
+          this.emit('code-snippet-hotkey-released');
         }
       }
     });
@@ -168,53 +188,83 @@ export class HotkeyManager extends EventEmitter {
   }
 
   /**
-   * Verifica se a combinação de teclas está pressionada
+   * Verifica se alguma combinação de teclas está pressionada
    */
-  private checkHotkey(): boolean {
-    if (!this.startStopConfig) return false;
-
-    const requiredKeyCodes = this.startStopConfig.keys
-      .map(key => KEY_CODE_MAP[key])
-      .filter(code => code !== undefined);
-
-    if (requiredKeyCodes.length === 0) return false;
-
-    // Verificar se todas as teclas necessárias estão pressionadas
-    const allKeysPressed = requiredKeyCodes.every(code => this.pressedKeys.has(code));
-
-    // Verificar tecla de cancelamento
+  private checkHotkeys(): void {
+    // Verificar tecla de cancelamento primeiro
     if (this.cancelKey) {
       const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];
       if (cancelKeyCode && this.pressedKeys.has(cancelKeyCode)) {
         this.emit('cancel-pressed');
-        return false;
+        return;
       }
     }
 
-    if (allKeysPressed && !this.isHotkeyActive) {
-      // Hotkey foi pressionada
-      this.isHotkeyActive = true;
+    // Verificar hotkey de code snippet (mais específica - 3 teclas)
+    if (this.codeSnippetConfig) {
+      this.checkSpecificHotkey(
+        this.codeSnippetConfig,
+        this.isCodeSnippetHotkeyActive,
+        this.lastCodeSnippetToggleTime,
+        'code-snippet-hotkey-pressed',
+        (active) => { this.isCodeSnippetHotkeyActive = active; },
+        (time) => { this.lastCodeSnippetToggleTime = time; }
+      );
+    }
 
-      if (this.startStopConfig.mode === 'toggle') {
+    // Verificar hotkey de start/stop (menos específica - 2 teclas)
+    // Apenas se a code snippet não estiver ativa
+    if (this.startStopConfig && !this.isCodeSnippetHotkeyActive) {
+      this.checkSpecificHotkey(
+        this.startStopConfig,
+        this.isStartStopHotkeyActive,
+        this.lastStartStopToggleTime,
+        'hotkey-pressed',
+        (active) => { this.isStartStopHotkeyActive = active; },
+        (time) => { this.lastStartStopToggleTime = time; }
+      );
+    }
+  }
+
+  /**
+   * Verifica uma hotkey específica
+   */
+  private checkSpecificHotkey(
+    config: HotkeyConfig,
+    isActive: boolean,
+    lastToggleTime: number,
+    eventName: 'hotkey-pressed' | 'code-snippet-hotkey-pressed',
+    setActive: (active: boolean) => void,
+    setToggleTime: (time: number) => void
+  ): void {
+    const requiredKeyCodes = config.keys
+      .map(key => KEY_CODE_MAP[key])
+      .filter(code => code !== undefined);
+
+    if (requiredKeyCodes.length === 0) return;
+
+    // Verificar se todas as teclas necessárias estão pressionadas
+    const allKeysPressed = requiredKeyCodes.every(code => this.pressedKeys.has(code));
+
+    if (allKeysPressed && !isActive) {
+      // Hotkey foi pressionada
+      setActive(true);
+
+      if (config.mode === 'toggle') {
         // Modo toggle: emitir apenas se passou o tempo de debounce
         const now = Date.now();
-        if (now - this.lastToggleTime > this.DEBOUNCE_MS) {
-          this.lastToggleTime = now;
-          this.emit('hotkey-pressed');
+        if (now - lastToggleTime > this.DEBOUNCE_MS) {
+          setToggleTime(now);
+          this.emit(eventName);
         }
       } else {
         // Modo push-to-talk: emitir imediatamente
-        this.emit('hotkey-pressed');
+        this.emit(eventName);
       }
-
-      return true;
-    } else if (!allKeysPressed && this.isHotkeyActive) {
+    } else if (!allKeysPressed && isActive) {
       // Hotkey foi solta
-      this.isHotkeyActive = false;
-      return false;
+      setActive(false);
     }
-
-    return this.isHotkeyActive;
   }
 
   /**

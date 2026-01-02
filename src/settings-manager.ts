@@ -11,6 +11,10 @@ export class SettingsManager {
         keys: ['Control', 'Meta'], // Control + Windows (Meta)
         mode: 'push-to-talk'
       },
+      codeSnippet: {
+        keys: ['Control', 'Shift', 'Meta'], // Control + Shift + Windows (Meta)
+        mode: 'push-to-talk'
+      },
       cancel: 'Escape'
     },
     audio: {
@@ -74,6 +78,9 @@ export class SettingsManager {
         }
       }
 
+      // Garantir que codeSnippet existe
+      const codeSnippetConfig = settings.hotkeys?.codeSnippet || this.defaultSettings.hotkeys.codeSnippet;
+
       // Mesclar com configurações padrão para garantir que todas as propriedades existam
       return {
         ...this.defaultSettings,
@@ -81,7 +88,8 @@ export class SettingsManager {
         hotkeys: {
           ...this.defaultSettings.hotkeys,
           ...settings.hotkeys,
-          startStop: startStopConfig
+          startStop: startStopConfig,
+          codeSnippet: codeSnippetConfig
         },
         audio: { ...this.defaultSettings.audio, ...settings.audio },
         api: { ...this.defaultSettings.api, ...settings.api },

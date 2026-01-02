@@ -266,6 +266,7 @@ class OpenWisprElectronApp {
     // Registrar hotkeys usando o novo HotkeyManager
     this.hotkeyManager.register(
       settings.hotkeys.startStop,
+      settings.hotkeys.codeSnippet,
       settings.hotkeys.cancel
     );
   }
@@ -309,6 +310,88 @@ class OpenWisprElectronApp {
         // Implementar lógica de cancelamento se necessário
       }
     });
+
+    // Listener para quando a hotkey de code snippet é pressionada
+    this.hotkeyManager.on('code-snippet-hotkey-pressed', async () => {
+      const settings = this.openWisprApp.getSettings();
+      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+
+      if (settings.hotkeys.codeSnippet.mode === 'toggle') {
+        // Modo toggle: alternar entre gravar e parar
+        if (isRecording) {
+          await this.handleCodeSnippetRecordingStop();
+        } else {
+          // Enable code snippet mode before starting recording
+          this.openWisprApp.setCodeSnippetMode(true);
+          await this.openWisprApp.startRecording();
+        }
+      } else {
+        // Modo push-to-talk: iniciar gravação
+        if (!isRecording) {
+          // Enable code snippet mode before starting recording
+          this.openWisprApp.setCodeSnippetMode(true);
+          await this.openWisprApp.startRecording();
+        }
+      }
+    });
+
+    // Listener para quando a hotkey de code snippet é solta (apenas em push-to-talk)
+    this.hotkeyManager.on('code-snippet-hotkey-released', async () => {
+      const settings = this.openWisprApp.getSettings();
+      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+
+      if (settings.hotkeys.codeSnippet.mode === 'push-to-talk' && isRecording) {
+        // Parar gravação quando soltar as teclas
+        await this.handleCodeSnippetRecordingStop();
+      }
+    });
+  }
+
+  private async handleCodeSnippetRecordingStop(): Promise<void> {
+    // Import dependencies
+    const { GroqCodeInterpreter } = await import('./groq-code-interpreter');
+    const { TextInserter } = await import('./text-inserter');
+
+    // Stop recording and get transcription
+    await this.openWisprApp.stopRecording();
+
+    // Wait for transcription to complete
+    // We'll need to listen for the transcription-completed event
+    // For now, we'll use a simple approach with a one-time listener
+    const transcriptionPromise = new Promise<string>((resolve) => {
+      const handler = (session: any) => {
+        this.openWisprApp.off('transcription-completed', handler);
+        resolve(session.transcription);
+      };
+      this.openWisprApp.once('transcription-completed', handler);
+    });
+
+    const transcription = await transcriptionPromise;
+    console.log(`📝 Transcription for code snippet: "${transcription}"`);
+
+    // Interpret the code using Groq
+    const settings = this.openWisprApp.getSettings();
+    const codeInterpreter = new GroqCodeInterpreter(settings.api.groqApiKey);
+
+    if (!codeInterpreter.isConfigured()) {
+      console.error('❌ Groq API key not configured');
+      this.sendToRenderer('error', 'Groq API key not configured. Please set your API key in settings.');
+      return;
+    }
+
+    try {
+      const interpretedCode = await codeInterpreter.interpretCode(transcription);
+      console.log(`💻 Interpreted code: "${interpretedCode}"`);
+
+      // Insert the interpreted code instead of the raw transcription
+      await TextInserter.insertText(interpretedCode, 'append', settings);
+
+      // Notify the UI
+      this.sendToRenderer('text-inserted', interpretedCode);
+    } catch (error: any) {
+      console.error('❌ Error interpreting code:', error);
+      this.sendToRenderer('error', error.message || 'Error interpreting code');
+    }
   }
 
   setupIpcHandlers(): void {

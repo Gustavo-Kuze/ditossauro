@@ -18,6 +18,7 @@ export interface HotkeyConfig {
 export interface AppSettings {
   hotkeys: {
     startStop: HotkeyConfig;
+    codeSnippet: HotkeyConfig;
     cancel: string; // Mantido como string para compatibilidade
   };
   audio: {

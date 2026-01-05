@@ -6,6 +6,22 @@ class OpenWisprUI {
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
 
+  // Helper method to create SVG icons
+  private createIcon(name: string, size = 24): string {
+    const icons: { [key: string]: string } = {
+      'home': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+      'settings': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>`,
+      'history': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>`,
+      'info': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>`,
+      'mic': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>`,
+      'square': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`,
+      'save': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`,
+      'trash': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`,
+      'test': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5h0c-1.4 0-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7"/><path d="M14.5 16h-5"/></svg>`
+    };
+    return icons[name] || '';
+  }
+
   constructor() {
     this.init();
   }
@@ -33,14 +49,29 @@ class OpenWisprUI {
     }
     app.innerHTML = `
       <div class="header">
-        <div class="logo"><h1>🎤 OpenWispr</h1></div>
+        <div class="logo">
+          <span class="logo-icon" id="logoIcon"></span>
+          <h1>OpenWispr</h1>
+        </div>
       </div>
 
       <nav class="nav-tabs">
-        <button class="nav-tab active" data-tab="home">🏠 Início</button>
-        <button class="nav-tab" data-tab="settings">⚙️ Configurações</button>
-        <button class="nav-tab" data-tab="history">📋 Histórico</button>
-        <button class="nav-tab" data-tab="about">ℹ️ Sobre</button>
+        <button class="nav-tab active" data-tab="home">
+          <span class="tab-icon" id="homeIcon"></span>
+          <span>Início</span>
+        </button>
+        <button class="nav-tab" data-tab="settings">
+          <span class="tab-icon" id="settingsIcon"></span>
+          <span>Configurações</span>
+        </button>
+        <button class="nav-tab" data-tab="history">
+          <span class="tab-icon" id="historyIcon"></span>
+          <span>Histórico</span>
+        </button>
+        <button class="nav-tab" data-tab="about">
+          <span class="tab-icon" id="aboutIcon"></span>
+          <span>Sobre</span>
+        </button>
       </nav>
 
       <main class="content">
@@ -50,8 +81,12 @@ class OpenWisprUI {
             <p class="text-muted" id="hotkeyHint">Pressione <strong>Ctrl + Win</strong> para gravar</p>
             
             <div class="recording-controls">
-              <button class="record-btn start" id="startRecordBtn">🎤</button>
-              <button class="record-btn stop hidden" id="stopRecordBtn">⏹️</button>
+              <button class="record-btn start" id="startRecordBtn">
+                <span class="record-icon" id="startIcon"></span>
+              </button>
+              <button class="record-btn stop hidden" id="stopRecordBtn">
+                <span class="record-icon" id="stopIcon"></span>
+              </button>
             </div>
 
             <div class="recording-status">
@@ -166,7 +201,10 @@ class OpenWisprUI {
               <small class="form-help">Auto deixa o Whisper detectar o idioma automaticamente. Selecionar o idioma pode melhorar a precisão.</small>
             </div>
             <div class="form-group">
-              <button class="btn btn-secondary" id="testGroqBtn">🧪 Testar Conexão</button>
+              <button class="btn btn-secondary" id="testGroqBtn">
+                <span class="btn-icon" id="testGroqIcon"></span>
+                <span>Testar Conexão</span>
+              </button>
             </div>
             <div class="alert alert-info">
               <strong>💡 Groq Info:</strong><br>
@@ -193,7 +231,10 @@ class OpenWisprUI {
               </select>
             </div>
             <div class="form-group">
-              <button class="btn btn-secondary" id="testAssemblyBtn">🧪 Testar Conexão</button>
+              <button class="btn btn-secondary" id="testAssemblyBtn">
+                <span class="btn-icon" id="testAssemblyIcon"></span>
+                <span>Testar Conexão</span>
+              </button>
             </div>
           </div>
 
@@ -234,7 +275,10 @@ class OpenWisprUI {
               <small class="form-help">Comando para executar Python (ex: python, python3, C:\\Python\\python.exe)</small>
             </div>
             <div class="form-group">
-              <button class="btn btn-secondary" id="testWhisperBtn">🧪 Testar Whisper</button>
+              <button class="btn btn-secondary" id="testWhisperBtn">
+                <span class="btn-icon" id="testWhisperIcon"></span>
+                <span>Testar Whisper</span>
+              </button>
             </div>
             <div class="alert alert-info">
               <strong>📋 Requisitos:</strong><br>
@@ -245,15 +289,21 @@ class OpenWisprUI {
           </div>
 
           <div class="text-center">
-            <button class="btn btn-primary" id="saveSettingsBtn">💾 Salvar Configurações</button>
+            <button class="btn btn-primary" id="saveSettingsBtn">
+              <span class="btn-icon" id="saveIcon"></span>
+              <span>Salvar Configurações</span>
+            </button>
           </div>
         </div>
 
         <div id="historyTab" class="tab-content hidden">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">📋 Histórico</h3>
-              <button class="btn btn-danger" id="clearHistoryBtn">🗑️ Limpar</button>
+              <h3 class="card-title">Histórico</h3>
+              <button class="btn btn-danger" id="clearHistoryBtn">
+                <span class="btn-icon" id="clearIcon"></span>
+                <span>Limpar</span>
+              </button>
             </div>
             <div id="historyList"></div>
           </div>
@@ -261,7 +311,8 @@ class OpenWisprUI {
 
         <div id="aboutTab" class="tab-content hidden">
           <div class="card text-center">
-            <h2>🎤 OpenWispr</h2>
+            <div class="about-logo" id="aboutLogo"></div>
+            <h2>OpenWispr</h2>
             <p>Alternativa open source para transcrição de voz</p>
             <p><strong>Versão:</strong> 1.0.0</p>
           </div>
@@ -269,7 +320,56 @@ class OpenWisprUI {
       </main>
     `;
 
+    this.initializeIcons();
     this.updateUI();
+  }
+
+  initializeIcons() {
+    // Logo icon
+    const logoIcon = document.getElementById('logoIcon');
+    if (logoIcon) logoIcon.innerHTML = this.createIcon('mic', 24);
+
+    // Navigation icons
+    const homeIcon = document.getElementById('homeIcon');
+    if (homeIcon) homeIcon.innerHTML = this.createIcon('home', 18);
+
+    const settingsIcon = document.getElementById('settingsIcon');
+    if (settingsIcon) settingsIcon.innerHTML = this.createIcon('settings', 18);
+
+    const historyIcon = document.getElementById('historyIcon');
+    if (historyIcon) historyIcon.innerHTML = this.createIcon('history', 18);
+
+    const aboutIcon = document.getElementById('aboutIcon');
+    if (aboutIcon) aboutIcon.innerHTML = this.createIcon('info', 18);
+
+    // Recording buttons
+    const startIcon = document.getElementById('startIcon');
+    if (startIcon) startIcon.innerHTML = this.createIcon('mic', 48);
+
+    const stopIcon = document.getElementById('stopIcon');
+    if (stopIcon) stopIcon.innerHTML = this.createIcon('square', 48);
+
+    // Test buttons
+    const testGroqIcon = document.getElementById('testGroqIcon');
+    if (testGroqIcon) testGroqIcon.innerHTML = this.createIcon('test', 16);
+
+    const testAssemblyIcon = document.getElementById('testAssemblyIcon');
+    if (testAssemblyIcon) testAssemblyIcon.innerHTML = this.createIcon('test', 16);
+
+    const testWhisperIcon = document.getElementById('testWhisperIcon');
+    if (testWhisperIcon) testWhisperIcon.innerHTML = this.createIcon('test', 16);
+
+    // Save button
+    const saveIcon = document.getElementById('saveIcon');
+    if (saveIcon) saveIcon.innerHTML = this.createIcon('save', 16);
+
+    // Clear button
+    const clearIcon = document.getElementById('clearIcon');
+    if (clearIcon) clearIcon.innerHTML = this.createIcon('trash', 16);
+
+    // About logo
+    const aboutLogo = document.getElementById('aboutLogo');
+    if (aboutLogo) aboutLogo.innerHTML = this.createIcon('mic', 64);
   }
 
   setupEventListeners() {

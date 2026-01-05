@@ -58,7 +58,19 @@ body {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.logo-icon svg {
+  color: #135bec;
+  pointer-events: none;
 }
 
 .logo h1 {
@@ -89,6 +101,25 @@ body {
   color: #d1d5db;
   border-bottom: 3px solid transparent;
   transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab span {
+  pointer-events: none;
+}
+
+.tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.tab-icon svg {
+  color: currentColor;
+  pointer-events: none;
 }
 
 .nav-tab:hover {
@@ -135,9 +166,23 @@ body {
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  font-size: 48px;
   transition: all 0.3s ease;
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.record-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.record-icon svg {
+  color: currentColor;
+  pointer-events: none;
 }
 
 .record-btn.start {
@@ -255,6 +300,22 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.btn span {
+  pointer-events: none;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.btn-icon svg {
+  color: currentColor;
+  pointer-events: none;
 }
 
 .btn-primary {
@@ -432,4 +493,18 @@ body {
 
 .card-header .provider-status {
   margin-left: auto;
+}
+
+/* About logo */
+.about-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  pointer-events: none;
+}
+
+.about-logo svg {
+  color: #135bec;
+  pointer-events: none;
 }

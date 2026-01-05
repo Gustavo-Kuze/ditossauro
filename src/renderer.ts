@@ -34,11 +34,6 @@ class OpenWisprUI {
     app.innerHTML = `
       <div class="header">
         <div class="logo"><h1>🎤 OpenWispr</h1></div>
-        <div class="header-controls">
-          <div class="status-indicator" id="globalStatus">
-            <span>Pronto</span>
-          </div>
-        </div>
       </div>
 
       <nav class="nav-tabs">

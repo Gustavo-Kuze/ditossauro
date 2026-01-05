@@ -1,7 +1,7 @@
 {
   "name": "openwispr",
   "productName": "OpenWispr",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Uma alternativa open source ao WisprFlow para transcrição de voz em tempo real",
   "main": ".vite/build/main.js",
   "scripts": {

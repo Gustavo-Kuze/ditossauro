@@ -17,7 +17,14 @@ class OpenWisprUI {
       'square': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/></svg>`,
       'save': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>`,
       'trash': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`,
-      'test': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5h0c-1.4 0-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7"/><path d="M14.5 16h-5"/></svg>`
+      'test': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2v17.5c0 1.4-1.1 2.5-2.5 2.5h0c-1.4 0-2.5-1.1-2.5-2.5V2"/><path d="M8.5 2h7"/><path d="M14.5 16h-5"/></svg>`,
+      'target': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+      'zap': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+      'lightbulb': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg>`,
+      'keyboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M7 16h10"/></svg>`,
+      'globe': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+      'cpu': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`,
+      'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`
     };
     return icons[name] || '';
   }
@@ -104,7 +111,12 @@ class OpenWisprUI {
 
         <div id="settingsTab" class="tab-content hidden">
           <div class="card">
-            <div class="card-header"><h3 class="card-title">⌨️ Hotkeys</h3></div>
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="hotkeysTitleIcon"></span>
+                <span>Hotkeys</span>
+              </h3>
+            </div>
 
             <div class="form-group">
               <label class="form-label">Modo de Gravação</label>
@@ -162,7 +174,10 @@ class OpenWisprUI {
 
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">🎯 Provedor de Transcrição</h3>
+              <h3 class="card-title">
+                <span class="title-icon" id="providerTitleIcon"></span>
+                <span>Provedor de Transcrição</span>
+              </h3>
               <div id="providerStatus" class="provider-status"></div>
             </div>
             <div class="form-group">
@@ -177,7 +192,12 @@ class OpenWisprUI {
           </div>
 
           <div class="card" id="groqConfig">
-            <div class="card-header"><h3 class="card-title">⚡ Configurações Groq</h3></div>
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="groqTitleIcon"></span>
+                <span>Configurações Groq</span>
+              </h3>
+            </div>
             <div class="form-group">
               <label class="form-label">Chave API Groq</label>
               <input type="password" class="form-input" id="groqApiKey" placeholder="Sua chave da API Groq">
@@ -207,7 +227,10 @@ class OpenWisprUI {
               </button>
             </div>
             <div class="alert alert-info">
-              <strong>💡 Groq Info:</strong><br>
+              <strong>
+                <span class="inline-icon" id="groqInfoIcon"></span>
+                Groq Info:
+              </strong><br>
               • Transcrição ultra-rápida em nuvem<br>
               • Usa Whisper Large V3 da OpenAI<br>
               • Suporta detecção automática de idioma<br>
@@ -217,7 +240,12 @@ class OpenWisprUI {
           </div>
 
           <div class="card" id="assemblyaiConfig">
-            <div class="card-header"><h3 class="card-title">🌐 Configurações AssemblyAI</h3></div>
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="assemblyaiTitleIcon"></span>
+                <span>Configurações AssemblyAI</span>
+              </h3>
+            </div>
             <div class="form-group">
               <label class="form-label">Chave API AssemblyAI</label>
               <input type="password" class="form-input" id="apiKey" placeholder="Sua chave da API">
@@ -239,7 +267,12 @@ class OpenWisprUI {
           </div>
 
           <div class="card hidden" id="whisperConfig">
-            <div class="card-header"><h3 class="card-title">🤖 Configurações Faster Whisper</h3></div>
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="whisperTitleIcon"></span>
+                <span>Configurações Faster Whisper</span>
+              </h3>
+            </div>
             <div class="form-group">
               <label class="form-label">Tamanho do Modelo</label>
               <select class="form-select" id="whisperModelSize">
@@ -281,7 +314,10 @@ class OpenWisprUI {
               </button>
             </div>
             <div class="alert alert-info">
-              <strong>📋 Requisitos:</strong><br>
+              <strong>
+                <span class="inline-icon" id="whisperReqIcon"></span>
+                Requisitos:
+              </strong><br>
               • Python 3.8+ instalado<br>
               • Execute: <code>pip install faster-whisper</code><br>
               • Para GPU: CUDA Toolkit instalado
@@ -370,6 +406,29 @@ class OpenWisprUI {
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
     if (aboutLogo) aboutLogo.innerHTML = this.createIcon('mic', 64);
+
+    // Settings section title icons
+    const hotkeysTitleIcon = document.getElementById('hotkeysTitleIcon');
+    if (hotkeysTitleIcon) hotkeysTitleIcon.innerHTML = this.createIcon('keyboard', 20);
+
+    const providerTitleIcon = document.getElementById('providerTitleIcon');
+    if (providerTitleIcon) providerTitleIcon.innerHTML = this.createIcon('target', 20);
+
+    const groqTitleIcon = document.getElementById('groqTitleIcon');
+    if (groqTitleIcon) groqTitleIcon.innerHTML = this.createIcon('zap', 20);
+
+    const assemblyaiTitleIcon = document.getElementById('assemblyaiTitleIcon');
+    if (assemblyaiTitleIcon) assemblyaiTitleIcon.innerHTML = this.createIcon('globe', 20);
+
+    const whisperTitleIcon = document.getElementById('whisperTitleIcon');
+    if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    // Inline info icons
+    const groqInfoIcon = document.getElementById('groqInfoIcon');
+    if (groqInfoIcon) groqInfoIcon.innerHTML = this.createIcon('lightbulb', 16);
+
+    const whisperReqIcon = document.getElementById('whisperReqIcon');
+    if (whisperReqIcon) whisperReqIcon.innerHTML = this.createIcon('clipboard', 16);
   }
 
   setupEventListeners() {

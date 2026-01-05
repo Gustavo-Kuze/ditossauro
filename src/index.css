@@ -375,6 +375,35 @@ body {
   font-size: 18px;
   font-weight: 600;
   color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.title-icon svg {
+  color: #135bec;
+  pointer-events: none;
+}
+
+.inline-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  vertical-align: middle;
+  pointer-events: none;
+}
+
+.inline-icon svg {
+  color: currentColor;
+  pointer-events: none;
 }
 
 /* History */

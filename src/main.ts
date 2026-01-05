@@ -19,6 +19,7 @@ class OpenWisprElectronApp {
   private openWisprApp: OpenWisprApp;
   private hotkeyManager: HotkeyManager;
   private isQuitting = false;
+  private hasShownTrayNotification = false;
   private trayIcons: {
     idle: NativeImage;
     recording: NativeImage;
@@ -50,6 +51,7 @@ class OpenWisprElectronApp {
       minHeight: 500,
       show: false, // Não mostrar inicialmente
       icon: this.getAppIcon(),
+      autoHideMenuBar: true, // Hide menu bar
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),
         nodeIntegration: false,
@@ -70,12 +72,13 @@ class OpenWisprElectronApp {
         event.preventDefault();
         this.mainWindow?.hide();
 
-        // Mostrar notificação informando que o app continua rodando
-        if (Notification.isSupported()) {
+        // Mostrar notificação informando que o app continua rodando (apenas uma vez por sessão)
+        if (Notification.isSupported() && !this.hasShownTrayNotification) {
           new Notification({
             title: 'OpenWispr',
             body: 'Aplicativo minimizado para a bandeja do sistema',
           }).show();
+          this.hasShownTrayNotification = true;
         }
       }
     });

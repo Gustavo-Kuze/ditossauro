@@ -12,6 +12,9 @@ const config: ForgeConfig = {
     asar: {
       unpack: '**/node_modules/{robotjs,uiohook-napi}/**/*',
     },
+    extraResource: [
+      'src/assets',
+    ],
     ignore: [
       /^\/src\//,
       /(.eslintrc.json)|(.gitignore)|(electron.vite.config.ts)|(forge.env.d.ts)|(tsconfig.*\.json)|(vite.config.ts)/,

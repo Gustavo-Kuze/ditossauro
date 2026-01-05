@@ -42,7 +42,7 @@ class OpenWisprElectronApp {
   }
 
   createWindow(): void {
-  // Create the browser window.
+    // Create the browser window.
     this.mainWindow = new BrowserWindow({
       width: 900,
       height: 700,
@@ -50,15 +50,15 @@ class OpenWisprElectronApp {
       minHeight: 500,
       show: false, // Não mostrar inicialmente
       icon: this.getAppIcon(),
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      webPreferences: {
+        preload: path.join(__dirname, 'preload.js'),
         nodeIntegration: false,
         contextIsolation: true,
-    },
-  });
+      },
+    });
 
     // Load the index.html of the app.
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
       this.mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
     } else {
       this.mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
@@ -69,7 +69,7 @@ class OpenWisprElectronApp {
       if (!this.isQuitting) {
         event.preventDefault();
         this.mainWindow?.hide();
-        
+
         // Mostrar notificação informando que o app continua rodando
         if (Notification.isSupported()) {
           new Notification({
@@ -83,10 +83,10 @@ class OpenWisprElectronApp {
     this.mainWindow.on('ready-to-show', () => {
       // Atualizar referência da janela no OpenWisprApp
       this.openWisprApp.setMainWindow(this.mainWindow);
-      
+
       // Injetar Web Audio Recorder
       this.injectWebAudioRecorder();
-      
+
       // Mostrar apenas se não for para iniciar minimizado
       const settings = this.openWisprApp.getSettings();
       if (!settings.behavior?.startMinimized) {
@@ -480,10 +480,10 @@ class OpenWisprElectronApp {
 
   updateTrayMenu(): void {
     if (!this.tray) return;
-    
+
     // Recriar o menu ao invés de tentar atualizar o existente
     const isRecording = this.openWisprApp.getRecordingState().isRecording;
-    
+
     const contextMenu = Menu.buildFromTemplate([
       {
         label: 'OpenWispr',
@@ -556,7 +556,7 @@ class OpenWisprElectronApp {
       if (page) {
         this.mainWindow.webContents.send('navigate-to', page);
       }
-      
+
       this.mainWindow.show();
       this.mainWindow.focus();
     }
@@ -576,25 +576,49 @@ class OpenWisprElectronApp {
   }
 
   private createTrayIcon(state: 'idle' | 'recording' | 'processing'): NativeImage {
-    const size = 16;
+    const iconFiles = {
+      idle: 'blue_microphone.png',
+      recording: 'red_microphone.png',
+      processing: 'yellow_microphone.png',
+    };
 
-    // Create a simple PNG image data
-    // Using a minimal approach with colored circles
-    let pngData: string;
+    // Try multiple possible paths for development and production
+    const possiblePaths = [
+      // Production mode - extraResource copies to resources/assets/ (since we specify 'src/assets')
+      path.join(process.resourcesPath || '', 'assets', iconFiles[state]),
+      // Production mode - alternative if extraResource keeps folder structure
+      path.join(process.resourcesPath || '', 'src', 'assets', iconFiles[state]),
+      // Development mode (Vite dev server)
+      path.join(__dirname, '..', 'src', 'assets', iconFiles[state]),
+      // Alternative production path
+      path.join(__dirname, '..', 'assets', iconFiles[state]),
+      // Direct path from project root
+      path.join(app.getAppPath(), 'src', 'assets', iconFiles[state]),
+      // Production mode - app.asar.unpacked
+      path.join(process.resourcesPath || '', 'app.asar.unpacked', 'assets', iconFiles[state]),
+    ];
 
-    if (state === 'idle') {
-      // White/Gray microphone emoji as text
-      // For simplicity, using a white circle
-      pngData = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAFNSURBVDiNpZM9S8NAGIafS5OmrWkbtLRFBEVBcHBycBAHhw7+ARf/gKCDi6ODo5Ojo4uDODk4CAoiiIiCg4ODIOLg4FARFQRBsLRp0qRJ7nMQU5sm6cUH3uV47r7v3vseISJIKVFKYVkWlmVRr9cRQhCGIUopbNvGtm2klNi2jVKKer2OlBIpJbZtE4YhSin+AkmSEIYhrutimib1ep04jrFtG8dx0DRNASilsCyLOI5xHAfXdanVatRqNRzHwTRNHMdBCPEnQKPRQCmFZVmkaYrnedRqNQD6/T5CCNbX16nVauzt7ZGmKZ7nEccxcRxTLBYRQqCU+hugWCzi+z6O42AYBmEYYhgGSikMw8B1XTzPwzRNhBBkMhmyuSye5xFFEVrrfwGapjEYDIiiCKUUtm0TBAFSSoQQZDIZstksvu8TRRFKKYQQmKZJFEU0m02SJPkdAJDP5+l2u79efwMpg6vYy5XZ0QAAAABJRU5ErkJggg==';
-    } else if (state === 'recording') {
-      // Red circle
-      pngData = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAADrSURBVDiNrZMxSwNBEIWfudyFJIhYiIVYiI1YiKVYiI1YiJVY+Qus/AFWFhZiIRZiIRZiIRZiIRZiIRZiIRZiIRZiIRZiIRZiIRZiYWGRZHO5mxFySa7YC7zwmJn3zexMASAiGGNQSqGUIooihBBorahWq1QqFYIgIAxDlFJEUYQxBiEEABhjUEqhtUZrTafTodlsUq1Wcc6RJAm+7+P7Pkophss5h9aaJElQSiGl/B8ghAAgz3OMMUgpcc6htSaKIqy1WGux1mKMIQxDrLUYY4iiiDRNAUjTFGMMWZb9ClBKMT09zfLyMp7nvQEv9G/t/WvgQQAAAABJRU5ErkJggg==';
-    } else {
-      // Yellow/Orange circle
-      pngData = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAAdgAAAHYBTnsmCAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAADySURBVDiNrZMxTsNAEEVnxnYSJxACCQQlFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUCBASJxs7O0OxE8eJSfIkvZmd/bPzV4QQCCFQSqG1RghBHMekaUqSJCRJQhRFKKXQWqOUIkkSlFJordFaE8cxaZqSJAlxHKOUQilFlmVkWYbW+k+AEIIkSVBKkaYpzjmstTjnCMMQay3GGOI4xjlHkiQ45wijEOccQRCglCJJErTWf3dgrSUIAqy1eJ6H53l4nofv+1hr0VqTpinOObIs+xsghMD3fWq1GrVa7dd7X0Zms1vhLd+PAAAAAElFTkSuQmCC';
+    let icon: NativeImage | null = null;
+
+    for (const iconPath of possiblePaths) {
+      console.log(`Trying to load tray icon for state "${state}" from: ${iconPath}`);
+      const testIcon = nativeImage.createFromPath(iconPath);
+
+      if (!testIcon.isEmpty()) {
+        console.log(`✓ Successfully loaded tray icon from: ${iconPath}`);
+        icon = testIcon;
+        break;
+      }
     }
 
-    return nativeImage.createFromDataURL(`data:image/png;base64,${pngData}`);
+    if (!icon || icon.isEmpty()) {
+      console.error(`❌ Failed to load tray icon for state "${state}" from any path`);
+      console.error(`Tried paths:`, possiblePaths);
+      // Return a fallback empty icon
+      return nativeImage.createEmpty();
+    }
+
+    return icon;
   }
 
   private updateTrayIcon(state: 'idle' | 'recording' | 'processing'): void {

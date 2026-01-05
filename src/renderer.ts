@@ -508,6 +508,11 @@ class OpenWisprUI {
     window.electronAPI.onError((error: string) => {
       alert('❌ Erro: ' + error);
     });
+
+    // Listen for navigation requests from tray menu
+    window.electronAPI.onNavigateTo((page: string) => {
+      this.switchTab(page);
+    });
   }
 
   switchTab(tabName: string) {

@@ -186,5 +186,19 @@
         "no": "No",
         "ok": "OK",
         "cancel": "Cancel"
+    },
+    "voiceCommands": {
+        "keywords": {
+            "command": "command",
+            "javascript": "javascript",
+            "typescript": "typescript",
+            "python": "python"
+        },
+        "descriptions": {
+            "command": "Generate bash/terminal commands",
+            "javascript": "Generate JavaScript code",
+            "typescript": "Generate TypeScript code",
+            "python": "Generate Python code"
+        }
     }
 }

@@ -58,4 +58,12 @@ export interface RecordingState {
   audioBuffer?: Buffer[];
 }
 
+export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python';
+
+export interface VoiceCommandResult {
+  language: CodeLanguage;
+  strippedTranscription: string;
+  detectedKeyword?: string;
+}
+
 // AssemblyAIResponse removido - agora usando tipos do SDK oficial

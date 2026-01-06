@@ -357,7 +357,8 @@ class OpenWisprElectronApp {
 
   private async handleCodeSnippetRecordingStop(): Promise<void> {
     // Import dependencies
-    const { GroqCodeInterpreter } = await import('./groq-code-interpreter');
+    const { VoiceCommandDetector } = await import('./voice-command-detector');
+    const { CodeInterpreterFactory } = await import('./code-interpreter-factory');
     const { TextInserter } = await import('./text-inserter');
 
     // Stop recording and get transcription
@@ -377,9 +378,19 @@ class OpenWisprElectronApp {
     const transcription = await transcriptionPromise;
     console.log(`📝 Transcription for code snippet: "${transcription}"`);
 
-    // Interpret the code using Groq
+    // Get settings
     const settings = this.openWisprApp.getSettings();
-    const codeInterpreter = new GroqCodeInterpreter(settings.api.groqApiKey);
+    const locale = settings.locale || 'en';
+
+    // Detect voice command
+    const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
+    console.log(`🎯 Detected language: ${commandResult.language}, stripped: "${commandResult.strippedTranscription}"`);
+
+    // Create appropriate interpreter based on detected language
+    const codeInterpreter = CodeInterpreterFactory.createInterpreter(
+      commandResult.language,
+      settings.api.groqApiKey
+    );
 
     if (!codeInterpreter.isConfigured()) {
       console.error('❌ Groq API key not configured');
@@ -388,8 +399,11 @@ class OpenWisprElectronApp {
     }
 
     try {
-      const interpretedCode = await codeInterpreter.interpretCode(transcription);
-      console.log(`💻 Interpreted code: "${interpretedCode}"`);
+      // Use stripped transcription (without command prefix)
+      const interpretedCode = await codeInterpreter.interpretCode(
+        commandResult.strippedTranscription
+      );
+      console.log(`💻 Interpreted ${commandResult.language} code: "${interpretedCode}"`);
 
       // Insert the interpreted code instead of the raw transcription
       await TextInserter.insertText(interpretedCode, 'append', settings);

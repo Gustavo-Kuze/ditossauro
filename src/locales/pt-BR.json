@@ -186,5 +186,19 @@
         "no": "Não",
         "ok": "OK",
         "cancel": "Cancelar"
+    },
+    "voiceCommands": {
+        "keywords": {
+            "command": "comando",
+            "javascript": "javascript",
+            "typescript": "typescript",
+            "python": "python"
+        },
+        "descriptions": {
+            "command": "Gerar comandos bash/terminal",
+            "javascript": "Gerar código JavaScript",
+            "typescript": "Gerar código TypeScript",
+            "python": "Gerar código Python"
+        }
     }
 }

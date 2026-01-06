@@ -48,6 +48,12 @@ class OpenWisprUI {
       this.setupIPCListeners();
       this.attachDOMListeners();
       this.updateRecordingStatus();
+
+      // Mostrar última transcrição se houver histórico
+      if (this.transcriptionHistory.length > 0) {
+        this.updateLastTranscription(this.transcriptionHistory[0].transcription);
+      }
+
       console.log('✅ OpenWispr inicializado');
     } catch (error) {
       console.error('❌ Erro:', error);

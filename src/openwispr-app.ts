@@ -3,6 +3,7 @@ import { ITranscriptionProvider } from './transcription-provider';
 import { TranscriptionFactory } from './transcription-factory';
 import { TextInserter } from './text-inserter';
 import { SettingsManager } from './settings-manager';
+import { HistoryManager } from './history-manager';
 import { TranscriptionSession, AppSettings, RecordingState } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
@@ -12,6 +13,7 @@ import { ipcMain, app } from 'electron';
 export class OpenWisprApp extends EventEmitter {
   private transcriptionProvider: ITranscriptionProvider;
   private settingsManager: SettingsManager;
+  private historyManager: HistoryManager;
   private recordingState: RecordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
   private mainWindow: Electron.BrowserWindow | null = null;
@@ -22,6 +24,8 @@ export class OpenWisprApp extends EventEmitter {
 
     this.mainWindow = mainWindow;
     this.settingsManager = new SettingsManager();
+    this.historyManager = new HistoryManager();
+    this.transcriptionHistory = this.historyManager.loadHistory();
     const settings = this.settingsManager.loadSettings();
 
     // Inicializar o provedor de transcrição baseado nas configurações
@@ -223,6 +227,9 @@ export class OpenWisprApp extends EventEmitter {
         this.transcriptionHistory = this.transcriptionHistory.slice(0, 50);
       }
 
+      // Salvar histórico
+      this.historyManager.saveHistory(this.transcriptionHistory);
+
       this.emit('transcription-completed', session);
       console.log('✅ Transcrição concluída:', transcriptionText);
 
@@ -300,6 +307,7 @@ export class OpenWisprApp extends EventEmitter {
 
   clearHistory(): void {
     this.transcriptionHistory = [];
+    this.historyManager.clearHistory();
     this.emit('history-cleared');
     console.log('🗑️ Histórico de transcrições limpo');
   }

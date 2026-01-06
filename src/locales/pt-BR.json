@@ -1,0 +1,190 @@
+{
+    "app": {
+        "name": "OpenWispr",
+        "description": "Transcrição de Voz",
+        "version": "Versão"
+    },
+    "navigation": {
+        "home": "Início",
+        "settings": "Configurações",
+        "history": "Histórico",
+        "about": "Sobre"
+    },
+    "recording": {
+        "title": "Transcrição de Voz",
+        "hotkeyHint": "Pressione <strong>{{hotkey}}</strong> para gravar",
+        "readyToRecord": "Pronto para gravar",
+        "recording": "Gravando...",
+        "stopped": "Parado",
+        "processing": "Processando...",
+        "startRecording": "Iniciar Gravação",
+        "stopRecording": "Parar Gravação",
+        "lastTranscription": "Última Transcrição",
+        "noTranscription": "Nenhuma transcrição ainda"
+    },
+    "settings": {
+        "title": "Configurações",
+        "save": "Salvar Configurações",
+        "saved": "Configurações salvas!",
+        "saveError": "Erro ao salvar configurações",
+        "language": {
+            "title": "Idioma da Interface",
+            "label": "Idioma do Aplicativo",
+            "help": "Escolha o idioma da interface do aplicativo",
+            "restartRequired": "Reinicie o aplicativo para aplicar as mudanças de idioma"
+        },
+        "hotkeys": {
+            "title": "Hotkeys",
+            "recordingMode": "Modo de Gravação",
+            "toggle": "Toggle - Pressione uma vez para gravar, pressione novamente para parar",
+            "pushToTalk": "Push-to-Talk - Mantenha pressionado para gravar, solte para parar",
+            "pushToTalkHelp": "Push-to-Talk é ideal para gravações rápidas. Segure as teclas para gravar e solte para transcrever automaticamente.",
+            "keyCombination": "Combinação de Teclas",
+            "extraKey": "Tecla Adicional (Opcional)",
+            "noExtraKey": "Nenhuma (apenas modificadores)",
+            "currentConfig": "Configuração Atual:",
+            "example": "Exemplo: Para gravar com Ctrl+Win, marque \"Ctrl\" e \"Win/Cmd\"",
+            "selectAtLeastOne": "Selecione pelo menos uma tecla para a gravação!"
+        },
+        "provider": {
+            "title": "Provedor de Transcrição",
+            "choose": "Escolha o provedor",
+            "groq": "Groq (Nuvem - Ultra Rápido) ⚡",
+            "assemblyai": "AssemblyAI (Nuvem)",
+            "fasterWhisper": "Faster Whisper (Local)",
+            "groqHelp": "Groq oferece transcrição ultra-rápida com Whisper Large V3. AssemblyAI tem alta precisão. Faster Whisper roda localmente.",
+            "configured": "Configurado",
+            "notConfigured": "Não configurado"
+        },
+        "groq": {
+            "title": "Configurações Groq",
+            "apiKey": "Chave API Groq",
+            "apiKeyPlaceholder": "Sua chave da API Groq",
+            "apiKeyHelp": "Obtenha sua chave em",
+            "model": "Modelo",
+            "modelLargeV3": "Whisper Large V3 - Melhor qualidade (10.3% WER)",
+            "modelLargeV3Turbo": "Whisper Large V3 Turbo - Mais rápido (12% WER)",
+            "modelHelp": "V3 tem melhor precisão. Turbo é mais rápido e econômico.",
+            "language": "Idioma",
+            "languageAuto": "Auto - Detectar automaticamente",
+            "languagePortuguese": "Português",
+            "languageEnglish": "English",
+            "languageHelp": "Auto deixa o Whisper detectar o idioma automaticamente. Selecionar o idioma pode melhorar a precisão.",
+            "testConnection": "Testar Conexão",
+            "testing": "Testando...",
+            "testSuccess": "Conexão com Groq funcionando!",
+            "testError": "Falha na conexão com Groq. Verifique sua chave API.",
+            "info": {
+                "title": "Groq Info:",
+                "line1": "• Transcrição ultra-rápida em nuvem",
+                "line2": "• Usa Whisper Large V3 da OpenAI",
+                "line3": "• Suporta detecção automática de idioma",
+                "line4": "• Limite: 25 MB por arquivo (grátis)",
+                "line5": "• Suporta múltiplos formatos de áudio"
+            }
+        },
+        "assemblyai": {
+            "title": "Configurações AssemblyAI",
+            "apiKey": "Chave API AssemblyAI",
+            "apiKeyPlaceholder": "Sua chave da API",
+            "apiKeyHelp": "Obtenha sua chave em",
+            "language": "Idioma",
+            "languagePortuguese": "Português Brasileiro",
+            "languageEnglish": "Inglês",
+            "testConnection": "Testar Conexão",
+            "testing": "Testando...",
+            "testSuccess": "Conexão com AssemblyAI funcionando!",
+            "testError": "Falha na conexão com AssemblyAI. Verifique sua chave API."
+        },
+        "whisper": {
+            "title": "Configurações Faster Whisper",
+            "modelSize": "Tamanho do Modelo",
+            "modelTiny": "Tiny (~39 MB) - Mais rápido",
+            "modelBase": "Base (~74 MB) - Recomendado",
+            "modelSmall": "Small (~244 MB) - Boa qualidade",
+            "modelMedium": "Medium (~769 MB) - Alta qualidade",
+            "modelLarge": "Large (~1550 MB) - Máxima qualidade",
+            "modelLargeV2": "Large-v2 (~1550 MB) - Melhorado",
+            "modelLargeV3": "Large-v3 (~1550 MB) - Mais recente",
+            "modelHelp": "Modelos maiores têm melhor qualidade mas são mais lentos",
+            "device": "Dispositivo",
+            "deviceCPU": "CPU - Compatível com qualquer sistema",
+            "deviceCUDA": "CUDA - GPU NVIDIA (requer CUDA instalado)",
+            "computeType": "Tipo de Computação",
+            "computeInt8": "INT8 - Mais rápido, menor memória",
+            "computeInt8Float16": "INT8 + Float16 - Balanceado",
+            "computeFloat16": "Float16 - Melhor qualidade (GPU)",
+            "computeFloat32": "Float32 - Máxima qualidade",
+            "pythonPath": "Caminho do Python",
+            "pythonPathPlaceholder": "python",
+            "pythonPathHelp": "Comando para executar Python (ex: python, python3, C:\\\\Python\\\\python.exe)",
+            "testWhisper": "Testar Whisper",
+            "testing": "Testando...",
+            "testSuccess": "Faster Whisper funcionando!",
+            "testError": "Erro ao testar Faster Whisper. Verifique a instalação.",
+            "requirements": {
+                "title": "Requisitos:",
+                "line1": "• Python 3.8+ instalado",
+                "line2": "• Execute:",
+                "line3": "• Para GPU: CUDA Toolkit instalado"
+            }
+        }
+    },
+    "history": {
+        "title": "Histórico",
+        "clear": "Limpar",
+        "confirmClear": "Limpar histórico?",
+        "cleared": "Histórico limpo!",
+        "clearError": "Erro ao limpar histórico",
+        "noTranscriptions": "Nenhuma transcrição"
+    },
+    "about": {
+        "title": "Sobre",
+        "description": "Alternativa open source para transcrição de voz"
+    },
+    "tray": {
+        "openInterface": "Abrir Interface",
+        "status": "Status",
+        "recording": "Gravando...",
+        "stopped": "Parado",
+        "startRecording": "Iniciar Gravação",
+        "stopRecording": "Parar Gravação",
+        "settings": "Configurações",
+        "history": "Histórico",
+        "quit": "Sair",
+        "tooltip": {
+            "idle": "OpenWispr - Pronto",
+            "recording": "OpenWispr - Gravando...",
+            "processing": "OpenWispr - Processando..."
+        }
+    },
+    "notifications": {
+        "minimizedToTray": "Aplicativo minimizado para a bandeja do sistema",
+        "transcriptionCompleted": "Transcrição Concluída",
+        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+    },
+    "errors": {
+        "initError": "Erro ao inicializar aplicativo",
+        "startRecordingError": "Erro ao iniciar gravação",
+        "stopRecordingError": "Erro ao parar gravação",
+        "microphoneAccess": "Erro ao acessar microfone",
+        "permissionDenied": "Permissão negada para acessar o microfone. Habilite o acesso ao microfone nas configurações do navegador.",
+        "microphoneNotFound": "Nenhum microfone encontrado no sistema",
+        "microphoneInUse": "Microfone está sendo usado por outro aplicativo",
+        "notRecording": "Não está gravando",
+        "noAudioRecorded": "Nenhum áudio foi gravado",
+        "emptyAudioFile": "Arquivo de áudio vazio",
+        "error": "Erro"
+    },
+    "common": {
+        "space": "Espaço",
+        "ctrl": "Ctrl",
+        "shift": "Shift",
+        "alt": "Alt",
+        "win": "Win/Cmd",
+        "yes": "Sim",
+        "no": "Não",
+        "ok": "OK",
+        "cancel": "Cancelar"
+    }
+}

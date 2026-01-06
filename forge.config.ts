@@ -14,6 +14,7 @@ const config: ForgeConfig = {
     },
     extraResource: [
       'src/assets',
+      'src/locales',
     ],
     ignore: [
       /^\/src\//,

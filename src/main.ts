@@ -4,6 +4,7 @@ import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
 import { OpenWisprApp } from './openwispr-app';
 import { HotkeyManager } from './hotkey-manager';
+import { i18nMain } from './i18n-main';
 
 dotenv.config();
 
@@ -30,6 +31,10 @@ class OpenWisprElectronApp {
     // Inicializar OpenWisprApp para registrar handlers IPC
     this.openWisprApp = new OpenWisprApp();
     this.hotkeyManager = new HotkeyManager();
+
+    // Initialize i18n
+    const settings = this.openWisprApp.getSettings();
+    i18nMain.init(settings.locale || 'pt-BR');
 
     // Create tray icons
     this.trayIcons = {
@@ -76,7 +81,7 @@ class OpenWisprElectronApp {
         if (Notification.isSupported() && !this.hasShownTrayNotification) {
           new Notification({
             title: 'OpenWispr',
-            body: 'Aplicativo minimizado para a bandeja do sistema',
+            body: i18nMain.t('notifications.minimizedToTray'),
           }).show();
           this.hasShownTrayNotification = true;
         }
@@ -205,28 +210,28 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Abrir Interface',
+        label: i18nMain.t('tray.openInterface'),
         type: 'normal',
         click: () => this.showWindow(),
       },
       {
-        label: 'Status',
+        label: i18nMain.t('tray.status'),
         type: 'submenu',
         submenu: [
           {
-            label: this.openWisprApp.getRecordingState().isRecording ? '🎤 Gravando...' : '⏹️ Parado',
+            label: this.openWisprApp.getRecordingState().isRecording ? '🎤 ' + i18nMain.t('tray.recording') : '⏹️ ' + i18nMain.t('tray.stopped'),
             enabled: false,
           },
           {
             type: 'separator',
           },
           {
-            label: 'Iniciar Gravação',
+            label: i18nMain.t('tray.startRecording'),
             click: () => this.openWisprApp.startRecording().catch(console.error),
             enabled: !this.openWisprApp.getRecordingState().isRecording,
           },
           {
-            label: 'Parar Gravação',
+            label: i18nMain.t('tray.stopRecording'),
             click: () => this.openWisprApp.stopRecording().catch(console.error),
             enabled: this.openWisprApp.getRecordingState().isRecording,
           },
@@ -236,12 +241,12 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Configurações',
+        label: i18nMain.t('tray.settings'),
         type: 'normal',
         click: () => this.showWindow('settings'),
       },
       {
-        label: 'Histórico',
+        label: i18nMain.t('tray.history'),
         type: 'normal',
         click: () => this.showWindow('history'),
       },
@@ -249,14 +254,14 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Sair',
+        label: i18nMain.t('tray.quit'),
         type: 'normal',
         click: () => this.quit(),
       },
     ]);
 
     this.tray.setContextMenu(contextMenu);
-    this.tray.setToolTip('OpenWispr - Transcrição de Voz');
+    this.tray.setToolTip('OpenWispr - ' + i18nMain.t('app.description'));
 
     this.tray.on('click', () => {
       this.showWindow();
@@ -378,7 +383,7 @@ class OpenWisprElectronApp {
 
     if (!codeInterpreter.isConfigured()) {
       console.error('❌ Groq API key not configured');
-      this.sendToRenderer('error', 'Groq API key not configured. Please set your API key in settings.');
+      this.sendToRenderer('error', i18nMain.t('notifications.groqNotConfigured'));
       return;
     }
 
@@ -453,7 +458,7 @@ class OpenWisprElectronApp {
 
       if (Notification.isSupported()) {
         new Notification({
-          title: 'Transcrição Concluída',
+          title: i18nMain.t('notifications.transcriptionCompleted'),
           body: session.transcription.substring(0, 100) + '...',
         }).show();
       }
@@ -461,6 +466,13 @@ class OpenWisprElectronApp {
 
     this.openWisprApp.on('text-inserted', (text) => {
       this.sendToRenderer('text-inserted', text);
+    });
+
+    this.openWisprApp.on('settings-updated', (settings) => {
+      if (settings.locale) {
+        i18nMain.setLocale(settings.locale);
+        this.updateTrayMenu();
+      }
     });
 
     this.openWisprApp.on('error', (error) => {
@@ -497,28 +509,28 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Abrir Interface',
+        label: i18nMain.t('tray.openInterface'),
         type: 'normal',
         click: () => this.showWindow(),
       },
       {
-        label: 'Status',
+        label: i18nMain.t('tray.status'),
         type: 'submenu',
         submenu: [
           {
-            label: isRecording ? '🎤 Gravando...' : '⏹️ Parado',
+            label: isRecording ? '🎤 ' + i18nMain.t('tray.recording') : '⏹️ ' + i18nMain.t('tray.stopped'),
             enabled: false,
           },
           {
             type: 'separator',
           },
           {
-            label: 'Iniciar Gravação',
+            label: i18nMain.t('tray.startRecording'),
             click: () => this.openWisprApp.startRecording().catch(console.error),
             enabled: !isRecording,
           },
           {
-            label: 'Parar Gravação',
+            label: i18nMain.t('tray.stopRecording'),
             click: () => this.openWisprApp.stopRecording().catch(console.error),
             enabled: isRecording,
           },
@@ -528,12 +540,12 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Configurações',
+        label: i18nMain.t('tray.settings'),
         type: 'normal',
         click: () => this.showWindow('settings'),
       },
       {
-        label: 'Histórico',
+        label: i18nMain.t('tray.history'),
         type: 'normal',
         click: () => this.showWindow('history'),
       },
@@ -541,7 +553,7 @@ class OpenWisprElectronApp {
         type: 'separator',
       },
       {
-        label: 'Sair',
+        label: i18nMain.t('tray.quit'),
         type: 'normal',
         click: () => this.quit(),
       },
@@ -632,9 +644,9 @@ class OpenWisprElectronApp {
 
     // Update tooltip based on state
     const tooltips = {
-      idle: 'OpenWispr - Pronto',
-      recording: 'OpenWispr - Gravando...',
-      processing: 'OpenWispr - Processando...'
+      idle: i18nMain.t('tray.tooltip.idle'),
+      recording: i18nMain.t('tray.tooltip.recording'),
+      processing: i18nMain.t('tray.tooltip.processing')
     };
 
     this.tray.setToolTip(tooltips[state]);

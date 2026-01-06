@@ -16,6 +16,7 @@ export interface HotkeyConfig {
 }
 
 export interface AppSettings {
+  locale: string; // Language locale (e.g., 'pt-BR', 'en')
   hotkeys: {
     startStop: HotkeyConfig;
     codeSnippet: HotkeyConfig;

@@ -6,6 +6,7 @@ import { AppSettings } from './types';
 export class SettingsManager {
   private settingsPath: string;
   private defaultSettings: AppSettings = {
+    locale: 'pt-BR', // Default to Brazilian Portuguese
     hotkeys: {
       startStop: {
         keys: ['Control', 'Meta'], // Control + Windows (Meta)
@@ -126,7 +127,19 @@ export class SettingsManager {
 
   updateSetting<K extends keyof AppSettings>(category: K, setting: Partial<AppSettings[K]>): void {
     const currentSettings = this.loadSettings();
-    currentSettings[category] = { ...currentSettings[category], ...setting };
+
+    // Handle locale separately since it's a string, not an object
+    if (category === 'locale') {
+      const val = setting as any;
+      if (typeof val === 'object' && val !== null && 'locale' in val) {
+        currentSettings[category] = val.locale;
+      } else {
+        currentSettings[category] = val;
+      }
+    } else {
+      currentSettings[category] = { ...(currentSettings[category] as object), ...(setting as object) } as AppSettings[K];
+    }
+
     this.saveSettings(currentSettings);
   }
 

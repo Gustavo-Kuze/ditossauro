@@ -1,5 +1,6 @@
 import './index.css';
 import { AppSettings, TranscriptionSession } from './types';
+import { i18n } from './i18n';
 
 class OpenWisprUI {
   private settings: AppSettings | null = null;
@@ -36,16 +37,21 @@ class OpenWisprUI {
   async init() {
     try {
       this.settings = await window.electronAPI.getSettings();
+
+      // Initialize i18n with user's locale
+      await i18n.init(this.settings.locale || 'pt-BR');
+
       this.transcriptionHistory = await window.electronAPI.getHistory();
       this.recordingState = await window.electronAPI.getRecordingState();
 
       this.setupUI();
-      this.setupEventListeners();
+      this.setupIPCListeners();
+      this.attachDOMListeners();
       this.updateRecordingStatus();
       console.log('✅ OpenWispr inicializado');
     } catch (error) {
       console.error('❌ Erro:', error);
-      alert('Erro ao inicializar aplicativo');
+      alert(i18n.t('errors.initError'));
     }
   }
 
@@ -65,27 +71,27 @@ class OpenWisprUI {
       <nav class="nav-tabs">
         <button class="nav-tab active" data-tab="home">
           <span class="tab-icon" id="homeIcon"></span>
-          <span>Início</span>
+          <span>${i18n.t('navigation.home')}</span>
         </button>
         <button class="nav-tab" data-tab="settings">
           <span class="tab-icon" id="settingsIcon"></span>
-          <span>Configurações</span>
+          <span>${i18n.t('navigation.settings')}</span>
         </button>
         <button class="nav-tab" data-tab="history">
           <span class="tab-icon" id="historyIcon"></span>
-          <span>Histórico</span>
+          <span>${i18n.t('navigation.history')}</span>
         </button>
         <button class="nav-tab" data-tab="about">
           <span class="tab-icon" id="aboutIcon"></span>
-          <span>Sobre</span>
+          <span>${i18n.t('navigation.about')}</span>
         </button>
       </nav>
 
       <main class="content">
         <div id="homeTab" class="tab-content">
           <div class="recording-section">
-            <h2>Transcrição de Voz</h2>
-            <p class="text-muted" id="hotkeyHint">Pressione <strong>Ctrl + Win</strong> para gravar</p>
+            <h2>${i18n.t('recording.title')}</h2>
+            <p class="text-muted" id="hotkeyHint"></p>
             
             <div class="recording-controls">
               <button class="record-btn start" id="startRecordBtn">
@@ -98,13 +104,13 @@ class OpenWisprUI {
 
             <div class="recording-status">
               <div class="status-indicator idle" id="recordingStatus">
-                <span>Pronto para gravar</span>
+                <span>${i18n.t('recording.readyToRecord')}</span>
               </div>
             </div>
 
             <div class="card">
-              <div class="card-header"><h3 class="card-title">Última Transcrição</h3></div>
-              <div id="lastTranscription" class="text-muted">Nenhuma transcrição ainda</div>
+              <div class="card-header"><h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3></div>
+              <div id="lastTranscription" class="text-muted">${i18n.t('recording.noTranscription')}</div>
             </div>
           </div>
         </div>
@@ -113,22 +119,39 @@ class OpenWisprUI {
           <div class="card">
             <div class="card-header">
               <h3 class="card-title">
+                <span class="title-icon" id="languageTitleIcon"></span>
+                <span>${i18n.t('settings.language.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.language.label')}</label>
+              <select class="form-select" id="languageSelect">
+                <option value="pt-BR">Português (Brasil)</option>
+                <option value="en">English</option>
+              </select>
+              <small class="form-help">${i18n.t('settings.language.help')}</small>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
                 <span class="title-icon" id="hotkeysTitleIcon"></span>
-                <span>Hotkeys</span>
+                <span>${i18n.t('settings.hotkeys.title')}</span>
               </h3>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Modo de Gravação</label>
+              <label class="form-label">${i18n.t('settings.hotkeys.recordingMode')}</label>
               <select class="form-select" id="hotkeyMode">
-                <option value="toggle">Toggle - Pressione uma vez para gravar, pressione novamente para parar</option>
-                <option value="push-to-talk">Push-to-Talk - Mantenha pressionado para gravar, solte para parar</option>
+                <option value="toggle">${i18n.t('settings.hotkeys.toggle')}</option>
+                <option value="push-to-talk">${i18n.t('settings.hotkeys.pushToTalk')}</option>
               </select>
-              <small class="form-help">Push-to-Talk é ideal para gravações rápidas. Segure as teclas para gravar e solte para transcrever automaticamente.</small>
+              <small class="form-help">${i18n.t('settings.hotkeys.pushToTalkHelp')}</small>
             </div>
 
             <div class="form-group">
-              <label class="form-label">Combinação de Teclas</label>
+              <label class="form-label">${i18n.t('settings.hotkeys.keyCombination')}</label>
               <div id="hotkeyKeysContainer" style="margin-bottom: 10px;">
                 <!-- As teclas selecionadas aparecerão aqui -->
               </div>
@@ -147,10 +170,10 @@ class OpenWisprUI {
                 </label>
               </div>
               <div style="margin-top: 10px;">
-                <label class="form-label">Tecla Adicional (Opcional)</label>
+                <label class="form-label">${i18n.t('settings.hotkeys.extraKey')}</label>
                 <select class="form-select" id="hotkeyExtraKey">
-                  <option value="">Nenhuma (apenas modificadores)</option>
-                  <option value="Space">Espaço</option>
+                  <option value="">${i18n.t('settings.hotkeys.noExtraKey')}</option>
+                  <option value="Space">${i18n.t('common.space')}</option>
                   <option value="F1">F1</option>
                   <option value="F2">F2</option>
                   <option value="F3">F3</option>
@@ -166,8 +189,8 @@ class OpenWisprUI {
                 </select>
               </div>
               <small class="form-help">
-                <strong>Configuração Atual:</strong> <span id="currentHotkeyDisplay">Control + Meta</span><br>
-                Exemplo: Para gravar com Ctrl+Win, marque "Ctrl" e "Win/Cmd"
+                <strong>${i18n.t('settings.hotkeys.currentConfig')}</strong> <span id="currentHotkeyDisplay">Control + Meta</span><br>
+                ${i18n.t('settings.hotkeys.example')}
               </small>
             </div>
           </div>
@@ -176,18 +199,18 @@ class OpenWisprUI {
             <div class="card-header">
               <h3 class="card-title">
                 <span class="title-icon" id="providerTitleIcon"></span>
-                <span>Provedor de Transcrição</span>
+                <span>${i18n.t('settings.provider.title')}</span>
               </h3>
               <div id="providerStatus" class="provider-status"></div>
             </div>
             <div class="form-group">
-              <label class="form-label">Escolha o provedor</label>
+              <label class="form-label">${i18n.t('settings.provider.choose')}</label>
               <select class="form-select" id="transcriptionProvider">
-                <option value="groq">Groq (Nuvem - Ultra Rápido) ⚡</option>
-                <option value="assemblyai">AssemblyAI (Nuvem)</option>
-                <option value="faster-whisper">Faster Whisper (Local)</option>
+                <option value="groq">${i18n.t('settings.provider.groq')}</option>
+                <option value="assemblyai">${i18n.t('settings.provider.assemblyai')}</option>
+                <option value="faster-whisper">${i18n.t('settings.provider.fasterWhisper')}</option>
               </select>
-              <small class="form-help">Groq oferece transcrição ultra-rápida com Whisper Large V3. AssemblyAI tem alta precisão. Faster Whisper roda localmente.</small>
+              <small class="form-help">${i18n.t('settings.provider.groqHelp')}</small>
             </div>
           </div>
 
@@ -195,47 +218,47 @@ class OpenWisprUI {
             <div class="card-header">
               <h3 class="card-title">
                 <span class="title-icon" id="groqTitleIcon"></span>
-                <span>Configurações Groq</span>
+                <span>${i18n.t('settings.groq.title')}</span>
               </h3>
             </div>
             <div class="form-group">
-              <label class="form-label">Chave API Groq</label>
-              <input type="password" class="form-input" id="groqApiKey" placeholder="Sua chave da API Groq">
-              <small class="form-help">Obtenha sua chave em <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a></small>
+              <label class="form-label">${i18n.t('settings.groq.apiKey')}</label>
+              <input type="password" class="form-input" id="groqApiKey" placeholder="${i18n.t('settings.groq.apiKeyPlaceholder')}">
+              <small class="form-help">${i18n.t('settings.groq.apiKeyHelp')} <a href="https://console.groq.com/keys" target="_blank">console.groq.com/keys</a></small>
             </div>
             <div class="form-group">
-              <label class="form-label">Modelo</label>
+              <label class="form-label">${i18n.t('settings.groq.model')}</label>
               <select class="form-select" id="groqModelName">
-                <option value="whisper-large-v3">Whisper Large V3 - Melhor qualidade (10.3% WER)</option>
-                <option value="whisper-large-v3-turbo">Whisper Large V3 Turbo - Mais rápido (12% WER)</option>
+                <option value="whisper-large-v3">${i18n.t('settings.groq.modelLargeV3')}</option>
+                <option value="whisper-large-v3-turbo">${i18n.t('settings.groq.modelLargeV3Turbo')}</option>
               </select>
-              <small class="form-help">V3 tem melhor precisão. Turbo é mais rápido e econômico.</small>
+              <small class="form-help">${i18n.t('settings.groq.modelHelp')}</small>
             </div>
             <div class="form-group">
-              <label class="form-label">Idioma</label>
+              <label class="form-label">${i18n.t('settings.groq.language')}</label>
               <select class="form-select" id="groqLanguage">
-                <option value="">Auto - Detectar automaticamente</option>
-                <option value="pt">Português</option>
-                <option value="en">English</option>
+                <option value="">${i18n.t('settings.groq.languageAuto')}</option>
+                <option value="pt">${i18n.t('settings.groq.languagePortuguese')}</option>
+                <option value="en">${i18n.t('settings.groq.languageEnglish')}</option>
               </select>
-              <small class="form-help">Auto deixa o Whisper detectar o idioma automaticamente. Selecionar o idioma pode melhorar a precisão.</small>
+              <small class="form-help">${i18n.t('settings.groq.languageHelp')}</small>
             </div>
             <div class="form-group">
               <button class="btn btn-secondary" id="testGroqBtn">
                 <span class="btn-icon" id="testGroqIcon"></span>
-                <span>Testar Conexão</span>
+                <span>${i18n.t('settings.groq.testConnection')}</span>
               </button>
             </div>
             <div class="alert alert-info">
               <strong>
                 <span class="inline-icon" id="groqInfoIcon"></span>
-                Groq Info:
+                ${i18n.t('settings.groq.info.title')}
               </strong><br>
-              • Transcrição ultra-rápida em nuvem<br>
-              • Usa Whisper Large V3 da OpenAI<br>
-              • Suporta detecção automática de idioma<br>
-              • Limite: 25 MB por arquivo (grátis)<br>
-              • Suporta múltiplos formatos de áudio
+              • ${i18n.t('settings.groq.info.line1')}<br>
+              • ${i18n.t('settings.groq.info.line2')}<br>
+              • ${i18n.t('settings.groq.info.line3')}<br>
+              • ${i18n.t('settings.groq.info.line4')}<br>
+              • ${i18n.t('settings.groq.info.line5')}
             </div>
           </div>
 
@@ -243,25 +266,25 @@ class OpenWisprUI {
             <div class="card-header">
               <h3 class="card-title">
                 <span class="title-icon" id="assemblyaiTitleIcon"></span>
-                <span>Configurações AssemblyAI</span>
+                <span>${i18n.t('settings.assemblyai.title')}</span>
               </h3>
             </div>
             <div class="form-group">
-              <label class="form-label">Chave API AssemblyAI</label>
-              <input type="password" class="form-input" id="apiKey" placeholder="Sua chave da API">
-              <small class="form-help">Obtenha sua chave em <a href="https://www.assemblyai.com/" target="_blank">assemblyai.com</a></small>
+              <label class="form-label">${i18n.t('settings.assemblyai.apiKey')}</label>
+              <input type="password" class="form-input" id="apiKey" placeholder="${i18n.t('settings.assemblyai.apiKeyPlaceholder')}">
+              <small class="form-help">${i18n.t('settings.assemblyai.apiKeyHelp')} <a href="https://www.assemblyai.com/" target="_blank">assemblyai.com</a></small>
             </div>
             <div class="form-group">
-              <label class="form-label">Idioma</label>
+              <label class="form-label">${i18n.t('settings.assemblyai.language')}</label>
               <select class="form-select" id="language">
-                <option value="pt">Português Brasileiro</option>
-                <option value="en">Inglês</option>
+                <option value="pt">${i18n.t('settings.assemblyai.languagePortuguese')}</option>
+                <option value="en">${i18n.t('settings.assemblyai.languageEnglish')}</option>
               </select>
             </div>
             <div class="form-group">
               <button class="btn btn-secondary" id="testAssemblyBtn">
                 <span class="btn-icon" id="testAssemblyIcon"></span>
-                <span>Testar Conexão</span>
+                <span>${i18n.t('settings.assemblyai.testConnection')}</span>
               </button>
             </div>
           </div>
@@ -270,64 +293,64 @@ class OpenWisprUI {
             <div class="card-header">
               <h3 class="card-title">
                 <span class="title-icon" id="whisperTitleIcon"></span>
-                <span>Configurações Faster Whisper</span>
+                <span>${i18n.t('settings.whisper.title')}</span>
               </h3>
             </div>
             <div class="form-group">
-              <label class="form-label">Tamanho do Modelo</label>
+              <label class="form-label">${i18n.t('settings.whisper.modelSize')}</label>
               <select class="form-select" id="whisperModelSize">
-                <option value="tiny">Tiny (~39 MB) - Mais rápido</option>
-                <option value="base">Base (~74 MB) - Recomendado</option>
-                <option value="small">Small (~244 MB) - Boa qualidade</option>
-                <option value="medium">Medium (~769 MB) - Alta qualidade</option>
-                <option value="large">Large (~1550 MB) - Máxima qualidade</option>
-                <option value="large-v2">Large-v2 (~1550 MB) - Melhorado</option>
-                <option value="large-v3">Large-v3 (~1550 MB) - Mais recente</option>
+                <option value="tiny">${i18n.t('settings.whisper.modelTiny')}</option>
+                <option value="base">${i18n.t('settings.whisper.modelBase')}</option>
+                <option value="small">${i18n.t('settings.whisper.modelSmall')}</option>
+                <option value="medium">${i18n.t('settings.whisper.modelMedium')}</option>
+                <option value="large">${i18n.t('settings.whisper.modelLarge')}</option>
+                <option value="large-v2">${i18n.t('settings.whisper.modelLargeV2')}</option>
+                <option value="large-v3">${i18n.t('settings.whisper.modelLargeV3')}</option>
               </select>
-              <small class="form-help">Modelos maiores têm melhor qualidade mas são mais lentos</small>
+              <small class="form-help">${i18n.t('settings.whisper.modelHelp')}</small>
             </div>
             <div class="form-group">
-              <label class="form-label">Dispositivo</label>
+              <label class="form-label">${i18n.t('settings.whisper.device')}</label>
               <select class="form-select" id="whisperDevice">
-                <option value="cpu">CPU - Compatível com qualquer sistema</option>
-                <option value="cuda">CUDA - GPU NVIDIA (requer CUDA instalado)</option>
+                <option value="cpu">${i18n.t('settings.whisper.deviceCPU')}</option>
+                <option value="cuda">${i18n.t('settings.whisper.deviceCUDA')}</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Tipo de Computação</label>
+              <label class="form-label">${i18n.t('settings.whisper.computeType')}</label>
               <select class="form-select" id="whisperComputeType">
-                <option value="int8">INT8 - Mais rápido, menor memória</option>
-                <option value="int8_float16">INT8 + Float16 - Balanceado</option>
-                <option value="float16">Float16 - Melhor qualidade (GPU)</option>
-                <option value="float32">Float32 - Máxima qualidade</option>
+                <option value="int8">${i18n.t('settings.whisper.computeInt8')}</option>
+                <option value="int8_float16">${i18n.t('settings.whisper.computeInt8Float16')}</option>
+                <option value="float16">${i18n.t('settings.whisper.computeFloat16')}</option>
+                <option value="float32">${i18n.t('settings.whisper.computeFloat32')}</option>
               </select>
             </div>
             <div class="form-group">
-              <label class="form-label">Caminho do Python</label>
-              <input type="text" class="form-input" id="whisperPythonPath" value="python" placeholder="python">
-              <small class="form-help">Comando para executar Python (ex: python, python3, C:\\Python\\python.exe)</small>
+              <label class="form-label">${i18n.t('settings.whisper.pythonPath')}</label>
+              <input type="text" class="form-input" id="whisperPythonPath" value="python" placeholder="${i18n.t('settings.whisper.pythonPathPlaceholder')}">
+              <small class="form-help">${i18n.t('settings.whisper.pythonPathHelp')}</small>
             </div>
             <div class="form-group">
               <button class="btn btn-secondary" id="testWhisperBtn">
                 <span class="btn-icon" id="testWhisperIcon"></span>
-                <span>Testar Whisper</span>
+                <span>${i18n.t('settings.whisper.testWhisper')}</span>
               </button>
             </div>
             <div class="alert alert-info">
               <strong>
                 <span class="inline-icon" id="whisperReqIcon"></span>
-                Requisitos:
+                ${i18n.t('settings.whisper.requirements.title')}
               </strong><br>
-              • Python 3.8+ instalado<br>
-              • Execute: <code>pip install faster-whisper</code><br>
-              • Para GPU: CUDA Toolkit instalado
+              • ${i18n.t('settings.whisper.requirements.line1')}<br>
+              • ${i18n.t('settings.whisper.requirements.line2')} <code>pip install faster-whisper</code><br>
+              • ${i18n.t('settings.whisper.requirements.line3')}
             </div>
           </div>
 
           <div class="text-center">
             <button class="btn btn-primary" id="saveSettingsBtn">
               <span class="btn-icon" id="saveIcon"></span>
-              <span>Salvar Configurações</span>
+              <span>${i18n.t('settings.save')}</span>
             </button>
           </div>
         </div>
@@ -335,10 +358,10 @@ class OpenWisprUI {
         <div id="historyTab" class="tab-content hidden">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Histórico</h3>
+              <h3 class="card-title">${i18n.t('history.title')}</h3>
               <button class="btn btn-danger" id="clearHistoryBtn">
                 <span class="btn-icon" id="clearIcon"></span>
-                <span>Limpar</span>
+                <span>${i18n.t('history.clear')}</span>
               </button>
             </div>
             <div id="historyList"></div>
@@ -349,8 +372,8 @@ class OpenWisprUI {
           <div class="card text-center">
             <div class="about-logo" id="aboutLogo"></div>
             <h2>OpenWispr</h2>
-            <p>Alternativa open source para transcrição de voz</p>
-            <p><strong>Versão:</strong> 1.0.0</p>
+            <p>${i18n.t('about.description')}</p>
+            <p><strong>${i18n.t('app.version')}:</strong> 1.0.0</p>
           </div>
         </div>
       </main>
@@ -408,6 +431,9 @@ class OpenWisprUI {
     if (aboutLogo) aboutLogo.innerHTML = this.createIcon('mic', 64);
 
     // Settings section title icons
+    const languageTitleIcon = document.getElementById('languageTitleIcon');
+    if (languageTitleIcon) languageTitleIcon.innerHTML = this.createIcon('globe', 20);
+
     const hotkeysTitleIcon = document.getElementById('hotkeysTitleIcon');
     if (hotkeysTitleIcon) hotkeysTitleIcon.innerHTML = this.createIcon('keyboard', 20);
 
@@ -431,7 +457,34 @@ class OpenWisprUI {
     if (whisperReqIcon) whisperReqIcon.innerHTML = this.createIcon('clipboard', 16);
   }
 
-  setupEventListeners() {
+  setupIPCListeners() {
+    window.electronAPI.onRecordingStarted(() => {
+      this.recordingState.isRecording = true;
+      this.updateRecordingStatus();
+    });
+
+    window.electronAPI.onRecordingStopped(() => {
+      this.recordingState.isRecording = false;
+      this.updateRecordingStatus();
+    });
+
+    window.electronAPI.onTranscriptionCompleted((session: TranscriptionSession) => {
+      this.transcriptionHistory.unshift(session);
+      this.updateLastTranscription(session.transcription);
+      this.updateHistoryUI();
+    });
+
+    window.electronAPI.onError((error: string) => {
+      alert('❌ ' + i18n.t('errors.error') + ': ' + error);
+    });
+
+    // Listen for navigation requests from tray menu
+    window.electronAPI.onNavigateTo((page: string) => {
+      this.switchTab(page);
+    });
+  }
+
+  attachDOMListeners() {
     document.querySelectorAll('.nav-tab').forEach(tab => {
       tab.addEventListener('click', (e) => {
         const tabName = (e.target as HTMLElement).dataset.tab;
@@ -450,6 +503,27 @@ class OpenWisprUI {
 
     document.getElementById('saveSettingsBtn')?.addEventListener('click', () => {
       this.saveSettings();
+    });
+
+    document.getElementById('languageSelect')?.addEventListener('change', async (e) => {
+      const newLocale = (e.target as HTMLSelectElement).value;
+      await window.electronAPI.updateSettings('locale', { locale: newLocale });
+
+      if (this.settings) {
+        this.settings.locale = newLocale;
+      }
+
+      i18n.setLocale(newLocale);
+      this.setupUI();
+      // Re-initialize icons because setupUI destroys and recreates elements
+      this.initializeIcons();
+      this.updateUI();
+      this.updateRecordingStatus();
+      this.updateHotkeyHint();
+      // Reload history to format dates in new locale
+      this.updateHistoryUI();
+      // Re-attach DOM listeners to new elements
+      this.attachDOMListeners();
     });
 
     document.getElementById('clearHistoryBtn')?.addEventListener('click', () => {
@@ -488,31 +562,6 @@ class OpenWisprUI {
     document.getElementById('hotkeyMode')?.addEventListener('change', () => {
       this.updateHotkeyModeInfo();
     });
-
-    window.electronAPI.onRecordingStarted(() => {
-      this.recordingState.isRecording = true;
-      this.updateRecordingStatus();
-    });
-
-    window.electronAPI.onRecordingStopped(() => {
-      this.recordingState.isRecording = false;
-      this.updateRecordingStatus();
-    });
-
-    window.electronAPI.onTranscriptionCompleted((session: TranscriptionSession) => {
-      this.transcriptionHistory.unshift(session);
-      this.updateLastTranscription(session.transcription);
-      this.updateHistoryUI();
-    });
-
-    window.electronAPI.onError((error: string) => {
-      alert('❌ Erro: ' + error);
-    });
-
-    // Listen for navigation requests from tray menu
-    window.electronAPI.onNavigateTo((page: string) => {
-      this.switchTab(page);
-    });
   }
 
   switchTab(tabName: string) {
@@ -527,7 +576,7 @@ class OpenWisprUI {
     try {
       await window.electronAPI.startRecording();
     } catch (error) {
-      alert('Erro ao iniciar gravação');
+      alert(i18n.t('errors.startRecordingError'));
     }
   }
 
@@ -535,7 +584,7 @@ class OpenWisprUI {
     try {
       await window.electronAPI.stopRecording();
     } catch (error) {
-      alert('Erro ao parar gravação');
+      alert(i18n.t('errors.stopRecordingError'));
     }
   }
 
@@ -547,11 +596,11 @@ class OpenWisprUI {
     if (this.recordingState.isRecording) {
       startBtn?.classList.add('hidden');
       stopBtn?.classList.remove('hidden');
-      if (status) status.innerHTML = '<div class="pulse"></div><span>🎤 Gravando...</span>';
+      if (status) status.innerHTML = `<div class="pulse"></div><span>🎤 ${i18n.t('recording.recording')}</span>`;
     } else {
       startBtn?.classList.remove('hidden');
       stopBtn?.classList.add('hidden');
-      if (status) status.innerHTML = '<span>Pronto para gravar</span>';
+      if (status) status.innerHTML = `<span>${i18n.t('recording.readyToRecord')}</span>`;
     }
   }
 
@@ -565,6 +614,12 @@ class OpenWisprUI {
 
   updateUI() {
     if (!this.settings) return;
+
+    // Configurações de Idioma
+    const languageSelect = document.getElementById('languageSelect') as HTMLSelectElement;
+    if (languageSelect) {
+      languageSelect.value = this.settings.locale || 'pt-BR';
+    }
 
     // Configurações de API
     const groqApiKey = document.getElementById('groqApiKey') as HTMLInputElement;
@@ -633,14 +688,14 @@ class OpenWisprUI {
     if (!historyList) return;
 
     if (this.transcriptionHistory.length === 0) {
-      historyList.innerHTML = '<p class="text-muted text-center">Nenhuma transcrição</p>';
+      historyList.innerHTML = `<p class="text-muted text-center">${i18n.t('history.noTranscriptions')}</p>`;
       return;
     }
 
     historyList.innerHTML = this.transcriptionHistory.map(session => `
       <div class="history-item">
         <div class="history-meta">
-          <span>${new Date(session.timestamp).toLocaleString('pt-BR')}</span>
+          <span>${new Date(session.timestamp).toLocaleString(i18n.getLocale())}</span>
           <span>${session.duration?.toFixed(1)}s</span>
         </div>
         <div class="history-text">${session.transcription}</div>
@@ -664,7 +719,7 @@ class OpenWisprUI {
       }
 
       if (selectedKeys.length === 0) {
-        alert('⚠️ Selecione pelo menos uma tecla para a gravação!');
+        alert('⚠️ ' + i18n.t('settings.hotkeys.selectAtLeastOne'));
         return;
       }
 
@@ -717,22 +772,22 @@ class OpenWisprUI {
       this.settings = await window.electronAPI.getSettings();
       this.updateProviderStatus();
 
-      alert('✅ Configurações salvas!');
+      alert('✅ ' + i18n.t('settings.saved'));
     } catch (error) {
       console.error('Erro ao salvar configurações:', error);
-      alert('Erro ao salvar configurações');
+      alert(i18n.t('settings.saveError'));
     }
   }
 
   async clearHistory() {
-    if (confirm('Limpar histórico?')) {
+    if (confirm(i18n.t('history.confirmClear'))) {
       try {
         await window.electronAPI.clearHistory();
         this.transcriptionHistory = [];
         this.updateHistoryUI();
-        alert('✅ Histórico limpo!');
+        alert('✅ ' + i18n.t('history.cleared'));
       } catch (error) {
-        alert('Erro ao limpar histórico');
+        alert(i18n.t('history.clearError'));
       }
     }
   }
@@ -761,13 +816,14 @@ class OpenWisprUI {
     try {
       const providerInfo = await window.electronAPI.getCurrentProvider();
       const statusElement = document.getElementById('providerStatus');
-      
+
       if (statusElement && providerInfo) {
         const statusClass = providerInfo.isConfigured ? 'status-ok' : 'status-error';
         const statusIcon = providerInfo.isConfigured ? '✅' : '❌';
+        const statusText = providerInfo.isConfigured ? i18n.t('settings.provider.configured') : i18n.t('settings.provider.notConfigured');
         statusElement.innerHTML = `
           <span class="${statusClass}">
-            ${statusIcon} ${providerInfo.name} ${providerInfo.isConfigured ? '(Configurado)' : '(Não configurado)'}
+            ${statusIcon} ${providerInfo.name} (${statusText})
           </span>
         `;
       }
@@ -779,21 +835,21 @@ class OpenWisprUI {
   async testAssemblyAI() {
     const button = document.getElementById('testAssemblyBtn') as HTMLButtonElement;
     const originalText = button.textContent;
-    
+
     try {
-      button.textContent = '🔄 Testando...';
+      button.textContent = '🔄 ' + i18n.t('settings.assemblyai.testing');
       button.disabled = true;
 
       const result = await window.electronAPI.testAPI();
-      
+
       if (result) {
-        alert('✅ Conexão com AssemblyAI funcionando!');
+        alert('✅ ' + i18n.t('settings.assemblyai.testSuccess'));
       } else {
-        alert('❌ Falha na conexão com AssemblyAI. Verifique sua chave API.');
+        alert('❌ ' + i18n.t('settings.assemblyai.testError'));
       }
     } catch (error) {
       console.error('Erro ao testar AssemblyAI:', error);
-      alert('❌ Erro ao testar AssemblyAI: ' + error);
+      alert('❌ ' + i18n.t('settings.assemblyai.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -805,7 +861,7 @@ class OpenWisprUI {
     const originalText = button.textContent;
 
     try {
-      button.textContent = '🔄 Testando...';
+      button.textContent = '🔄 ' + i18n.t('settings.groq.testing');
       button.disabled = true;
 
       // Salvar configurações do Groq
@@ -831,13 +887,13 @@ class OpenWisprUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ Groq funcionando!\n\nConexão estabelecida e modelo pronto para transcrição.');
+        alert('✅ ' + i18n.t('settings.groq.testSuccess'));
       } else {
-        alert('❌ Groq não está funcionando.\n\nVerifique:\n• Chave API está correta\n• Você tem acesso à API Groq\n• Internet está funcionando');
+        alert('❌ ' + i18n.t('settings.groq.testError'));
       }
     } catch (error) {
       console.error('Erro ao testar Groq:', error);
-      alert('❌ Erro ao testar Groq: ' + error);
+      alert('❌ ' + i18n.t('settings.groq.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -849,7 +905,7 @@ class OpenWisprUI {
     const originalText = button.textContent;
 
     try {
-      button.textContent = '🔄 Testando...';
+      button.textContent = '🔄 ' + i18n.t('settings.whisper.testing');
       button.disabled = true;
 
       // Primeiro, salvar as configurações atuais do Whisper
@@ -871,13 +927,13 @@ class OpenWisprUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ Faster Whisper funcionando!\n\nPython encontrado e biblioteca faster-whisper disponível.');
+        alert('✅ ' + i18n.t('settings.whisper.testSuccess'));
       } else {
-        alert('❌ Faster Whisper não está funcionando.\n\nVerifique:\n• Python está instalado\n• Execute: pip install faster-whisper\n• Caminho do Python está correto');
+        alert('❌ ' + i18n.t('settings.whisper.testError'));
       }
     } catch (error) {
       console.error('Erro ao testar Faster Whisper:', error);
-      alert('❌ Erro ao testar Faster Whisper: ' + error);
+      alert('❌ ' + i18n.t('settings.whisper.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -902,7 +958,7 @@ class OpenWisprUI {
         displayElement.style.color = 'red';
       } else {
         const keyNames = selectedKeys.map(key => {
-          switch(key) {
+          switch (key) {
             case 'Control': return 'Ctrl';
             case 'Meta': return 'Win';
             case 'Space': return 'Espaço';
@@ -927,19 +983,19 @@ class OpenWisprUI {
       const mode = this.settings.hotkeys.startStop.mode;
 
       const keyNames = keys.map(key => {
-        switch(key) {
+        switch (key) {
           case 'Control': return 'Ctrl';
           case 'Meta': return 'Win';
-          case 'Space': return 'Espaço';
+          case 'Space': return i18n.t('common.space');
           default: return key;
         }
       });
       const keysDisplay = keyNames.join(' + ');
 
       if (mode === 'push-to-talk') {
-        homeHint.innerHTML = `Mantenha <strong>${keysDisplay}</strong> pressionado para gravar, solte para transcrever`;
+        homeHint.innerHTML = i18n.t('recording.hotkeyHint', { hotkey: keysDisplay });
       } else {
-        homeHint.innerHTML = `Pressione <strong>${keysDisplay}</strong> para gravar`;
+        homeHint.innerHTML = i18n.t('recording.hotkeyHint', { hotkey: keysDisplay });
       }
     }
   }

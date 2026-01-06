@@ -1,0 +1,190 @@
+{
+    "app": {
+        "name": "OpenWispr",
+        "description": "Voice Transcription",
+        "version": "Version"
+    },
+    "navigation": {
+        "home": "Home",
+        "settings": "Settings",
+        "history": "History",
+        "about": "About"
+    },
+    "recording": {
+        "title": "Voice Transcription",
+        "hotkeyHint": "Press <strong>{{hotkey}}</strong> to record",
+        "readyToRecord": "Ready to record",
+        "recording": "Recording...",
+        "stopped": "Stopped",
+        "processing": "Processing...",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording",
+        "lastTranscription": "Last Transcription",
+        "noTranscription": "No transcription yet"
+    },
+    "settings": {
+        "title": "Settings",
+        "save": "Save Settings",
+        "saved": "Settings saved!",
+        "saveError": "Error saving settings",
+        "language": {
+            "title": "Interface Language",
+            "label": "Application Language",
+            "help": "Choose the application interface language",
+            "restartRequired": "Restart the application to apply language changes"
+        },
+        "hotkeys": {
+            "title": "Hotkeys",
+            "recordingMode": "Recording Mode",
+            "toggle": "Toggle - Press once to record, press again to stop",
+            "pushToTalk": "Push-to-Talk - Hold to record, release to stop",
+            "pushToTalkHelp": "Push-to-Talk is ideal for quick recordings. Hold the keys to record and release to automatically transcribe.",
+            "keyCombination": "Key Combination",
+            "extraKey": "Extra Key (Optional)",
+            "noExtraKey": "None (modifiers only)",
+            "currentConfig": "Current Configuration:",
+            "example": "Example: To record with Ctrl+Win, check \"Ctrl\" and \"Win/Cmd\"",
+            "selectAtLeastOne": "Select at least one key for recording!"
+        },
+        "provider": {
+            "title": "Transcription Provider",
+            "choose": "Choose provider",
+            "groq": "Groq (Cloud - Ultra Fast) ⚡",
+            "assemblyai": "AssemblyAI (Cloud)",
+            "fasterWhisper": "Faster Whisper (Local)",
+            "groqHelp": "Groq offers ultra-fast transcription with Whisper Large V3. AssemblyAI has high accuracy. Faster Whisper runs locally.",
+            "configured": "Configured",
+            "notConfigured": "Not configured"
+        },
+        "groq": {
+            "title": "Groq Settings",
+            "apiKey": "Groq API Key",
+            "apiKeyPlaceholder": "Your Groq API key",
+            "apiKeyHelp": "Get your key at",
+            "model": "Model",
+            "modelLargeV3": "Whisper Large V3 - Best quality (10.3% WER)",
+            "modelLargeV3Turbo": "Whisper Large V3 Turbo - Faster (12% WER)",
+            "modelHelp": "V3 has better accuracy. Turbo is faster and more economical.",
+            "language": "Language",
+            "languageAuto": "Auto - Detect automatically",
+            "languagePortuguese": "Portuguese",
+            "languageEnglish": "English",
+            "languageHelp": "Auto lets Whisper detect the language automatically. Selecting the language can improve accuracy.",
+            "testConnection": "Test Connection",
+            "testing": "Testing...",
+            "testSuccess": "Groq connection working!",
+            "testError": "Groq connection failed. Check your API key.",
+            "info": {
+                "title": "Groq Info:",
+                "line1": "• Ultra-fast cloud transcription",
+                "line2": "• Uses OpenAI's Whisper Large V3",
+                "line3": "• Supports automatic language detection",
+                "line4": "• Limit: 25 MB per file (free)",
+                "line5": "• Supports multiple audio formats"
+            }
+        },
+        "assemblyai": {
+            "title": "AssemblyAI Settings",
+            "apiKey": "AssemblyAI API Key",
+            "apiKeyPlaceholder": "Your API key",
+            "apiKeyHelp": "Get your key at",
+            "language": "Language",
+            "languagePortuguese": "Brazilian Portuguese",
+            "languageEnglish": "English",
+            "testConnection": "Test Connection",
+            "testing": "Testing...",
+            "testSuccess": "AssemblyAI connection working!",
+            "testError": "AssemblyAI connection failed. Check your API key."
+        },
+        "whisper": {
+            "title": "Faster Whisper Settings",
+            "modelSize": "Model Size",
+            "modelTiny": "Tiny (~39 MB) - Fastest",
+            "modelBase": "Base (~74 MB) - Recommended",
+            "modelSmall": "Small (~244 MB) - Good quality",
+            "modelMedium": "Medium (~769 MB) - High quality",
+            "modelLarge": "Large (~1550 MB) - Maximum quality",
+            "modelLargeV2": "Large-v2 (~1550 MB) - Improved",
+            "modelLargeV3": "Large-v3 (~1550 MB) - Latest",
+            "modelHelp": "Larger models have better quality but are slower",
+            "device": "Device",
+            "deviceCPU": "CPU - Compatible with any system",
+            "deviceCUDA": "CUDA - NVIDIA GPU (requires CUDA installed)",
+            "computeType": "Compute Type",
+            "computeInt8": "INT8 - Faster, less memory",
+            "computeInt8Float16": "INT8 + Float16 - Balanced",
+            "computeFloat16": "Float16 - Better quality (GPU)",
+            "computeFloat32": "Float32 - Maximum quality",
+            "pythonPath": "Python Path",
+            "pythonPathPlaceholder": "python",
+            "pythonPathHelp": "Command to run Python (e.g.: python, python3, C:\\\\Python\\\\python.exe)",
+            "testWhisper": "Test Whisper",
+            "testing": "Testing...",
+            "testSuccess": "Faster Whisper working!",
+            "testError": "Error testing Faster Whisper. Check installation.",
+            "requirements": {
+                "title": "Requirements:",
+                "line1": "• Python 3.8+ installed",
+                "line2": "• Run:",
+                "line3": "• For GPU: CUDA Toolkit installed"
+            }
+        }
+    },
+    "history": {
+        "title": "History",
+        "clear": "Clear",
+        "confirmClear": "Clear history?",
+        "cleared": "History cleared!",
+        "clearError": "Error clearing history",
+        "noTranscriptions": "No transcriptions"
+    },
+    "about": {
+        "title": "About",
+        "description": "Open source alternative for voice transcription"
+    },
+    "tray": {
+        "openInterface": "Open Interface",
+        "status": "Status",
+        "recording": "Recording...",
+        "stopped": "Stopped",
+        "startRecording": "Start Recording",
+        "stopRecording": "Stop Recording",
+        "settings": "Settings",
+        "history": "History",
+        "quit": "Quit",
+        "tooltip": {
+            "idle": "OpenWispr - Ready",
+            "recording": "OpenWispr - Recording...",
+            "processing": "OpenWispr - Processing..."
+        }
+    },
+    "notifications": {
+        "minimizedToTray": "Application minimized to system tray",
+        "transcriptionCompleted": "Transcription Completed",
+        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+    },
+    "errors": {
+        "initError": "Error initializing application",
+        "startRecordingError": "Error starting recording",
+        "stopRecordingError": "Error stopping recording",
+        "microphoneAccess": "Error accessing microphone",
+        "permissionDenied": "Permission denied to access microphone. Enable microphone access in browser settings.",
+        "microphoneNotFound": "No microphone found on system",
+        "microphoneInUse": "Microphone is being used by another application",
+        "notRecording": "Not recording",
+        "noAudioRecorded": "No audio was recorded",
+        "emptyAudioFile": "Empty audio file",
+        "error": "Error"
+    },
+    "common": {
+        "space": "Space",
+        "ctrl": "Ctrl",
+        "shift": "Shift",
+        "alt": "Alt",
+        "win": "Win/Cmd",
+        "yes": "Yes",
+        "no": "No",
+        "ok": "OK",
+        "cancel": "Cancel"
+    }
+}

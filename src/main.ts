@@ -21,6 +21,7 @@ class OpenWisprElectronApp {
   private hotkeyManager: HotkeyManager;
   private isQuitting = false;
   private hasShownTrayNotification = false;
+  private isProcessingCodeSnippet = false;
   private trayIcons: {
     idle: NativeImage;
     recording: NativeImage;
@@ -356,63 +357,85 @@ class OpenWisprElectronApp {
   }
 
   private async handleCodeSnippetRecordingStop(): Promise<void> {
-    // Import dependencies
-    const { VoiceCommandDetector } = await import('./voice-command-detector');
-    const { CodeInterpreterFactory } = await import('./code-interpreter-factory');
-    const { TextInserter } = await import('./text-inserter');
-
-    // Stop recording and get transcription
-    await this.openWisprApp.stopRecording();
-
-    // Wait for transcription to complete
-    // We'll need to listen for the transcription-completed event
-    // For now, we'll use a simple approach with a one-time listener
-    const transcriptionPromise = new Promise<string>((resolve) => {
-      const handler = (session: any) => {
-        this.openWisprApp.off('transcription-completed', handler);
-        resolve(session.transcription);
-      };
-      this.openWisprApp.once('transcription-completed', handler);
-    });
-
-    const transcription = await transcriptionPromise;
-    console.log(`📝 Transcription for code snippet: "${transcription}"`);
-
-    // Get settings
-    const settings = this.openWisprApp.getSettings();
-    const locale = settings.locale || 'en';
-
-    // Detect voice command
-    const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
-    console.log(`🎯 Detected language: ${commandResult.language}, stripped: "${commandResult.strippedTranscription}"`);
-
-    // Create appropriate interpreter based on detected language
-    const codeInterpreter = CodeInterpreterFactory.createInterpreter(
-      commandResult.language,
-      settings.api.groqApiKey
-    );
-
-    if (!codeInterpreter.isConfigured()) {
-      console.error('❌ Groq API key not configured');
-      this.sendToRenderer('error', i18nMain.t('notifications.groqNotConfigured'));
+    // Prevent duplicate processing
+    if (this.isProcessingCodeSnippet) {
+      console.log('⚠️ Already processing code snippet, ignoring duplicate call');
       return;
     }
 
+    this.isProcessingCodeSnippet = true;
+
     try {
-      // Use stripped transcription (without command prefix)
-      const interpretedCode = await codeInterpreter.interpretCode(
-        commandResult.strippedTranscription
+      // Import dependencies
+      const { VoiceCommandDetector } = await import('./voice-command-detector');
+      const { CodeInterpreterFactory } = await import('./code-interpreter-factory');
+      const { TextInserter } = await import('./text-inserter');
+
+      // Set up the transcription promise BEFORE stopping recording
+      // to avoid race conditions
+      const transcriptionPromise = new Promise<string>((resolve) => {
+        const handler = (session: any) => {
+          this.openWisprApp.off('transcription-completed', handler);
+          resolve(session.transcription);
+        };
+        this.openWisprApp.once('transcription-completed', handler);
+      });
+
+      // Stop recording if still recording (in case called from toggle mode)
+      // In push-to-talk mode, recording is already stopped by the hotkey release
+      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      if (isRecording) {
+        try {
+          await this.openWisprApp.stopRecording();
+        } catch (error) {
+          console.error('Error stopping recording:', error);
+          // Continue anyway - transcription might already be in progress
+        }
+      }
+
+      // Wait for transcription to complete
+      const transcription = await transcriptionPromise;
+      console.log(`📝 Transcription for code snippet: "${transcription}"`);
+
+      // Get settings
+      const settings = this.openWisprApp.getSettings();
+      const locale = settings.locale || 'en';
+
+      // Detect voice command
+      const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
+      console.log(`🎯 Detected language: ${commandResult.language}, stripped: "${commandResult.strippedTranscription}"`);
+
+      // Create appropriate interpreter based on detected language
+      const codeInterpreter = CodeInterpreterFactory.createInterpreter(
+        commandResult.language,
+        settings.api.groqApiKey
       );
-      console.log(`💻 Interpreted ${commandResult.language} code: "${interpretedCode}"`);
 
-      // Insert the interpreted code instead of the raw transcription
-      await TextInserter.insertText(interpretedCode, 'append', settings);
+      if (!codeInterpreter.isConfigured()) {
+        console.error('❌ Groq API key not configured');
+        this.sendToRenderer('error', i18nMain.t('notifications.groqNotConfigured'));
+        return;
+      }
 
-      // Notify the UI
-      this.sendToRenderer('text-inserted', interpretedCode);
-    } catch (error: any) {
-      console.error('❌ Error interpreting code:', error);
-      this.sendToRenderer('error', error.message || 'Error interpreting code');
+      try {
+        // Use stripped transcription (without command prefix)
+        const interpretedCode = await codeInterpreter.interpretCode(
+          commandResult.strippedTranscription
+        );
+        console.log(`💻 Interpreted ${commandResult.language} code: "${interpretedCode}"`);
+
+        // Insert the interpreted code instead of the raw transcription
+        await TextInserter.insertText(interpretedCode, 'append', settings);
+
+        // Notify the UI
+        this.sendToRenderer('text-inserted', interpretedCode);
+      } catch (error: any) {
+        console.error('❌ Error interpreting code:', error);
+        this.sendToRenderer('error', error.message || 'Error interpreting code');
+      }
+    } finally {
+      // Reset the processing flag
+      this.isProcessingCodeSnippet = false;
     }
   }
 

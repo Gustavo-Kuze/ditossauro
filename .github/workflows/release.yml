@@ -151,8 +151,8 @@ jobs:
 
             ### Downloads
             - **Windows**: Download the `.exe` installer or `.nupkg` package
-            - **macOS**: Download the `.zip` file
-            - **Linux**: Download the `.deb` (Debian/Ubuntu) or `.rpm` (Fedora/RHEL) package
+            - **macOS**: -
+            - **Linux**: -
 
             ### Installation
             1. Download the appropriate file for your operating system

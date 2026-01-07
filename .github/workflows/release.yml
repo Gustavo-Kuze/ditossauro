@@ -34,28 +34,39 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: microsoft/setup-msbuild@v2
 
-      - name: Install Windows Build Tools (Windows only)
+      - name: Add MSBuild to PATH (Windows only)
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
-          npm install --global --production windows-build-tools
-        continue-on-error: true
+          # GitHub Actions runners already have Visual Studio Build Tools
+          # We just need to ensure they're in the PATH
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          Write-Host "Visual Studio path: $vsPath"
+          Add-Content $env:GITHUB_PATH "$vsPath\MSBuild\Current\Bin"
+          Add-Content $env:GITHUB_PATH "$vsPath\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
 
       - name: Install dependencies
         run: npm ci
         env:
           npm_config_build_from_source: true
+          npm_config_msvs_version: 2022
 
       - name: Rebuild native modules (Windows)
         if: matrix.os == 'windows-latest'
         shell: powershell
         run: |
-          $env:npm_config_build_from_source = "true"
+          Write-Host "Node version: $(node --version)"
+          Write-Host "npm version: $(npm --version)"
+          Write-Host "Python version: $(python --version)"
+
+          # Run postinstall to rebuild uiohook-napi
           npm run postinstall
-          npx electron-rebuild -f -w uiohook-napi -v
+
+          # Explicitly rebuild robotjs for Electron
           npx electron-rebuild -f -w robotjs -v
         env:
           npm_config_build_from_source: true
+          npm_config_msvs_version: 2022
           DEBUG: electron-rebuild
 
       - name: Get version from package.json

@@ -1,7 +1,7 @@
 {
   "name": "openwispr",
   "productName": "OpenWispr",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "OpenWispr is an open-source desktop voice productivity tool inspired by WisprFlow. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.",
   "main": ".vite/build/main.js",
   "scripts": {

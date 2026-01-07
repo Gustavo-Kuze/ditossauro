@@ -93,7 +93,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: npm run make
         env:
-          NODE_ENV: development
+          NODE_ENV: production
 
       - name: Upload artifacts (Windows)
         if: matrix.os == 'windows-latest'

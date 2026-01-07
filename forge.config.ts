@@ -66,7 +66,9 @@ const config: ForgeConfig = {
       [FuseV1Options.EnableNodeOptionsEnvironmentVariable]: false,
       [FuseV1Options.EnableNodeCliInspectArguments]: false,
       [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: true,
-      [FuseV1Options.OnlyLoadAppFromAsar]: true,
+      // CRITICAL: Must be false to allow native modules to load from app.asar.unpacked
+      // Native modules (robotjs, uiohook-napi) cannot be loaded from inside asar
+      [FuseV1Options.OnlyLoadAppFromAsar]: false,
     }),
   ],
 };

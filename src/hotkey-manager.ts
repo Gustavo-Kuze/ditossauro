@@ -148,9 +148,13 @@ export class HotkeyManager extends EventEmitter {
     uIOhook.on('keyup', (event) => {
       const wasStartStopActive = this.isStartStopHotkeyActive;
       const wasCodeSnippetActive = this.isCodeSnippetHotkeyActive;
+
       this.pressedKeys.delete(event.keycode);
 
-      this.checkHotkeys();
+      // If code snippet was active, skip checking start/stop during release
+      // to prevent overlapping hotkey activation
+      const skipStartStop = wasCodeSnippetActive;
+      this.checkHotkeys(skipStartStop);
 
       // If the start/stop hotkey was released
       if (wasStartStopActive && !this.isStartStopHotkeyActive) {
@@ -190,7 +194,7 @@ export class HotkeyManager extends EventEmitter {
   /**
    * Checks if any key combination is pressed
    */
-  private checkHotkeys(): void {
+  private checkHotkeys(skipStartStop: boolean = false): void {
     // Check cancel key first
     if (this.cancelKey) {
       const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];
@@ -213,8 +217,8 @@ export class HotkeyManager extends EventEmitter {
     }
 
     // Check start/stop hotkey (less specific - 2 keys)
-    // Only if code snippet is not active
-    if (this.startStopConfig && !this.isCodeSnippetHotkeyActive) {
+    // Only if code snippet is not active AND not during code snippet release
+    if (this.startStopConfig && !this.isCodeSnippetHotkeyActive && !skipStartStop) {
       this.checkSpecificHotkey(
         this.startStopConfig,
         this.isStartStopHotkeyActive,

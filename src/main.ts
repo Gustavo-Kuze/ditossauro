@@ -307,7 +307,12 @@ class OpenWisprElectronApp {
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.startStop.mode === 'push-to-talk' && isRecording) {
-        // Stop recording when releasing the keys
+        console.log('⏹️ Stopping recording (hotkey released)');
+        try {
+          await this.openWisprApp.stopRecording();
+        } catch (error) {
+          console.error('Error stopping recording on hotkey release:', error);
+        }
       }
     });
 
@@ -349,7 +354,8 @@ class OpenWisprElectronApp {
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.codeSnippet.mode === 'push-to-talk' && isRecording) {
-        // Stop recording when releasing the keys
+        console.log('⏹️ Stopping code snippet recording (hotkey released)');
+        await this.handleCodeSnippetRecordingStop();
       }
     });
   }

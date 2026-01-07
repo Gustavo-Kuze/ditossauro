@@ -15,9 +15,10 @@ Your job is to analyze an input text written in natural language and determine w
 
 1. **If there is any portion that can clearly be converted into code**, return **ONLY the converted code**, as a **single string**, with no explanations.
 2. **If nothing in the text can be reasonably converted into code**, return **the exact same input string**, unchanged.
-3. Do **not** add comments, explanations, markdown, or extra formatting.
-4. Assume the generated code must follow **modern TypeScript** best practices.
-5. Prefer:
+3. Do **not** add comments, explanations, markdown code blocks, or extra formatting.
+4. **CRITICAL**: Return ONLY the raw code, without wrapping it in markdown code blocks or backticks.
+5. Assume the generated code must follow **modern TypeScript** best practices.
+6. Prefer:
 
    * \`camelCase\` for variables and functions
    * \`PascalCase\` for interfaces, types, and classes

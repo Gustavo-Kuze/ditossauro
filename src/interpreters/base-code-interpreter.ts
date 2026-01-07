@@ -16,6 +16,27 @@ export abstract class BaseCodeInterpreter {
 
   protected abstract getSystemPrompt(): string;
 
+  /**
+   * Strips markdown code block formatting from the result
+   * Removes ```language and ``` wrappers
+   */
+  protected stripMarkdownCodeBlocks(text: string): string {
+    if (!text) return text;
+
+    // Remove opening code block with language identifier (e.g., ```javascript)
+    let cleaned = text.replace(/^```\w*\s*\n?/gm, '');
+
+    // Remove closing code block (```)
+    cleaned = cleaned.replace(/\n?```\s*$/gm, '');
+
+    // Also handle inline code blocks (single backticks) if the entire response is wrapped
+    if (cleaned.startsWith('`') && cleaned.endsWith('`') && !cleaned.includes('\n')) {
+      cleaned = cleaned.slice(1, -1);
+    }
+
+    return cleaned.trim();
+  }
+
   isConfigured(): boolean {
     return this.client !== null && this.apiKey.length > 0;
   }
@@ -58,7 +79,11 @@ export abstract class BaseCodeInterpreter {
         stop: null
       });
 
-      const result = chatCompletion.choices[0]?.message?.content || transcribedText;
+      const rawResult = chatCompletion.choices[0]?.message?.content || transcribedText;
+
+      // Strip markdown code block formatting
+      const result = this.stripMarkdownCodeBlocks(rawResult);
+
       console.log(`✅ Code interpretation result: "${result}"`);
 
       return result.trim();
@@ -121,8 +146,11 @@ export abstract class BaseCodeInterpreter {
         }
       }
 
-      console.log(`✅ Code interpretation result: "${fullContent}"`);
-      return fullContent.trim();
+      // Strip markdown code block formatting
+      const result = this.stripMarkdownCodeBlocks(fullContent);
+
+      console.log(`✅ Code interpretation result: "${result}"`);
+      return result.trim();
     } catch (error: any) {
       console.error('❌ Groq code interpretation error:', error);
 

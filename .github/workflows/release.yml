@@ -30,8 +30,33 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Setup MSBuild (Windows only)
+        if: matrix.os == 'windows-latest'
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Install Windows Build Tools (Windows only)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          npm install --global --production windows-build-tools
+        continue-on-error: true
+
       - name: Install dependencies
         run: npm ci
+        env:
+          npm_config_build_from_source: true
+
+      - name: Rebuild native modules (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: powershell
+        run: |
+          $env:npm_config_build_from_source = "true"
+          npm run postinstall
+          npx electron-rebuild -f -w uiohook-napi -v
+          npx electron-rebuild -f -w robotjs -v
+        env:
+          npm_config_build_from_source: true
+          DEBUG: electron-rebuild
 
       - name: Get version from package.json
         id: package_version

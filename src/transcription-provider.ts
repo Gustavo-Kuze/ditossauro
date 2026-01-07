@@ -1,41 +1,41 @@
 /**
- * Interface abstrata para provedores de transcrição
+ * Abstract interface for transcription providers
  */
 export interface ITranscriptionProvider {
   /**
-   * Transcreve um arquivo de áudio
-   * @param audioFilePath Caminho para o arquivo de áudio
-   * @param language Código do idioma (opcional)
-   * @returns Texto transcrito
+   * Transcribes an audio file
+   * @param audioFilePath Path to the audio file
+   * @param language Language code (optional)
+   * @returns Transcribed text
    */
   transcribeAudio(audioFilePath: string, language?: string): Promise<string>;
 
   /**
-   * Testa a conexão/configuração do provedor
-   * @returns true se o provedor está funcionando
+   * Tests the provider's connection/configuration
+   * @returns true if the provider is working
    */
   testConnection(): Promise<boolean>;
 
   /**
-   * Define configurações específicas do provedor
-   * @param config Configurações do provedor
+   * Defines provider-specific settings
+   * @param config Provider settings
    */
   setConfig(config: Record<string, unknown>): void;
 
   /**
-   * Verifica se o provedor está configurado corretamente
-   * @returns true se configurado
+   * Checks if the provider is configured correctly
+   * @returns true if configured
    */
   isConfigured(): boolean;
 
   /**
-   * Retorna o nome do provedor
+   * Returns the provider name
    */
   getProviderName(): string;
 }
 
 /**
- * Resultado detalhado da transcrição
+ * Detailed transcription result
  */
 export interface TranscriptionResult {
   text: string;
@@ -46,7 +46,7 @@ export interface TranscriptionResult {
 }
 
 /**
- * Segmento individual da transcrição
+ * Individual transcription segment
  */
 export interface TranscriptionSegment {
   start: number;
@@ -56,7 +56,7 @@ export interface TranscriptionSegment {
 }
 
 /**
- * Configurações para Faster Whisper
+ * Settings for Faster Whisper
  */
 export interface FasterWhisperConfig {
   modelSize: 'tiny' | 'base' | 'small' | 'medium' | 'large' | 'large-v2' | 'large-v3';
@@ -66,14 +66,14 @@ export interface FasterWhisperConfig {
 }
 
 /**
- * Configurações para AssemblyAI
+ * Settings for AssemblyAI
  */
 export interface AssemblyAIConfig {
   apiKey: string;
 }
 
 /**
- * Configurações para Groq
+ * Settings for Groq
  */
 export interface GroqConfig {
   apiKey: string;
@@ -82,6 +82,6 @@ export interface GroqConfig {
 }
 
 /**
- * Tipos de provedores disponíveis
+ * Types of available providers
  */
 export type TranscriptionProviderType = 'assemblyai' | 'faster-whisper' | 'groq';

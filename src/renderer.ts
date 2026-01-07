@@ -49,14 +49,14 @@ class OpenWisprUI {
       this.attachDOMListeners();
       this.updateRecordingStatus();
 
-      // Mostrar última transcrição se houver histórico
+      // Show last transcription if history exists
       if (this.transcriptionHistory.length > 0) {
         this.updateLastTranscription(this.transcriptionHistory[0].transcription);
       }
 
-      console.log('✅ OpenWispr inicializado');
+      console.log('✅ OpenWispr initialized');
     } catch (error) {
-      console.error('❌ Erro:', error);
+      console.error('❌ Error:', error);
       alert(i18n.t('errors.initError'));
     }
   }
@@ -159,7 +159,7 @@ class OpenWisprUI {
             <div class="form-group">
               <label class="form-label">${i18n.t('settings.hotkeys.keyCombination')}</label>
               <div id="hotkeyKeysContainer" style="margin-bottom: 10px;">
-                <!-- As teclas selecionadas aparecerão aqui -->
+                <!-- Selected keys will appear here -->
               </div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <label style="display: flex; align-items: center; gap: 5px;">
@@ -536,7 +536,7 @@ class OpenWisprUI {
       this.clearHistory();
     });
 
-    // Event listeners para configurações de transcrição
+    // Event listeners for transcription settings
     document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
       const provider = (e.target as HTMLSelectElement).value;
       this.toggleProviderConfig(provider);
@@ -554,7 +554,7 @@ class OpenWisprUI {
       this.testGroq();
     });
 
-    // Event listeners para hotkey modifiers
+    // Event listeners for hotkey modifiers
     document.querySelectorAll('.hotkey-modifier').forEach(checkbox => {
       checkbox.addEventListener('change', () => {
         this.updateHotkeyDisplay();
@@ -621,13 +621,13 @@ class OpenWisprUI {
   updateUI() {
     if (!this.settings) return;
 
-    // Configurações de Idioma
+    // Language Settings
     const languageSelect = document.getElementById('languageSelect') as HTMLSelectElement;
     if (languageSelect) {
       languageSelect.value = this.settings.locale || 'pt-BR';
     }
 
-    // Configurações de API
+    // API Settings
     const groqApiKey = document.getElementById('groqApiKey') as HTMLInputElement;
     if (groqApiKey) groqApiKey.value = this.settings.api.groqApiKey;
 
@@ -637,14 +637,14 @@ class OpenWisprUI {
       hotkeyMode.value = this.settings.hotkeys.startStop.mode;
     }
 
-    // Marcar os modificadores corretos
+    // Mark the correct modifiers
     const keys = this.settings.hotkeys.startStop.keys;
     document.querySelectorAll('.hotkey-modifier').forEach(checkbox => {
       const input = checkbox as HTMLInputElement;
       input.checked = keys.includes(input.value);
     });
 
-    // Selecionar tecla extra se houver
+    // Select extra key if any
     const extraKeySelect = document.getElementById('hotkeyExtraKey') as HTMLSelectElement;
     if (extraKeySelect) {
       const extraKey = keys.find(k => !['Control', 'Shift', 'Alt', 'Meta'].includes(k));
@@ -660,20 +660,20 @@ class OpenWisprUI {
     if (apiKey) apiKey.value = this.settings.api.assemblyAiKey;
     if (language) language.value = this.settings.api.language;
 
-    // Configurações de transcrição
+    // Transcription Settings
     const providerSelect = document.getElementById('transcriptionProvider') as HTMLSelectElement;
     if (providerSelect) {
       providerSelect.value = this.settings.transcription.provider;
       this.toggleProviderConfig(this.settings.transcription.provider);
     }
 
-    // Configurações do Groq
+    // Groq Settings
     const groqModelName = document.getElementById('groqModelName') as HTMLSelectElement;
     const groqLanguage = document.getElementById('groqLanguage') as HTMLSelectElement;
     if (groqModelName) groqModelName.value = this.settings.transcription.groq.modelName;
     if (groqLanguage) groqLanguage.value = this.settings.transcription.groq.language;
 
-    // Configurações do Faster Whisper
+    // Faster Whisper Settings
     const whisperModelSize = document.getElementById('whisperModelSize') as HTMLSelectElement;
     const whisperDevice = document.getElementById('whisperDevice') as HTMLSelectElement;
     const whisperComputeType = document.getElementById('whisperComputeType') as HTMLSelectElement;
@@ -711,7 +711,7 @@ class OpenWisprUI {
 
   async saveSettings() {
     try {
-      // Configurações de Hotkeys
+      // Hotkey Settings
       const hotkeyMode = (document.getElementById('hotkeyMode') as HTMLSelectElement)?.value as 'toggle' | 'push-to-talk';
 
       const selectedKeys: string[] = [];
@@ -737,10 +737,10 @@ class OpenWisprUI {
         cancel: 'Escape'
       });
 
-      // Notificar que as hotkeys foram atualizadas
+      // Notify that hotkeys have been updated
       window.electronAPI.notifyHotkeysUpdated();
 
-      // Configurações da API
+      // API Settings
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
       const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
@@ -751,7 +751,7 @@ class OpenWisprUI {
         language: language,
       });
 
-      // Configurações de transcrição
+      // Transcription Settings
       const provider = (document.getElementById('transcriptionProvider') as HTMLSelectElement)?.value;
       const groqModelName = (document.getElementById('groqModelName') as HTMLSelectElement)?.value;
       const groqLanguage = (document.getElementById('groqLanguage') as HTMLSelectElement)?.value;
@@ -774,13 +774,13 @@ class OpenWisprUI {
         }
       });
 
-      // Atualizar configurações locais
+      // Update local settings
       this.settings = await window.electronAPI.getSettings();
       this.updateProviderStatus();
 
       alert('✅ ' + i18n.t('settings.saved'));
     } catch (error) {
-      console.error('Erro ao salvar configurações:', error);
+      console.error('Error saving settings:', error);
       alert(i18n.t('settings.saveError'));
     }
   }
@@ -834,7 +834,7 @@ class OpenWisprUI {
         `;
       }
     } catch (error) {
-      console.error('Erro ao obter status do provedor:', error);
+      console.error('Error getting provider status:', error);
     }
   }
 
@@ -854,7 +854,7 @@ class OpenWisprUI {
         alert('❌ ' + i18n.t('settings.assemblyai.testError'));
       }
     } catch (error) {
-      console.error('Erro ao testar AssemblyAI:', error);
+      console.error('Error testing AssemblyAI:', error);
       alert('❌ ' + i18n.t('settings.assemblyai.testError'));
     } finally {
       button.textContent = originalText;
@@ -870,7 +870,7 @@ class OpenWisprUI {
       button.textContent = '🔄 ' + i18n.t('settings.groq.testing');
       button.disabled = true;
 
-      // Salvar configurações do Groq
+      // Save Groq settings
       const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
       const groqModelName = (document.getElementById('groqModelName') as HTMLSelectElement)?.value;
       const groqLanguage = (document.getElementById('groqLanguage') as HTMLSelectElement)?.value;
@@ -898,7 +898,7 @@ class OpenWisprUI {
         alert('❌ ' + i18n.t('settings.groq.testError'));
       }
     } catch (error) {
-      console.error('Erro ao testar Groq:', error);
+      console.error('Error testing Groq:', error);
       alert('❌ ' + i18n.t('settings.groq.testError'));
     } finally {
       button.textContent = originalText;
@@ -914,7 +914,7 @@ class OpenWisprUI {
       button.textContent = '🔄 ' + i18n.t('settings.whisper.testing');
       button.disabled = true;
 
-      // Primeiro, salvar as configurações atuais do Whisper
+      // First, save the current Whisper settings
       const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
       const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
       const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
@@ -938,7 +938,7 @@ class OpenWisprUI {
         alert('❌ ' + i18n.t('settings.whisper.testError'));
       }
     } catch (error) {
-      console.error('Erro ao testar Faster Whisper:', error);
+      console.error('Error testing Faster Whisper:', error);
       alert('❌ ' + i18n.t('settings.whisper.testError'));
     } finally {
       button.textContent = originalText;
@@ -960,14 +960,14 @@ class OpenWisprUI {
     const displayElement = document.getElementById('currentHotkeyDisplay');
     if (displayElement) {
       if (selectedKeys.length === 0) {
-        displayElement.textContent = 'Nenhuma tecla selecionada';
+        displayElement.textContent = 'No key selected';
         displayElement.style.color = 'red';
       } else {
         const keyNames = selectedKeys.map(key => {
           switch (key) {
             case 'Control': return 'Ctrl';
             case 'Meta': return 'Win';
-            case 'Space': return 'Espaço';
+            case 'Space': return 'Space';
             default: return key;
           }
         });

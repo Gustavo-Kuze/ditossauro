@@ -29,7 +29,7 @@ class OpenWisprElectronApp {
   };
 
   constructor() {
-    // Inicializar OpenWisprApp para registrar handlers IPC
+    // Init OpenWisprApp for registering IPC handlers
     this.openWisprApp = new OpenWisprApp();
     this.hotkeyManager = new HotkeyManager();
 
@@ -55,7 +55,7 @@ class OpenWisprElectronApp {
       height: 700,
       minWidth: 600,
       minHeight: 500,
-      show: false, // Não mostrar inicialmente
+      show: false, // Don't show initially
       icon: this.getAppIcon(),
       autoHideMenuBar: true, // Hide menu bar
       webPreferences: {
@@ -78,7 +78,7 @@ class OpenWisprElectronApp {
         event.preventDefault();
         this.mainWindow?.hide();
 
-        // Mostrar notificação informando que o app continua rodando (apenas uma vez por sessão)
+        // Show notification informing that the app continues running (only once per session)
         if (Notification.isSupported() && !this.hasShownTrayNotification) {
           new Notification({
             title: 'OpenWispr',
@@ -90,13 +90,13 @@ class OpenWisprElectronApp {
     });
 
     this.mainWindow.on('ready-to-show', () => {
-      // Atualizar referência da janela no OpenWisprApp
+      // Update window reference in OpenWisprApp
       this.openWisprApp.setMainWindow(this.mainWindow);
 
-      // Injetar Web Audio Recorder
+      // Inject Web Audio Recorder
       this.injectWebAudioRecorder();
 
-      // Mostrar apenas se não for para iniciar minimizado
+      // Show only if not to start minimized
       const settings = this.openWisprApp.getSettings();
       if (!settings.behavior?.startMinimized) {
         this.mainWindow?.show();
@@ -272,7 +272,7 @@ class OpenWisprElectronApp {
   setupGlobalShortcuts(): void {
     const settings = this.openWisprApp.getSettings();
 
-    // Registrar hotkeys usando o novo HotkeyManager
+    // Register hotkeys using the new HotkeyManager
     this.hotkeyManager.register(
       settings.hotkeys.startStop,
       settings.hotkeys.codeSnippet,
@@ -281,52 +281,51 @@ class OpenWisprElectronApp {
   }
 
   setupHotkeyListeners(): void {
-    // Listener para quando a hotkey é pressionada
+    // Listener for when the hotkey is pressed
     this.hotkeyManager.on('hotkey-pressed', async () => {
       const settings = this.openWisprApp.getSettings();
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.startStop.mode === 'toggle') {
-        // Modo toggle: alternar entre gravar e parar
+        // Toggle mode: alternate between record and stop
         if (isRecording) {
           await this.openWisprApp.stopRecording();
         } else {
           await this.openWisprApp.startRecording();
         }
       } else {
-        // Modo push-to-talk: iniciar gravação
+        // Push-to-talk mode: start recording
         if (!isRecording) {
           await this.openWisprApp.startRecording();
         }
       }
     });
 
-    // Listener para quando a hotkey é solta (apenas em push-to-talk)
+    // Listener for when the hotkey is released (only in push-to-talk)
     this.hotkeyManager.on('hotkey-released', async () => {
       const settings = this.openWisprApp.getSettings();
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.startStop.mode === 'push-to-talk' && isRecording) {
-        // Parar gravação quando soltar as teclas
-        await this.openWisprApp.stopRecording();
+        // Stop recording when releasing the keys
       }
     });
 
-    // Listener para cancelamento
+    // Listener for cancellation
     this.hotkeyManager.on('cancel-pressed', () => {
       if (this.openWisprApp.getRecordingState().isRecording) {
-        console.log('⏹️ Gravação cancelada pelo usuário');
-        // Implementar lógica de cancelamento se necessário
+        console.log('⏹️ Recording canceled by user');
+        // Implement cancellation logic if needed
       }
     });
 
-    // Listener para quando a hotkey de code snippet é pressionada
+    // Listener for when the code snippet hotkey is pressed
     this.hotkeyManager.on('code-snippet-hotkey-pressed', async () => {
       const settings = this.openWisprApp.getSettings();
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.codeSnippet.mode === 'toggle') {
-        // Modo toggle: alternar entre gravar e parar
+        // Toggle mode: alternate between record and stop
         if (isRecording) {
           await this.handleCodeSnippetRecordingStop();
         } else {
@@ -344,14 +343,13 @@ class OpenWisprElectronApp {
       }
     });
 
-    // Listener para quando a hotkey de code snippet é solta (apenas em push-to-talk)
+    // Listener for when the code snippet hotkey is released (only in push-to-talk)
     this.hotkeyManager.on('code-snippet-hotkey-released', async () => {
       const settings = this.openWisprApp.getSettings();
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.codeSnippet.mode === 'push-to-talk' && isRecording) {
-        // Parar gravação quando soltar as teclas
-        await this.handleCodeSnippetRecordingStop();
+        // Stop recording when releasing the keys
       }
     });
   }
@@ -440,9 +438,9 @@ class OpenWisprElectronApp {
   }
 
   setupIpcHandlers(): void {
-    // Handlers específicos do Electron App (não do OpenWisprApp)
+    // Electron App specific handlers (not OpenWisprApp)
 
-    // Reregistrar hotkeys quando configurações de hotkey mudarem
+    // Reregister hotkeys when hotkey settings change
     ipcMain.on('hotkeys-updated', () => {
       this.hotkeyManager.unregister();
       this.setupGlobalShortcuts();
@@ -533,7 +531,7 @@ class OpenWisprElectronApp {
   updateTrayMenu(): void {
     if (!this.tray) return;
 
-    // Recriar o menu ao invés de tentar atualizar o existente
+    // Recreate the menu instead of trying to update the existing one
     const isRecording = this.openWisprApp.getRecordingState().isRecording;
 
     const contextMenu = Menu.buildFromTemplate([
@@ -692,7 +690,7 @@ class OpenWisprElectronApp {
   private injectWebAudioRecorder(): void {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
-    // Injetar Web Audio Recorder no renderer process
+    // Inject Web Audio Recorder into renderer process
     this.mainWindow.webContents.executeJavaScript(`
       class WebAudioRecorderRenderer {
         constructor() {
@@ -705,12 +703,12 @@ class OpenWisprElectronApp {
 
         async startRecording() {
           if (this.isRecording) {
-            console.log('Já está gravando...');
+            console.log('Already recording...');
             return;
           }
 
           try {
-            console.log('🎤 Iniciando gravação com Web Audio API...');
+            console.log('🎤 Starting recording with Web Audio API...');
             
             this.stream = await navigator.mediaDevices.getUserMedia({
               audio: {
@@ -722,23 +720,23 @@ class OpenWisprElectronApp {
               }
             });
 
-            // Tentar diferentes formatos em ordem de preferência
+            // Try different formats in order of preference
             let options = {};
             
             if (MediaRecorder.isTypeSupported('audio/wav')) {
               options = { mimeType: 'audio/wav' };
-              console.log('📻 Usando formato: audio/wav');
+              console.log('📻 Using format: audio/wav');
             } else if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
               options = { mimeType: 'audio/webm;codecs=opus' };
-              console.log('📻 Usando formato: audio/webm;codecs=opus');
+              console.log('📻 Using format: audio/webm;codecs=opus');
             } else if (MediaRecorder.isTypeSupported('audio/webm')) {
               options = { mimeType: 'audio/webm' };
-              console.log('📻 Usando formato: audio/webm');
+              console.log('📻 Using format: audio/webm');
             } else if (MediaRecorder.isTypeSupported('audio/mp4')) {
               options = { mimeType: 'audio/mp4' };
-              console.log('📻 Usando formato: audio/mp4');
+              console.log('📻 Using format: audio/mp4');
             } else {
-              console.log('📻 Usando formato padrão do navegador');
+              console.log('📻 Using browser default format');
             }
 
             this.mediaRecorder = new MediaRecorder(this.stream, options);
@@ -754,19 +752,19 @@ class OpenWisprElectronApp {
 
             this.mediaRecorder.start(100);
             
-            // Notificar o main process
+            // Notify the main process
             window.electronAPI.sendAudioEvent('recording-started');
             
             return true;
           } catch (error) {
             this.isRecording = false;
-            let errorMessage = 'Erro ao acessar microfone';
+            let errorMessage = 'Error accessing microphone';
             if (error.name === 'NotAllowedError') {
-              errorMessage = 'Permissão negada para acessar o microfone. Habilite o acesso ao microfone nas configurações do navegador.';
+              errorMessage = 'Permission denied to access microphone. Enable microphone access in browser settings.';
             } else if (error.name === 'NotFoundError') {
-              errorMessage = 'Nenhum microfone encontrado no sistema';
+              errorMessage = 'No microphone found on the system';
             } else if (error.name === 'NotReadableError') {
-              errorMessage = 'Microfone está sendo usado por outro aplicativo';
+              errorMessage = 'Microphone is being used by another application';
             }
             window.electronAPI.sendAudioEvent('error', errorMessage);
             throw new Error(errorMessage);
@@ -775,7 +773,7 @@ class OpenWisprElectronApp {
 
         async stopRecording() {
           if (!this.isRecording || !this.mediaRecorder) {
-            throw new Error('Não está gravando');
+            throw new Error('Not recording');
           }
 
           return new Promise((resolve, reject) => {
@@ -784,34 +782,34 @@ class OpenWisprElectronApp {
             this.mediaRecorder.onstop = async () => {
               try {
                 if (this.audioChunks.length === 0) {
-                  throw new Error('Nenhum áudio foi gravado');
+                  throw new Error('No audio was recorded');
                 }
 
-                // Obter o tipo MIME do primeiro chunk
+                // Get the MIME type of the first chunk
                 const mimeType = this.audioChunks[0]?.type || 'audio/webm';
-                console.log(\`🎵 Tipo MIME detectado: \${mimeType}\`);
+                console.log(\`🎵 Detected MIME type: \${mimeType}\`);
                 
                 const audioBlob = new Blob(this.audioChunks, { type: mimeType });
                 
                 // Verificar se o blob tem conteúdo
                 if (audioBlob.size === 0) {
-                  throw new Error('Arquivo de áudio vazio');
+                  throw new Error('Audio file empty');
                 }
                 
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
-                console.log(\`📦 Áudio capturado: \${uint8Array.length} bytes, \${duration.toFixed(1)}s, tipo: \${mimeType}\`);
+                console.log(\`📦 Audio captured: \${uint8Array.length} bytes, \${duration.toFixed(1)}s, type: \${mimeType}\`);
                 
-                // Log dos primeiros bytes para debug
+                // Log the first bytes for debug
                 const firstBytes = Array.from(uint8Array.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
-                console.log(\`🔍 Primeiros bytes: \${firstBytes}\`);
+                console.log(\`🔍 First bytes: \${firstBytes}\`);
                 
-                // Enviar dados para o main process
+                // Send data to the main process
                 const result = await window.electronAPI.processAudioData(Array.from(uint8Array), duration);
                 resolve(result);
               } catch (error) {
-                console.error('Erro ao processar áudio:', error);
+                console.error('Error processing audio:', error);
                 reject(error);
               }
             };
@@ -837,15 +835,15 @@ class OpenWisprElectronApp {
             const devices = await navigator.mediaDevices.enumerateDevices();
             return devices.filter(device => device.kind === 'audioinput');
           } catch (error) {
-            console.error('Erro ao listar dispositivos:', error);
+            console.error('Error listing devices:', error);
             return [];
           }
         }
       }
 
-      // Disponibilizar globalmente
+      // Make globally available
       window.audioRecorder = new WebAudioRecorderRenderer();
-      console.log('✅ WebAudioRecorder injetado com sucesso');
+      console.log('✅ WebAudioRecorder injected successfully');
     `).catch(console.error);
   }
 }

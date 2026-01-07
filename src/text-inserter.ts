@@ -9,32 +9,32 @@ export class TextInserter {
   static async insertText(text: string, mode: 'replace' | 'append' = 'append', settings?: AppSettings): Promise<void> {
     try {
       const useClipboard = settings?.behavior?.useClipboard !== false; // Default true para compatibilidade
-      
+
       if (useClipboard) {
-        console.log('Inserindo texto (via clipboard):', text.substring(0, 50) + '...');
-        
-        // Tentar primeiro usando clipboard (método rápido)
+        console.log('Inserting text (via clipboard):', text.substring(0, 50) + '...');
+
+        // Try first using clipboard (fast method)
         const success = await this.insertTextViaClipboard(text, mode);
-        
+
         if (!success) {
-          console.log('Fallback: usando digitação caractere por caractere...');
+          console.log('Fallback: using character-by-character typing...');
           await this.insertTextViaTyping(text, mode);
         }
       } else {
-        console.log('Inserindo texto (via digitação):', text.substring(0, 50) + '...');
+        console.log('Inserting text (via typing):', text.substring(0, 50) + '...');
         await this.insertTextViaTyping(text, mode);
       }
-      
-      console.log('Texto inserido com sucesso');
+
+      console.log('Text inserted successfully');
     } catch (error) {
-      console.error('Erro ao inserir texto:', error);
-      
-      // Tentar fallback em caso de erro
+      console.error('Error inserting text:', error);
+
+      // Try fallback in case of error
       try {
-        console.log('Tentando fallback após erro...');
+        console.log('Trying fallback after error...');
         await this.insertTextViaTyping(text, mode);
       } catch (fallbackError) {
-        console.error('Erro também no fallback:', fallbackError);
+        console.error('Error in fallback as well:', fallbackError);
         throw fallbackError;
       }
     }
@@ -47,27 +47,27 @@ export class TextInserter {
       try {
         originalClipboard = clipboard.readText();
       } catch (clipboardError) {
-        console.warn('Não foi possível ler clipboard atual:', clipboardError);
+        console.warn('Could not read current clipboard:', clipboardError);
       }
 
-      // Pequena pausa para garantir que o campo está focado
+      // Small pause to ensure the field is focused
       await this.delay(this.CLIPBOARD_PASTE_DELAY);
-      
+
       if (mode === 'replace') {
-        // Selecionar tudo (Ctrl+A)
+        // Select all (Ctrl+A)
         robot.keyTap('a', 'control');
         await this.delay(50);
       }
-      
+
       // Copiar texto para clipboard
       clipboard.writeText(text);
       await this.delay(50);
-      
-      // Colar usando Ctrl+V
+
+      // Paste using Ctrl+V
       robot.keyTap('v', 'control');
       await this.delay(this.CLIPBOARD_PASTE_DELAY);
-      
-      // Restaurar clipboard original (com delay para garantir que a colagem foi concluída)
+
+      // Restore original clipboard (with delay to ensure paste is completed)
       setTimeout(() => {
         try {
           if (originalClipboard) {
@@ -77,44 +77,44 @@ export class TextInserter {
           console.warn('Não foi possível restaurar clipboard:', restoreError);
         }
       }, 200);
-      
+
       return true;
     } catch (error) {
-      console.error('Erro ao inserir via clipboard:', error);
+      console.error('Error inserting via clipboard:', error);
       return false;
     }
   }
 
   private static async insertTextViaTyping(text: string, mode: 'replace' | 'append' = 'append'): Promise<void> {
-    // Pequena pausa para garantir que o campo está focado
+    // Small pause to ensure the field is focused
     await this.delay(100);
-    
+
     if (mode === 'replace') {
-      // Selecionar tudo (Ctrl+A) e depois digitar
+      // Select all (Ctrl+A) and then type
       robot.keyTap('a', 'control');
       await this.delay(50);
     }
-    
-    // Inserir o texto caractere por caractere para maior compatibilidade
+
+    // Insert text character by character for better compatibility
     await this.typeText(text);
   }
 
   private static async typeText(text: string): Promise<void> {
-    // Dividir em palavras para uma inserção mais natural
+    // Split into words for a more natural insertion
     const words = text.split(' ');
-    
+
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
-      
-      // Digitar palavra
+
+      // Type word
       robot.typeString(word);
-      
-      // Adicionar espaço se não for a última palavra
+
+      // Add space if not last word
       if (i < words.length - 1) {
         robot.typeString(' ');
       }
-      
-      // Pequena pausa entre palavras
+
+      // Small pause between words
       await this.delay(this.INSERTION_DELAY);
     }
   }
@@ -127,7 +127,7 @@ export class TextInserter {
         robot.keyTap(key);
       }
     } catch (error) {
-      console.error('Erro ao simular tecla:', error);
+      console.error('Error simulating key:', error);
       throw error;
     }
   }

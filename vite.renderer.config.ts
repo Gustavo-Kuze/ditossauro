@@ -5,7 +5,7 @@ export default defineConfig({
   base: './',
   resolve: {
     alias: {
-      // Evitar problemas com módulos Node.js no renderer
+      // Avoid problems with Node.js modules in renderer
     },
   },
 });

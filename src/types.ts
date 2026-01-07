@@ -20,7 +20,7 @@ export interface AppSettings {
   hotkeys: {
     startStop: HotkeyConfig;
     codeSnippet: HotkeyConfig;
-    cancel: string; // Mantido como string para compatibilidade
+    cancel: string; // Kept as string for compatibility
   };
   audio: {
     deviceId: string;
@@ -47,7 +47,7 @@ export interface AppSettings {
   behavior: {
     autoInsert: boolean;
     showConfirmation: boolean;
-    useClipboard: boolean; // Usar clipboard para inserção rápida ou digitação tradicional
+    useClipboard: boolean; // Use clipboard for quick insertion or traditional typing
     startMinimized: boolean;
   };
 }
@@ -66,4 +66,4 @@ export interface VoiceCommandResult {
   detectedKeyword?: string;
 }
 
-// AssemblyAIResponse removido - agora usando tipos do SDK oficial
+// AssemblyAIResponse removed - now using official SDK types

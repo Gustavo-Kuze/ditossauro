@@ -3,8 +3,8 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config
 export default defineConfig({
   resolve: {
-    // Alguns módulos nativos precisam ser tratados como externos
-    // especialmente no processo principal
+// Some native modules need to be treated as external
+// especially in the main process
     alias: {},
   },
   build: {

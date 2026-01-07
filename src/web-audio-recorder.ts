@@ -17,14 +17,14 @@ export class WebAudioRecorder extends EventEmitter {
 
   async startRecording(): Promise<void> {
     if (this.isRecording) {
-      console.log('Já está gravando...');
+      console.log('Already recording...');
       return;
     }
 
     try {
-      console.log('Solicitando acesso ao microfone...');
+      console.log('Requesting microphone access...');
 
-      // Obter stream do microfone
+      // Get microphone stream
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           sampleRate: this.sampleRate,
@@ -35,13 +35,13 @@ export class WebAudioRecorder extends EventEmitter {
         }
       });
 
-      // Criar MediaRecorder
+      // Create MediaRecorder
       const options: MediaRecorderOptions = {
         mimeType: 'audio/webm;codecs=opus',
         audioBitsPerSecond: 128000,
       };
 
-      // Fallback para outros formatos se webm não for suportado
+      // Fallback to other formats if webm is not supported
       if (!MediaRecorder.isTypeSupported(options.mimeType || '')) {
         if (MediaRecorder.isTypeSupported('audio/wav')) {
           options.mimeType = 'audio/wav';
@@ -68,35 +68,35 @@ export class WebAudioRecorder extends EventEmitter {
         try {
           await this.processRecording();
         } catch (error) {
-          console.error('Erro ao processar gravação:', error);
+          console.error('Error processing recording:', error);
           this.emit('error', error);
         }
       };
 
       this.mediaRecorder.onerror = (event) => {
-        console.error('Erro no MediaRecorder:', event);
+        console.error('Error in MediaRecorder:', event);
         this.isRecording = false;
-        this.emit('error', new Error('Erro na gravação de áudio'));
+        this.emit('error', new Error('Error in audio recording'));
       };
 
-      // Iniciar gravação
-      this.mediaRecorder.start(100); // Coletar dados a cada 100ms
+      // Start recording
+      this.mediaRecorder.start(100); // Collect data every 100ms
 
-      console.log('Gravação iniciada com Web Audio API');
+      console.log('Recording started with Web Audio API');
       this.emit('recording-started');
 
     } catch (error) {
-      console.error('Erro ao iniciar gravação:', error);
+      console.error('Error starting recording:', error);
       this.isRecording = false;
 
-      let errorMessage = 'Erro ao acessar microfone';
+      let errorMessage = 'Error accessing microphone';
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
-          errorMessage = 'Permissão negada para acessar o microfone';
+          errorMessage = 'Permission denied to access microphone';
         } else if (error.name === 'NotFoundError') {
-          errorMessage = 'Nenhum microfone encontrado';
+          errorMessage = 'No microphone found';
         } else if (error.name === 'NotReadableError') {
-          errorMessage = 'Microfone está sendo usado por outro aplicativo';
+          errorMessage = 'Microphone is being used by another application';
         }
       }
 
@@ -107,15 +107,15 @@ export class WebAudioRecorder extends EventEmitter {
   async stopRecording(): Promise<{ audioFile: string; duration: number }> {
     return new Promise((resolve, reject) => {
       if (!this.isRecording || !this.mediaRecorder) {
-        reject(new Error('Não está gravando'));
+        reject(new Error('Not recording'));
         return;
       }
 
-      console.log('Parando gravação...');
+      console.log('Stopping recording...');
 
       const duration = this.startTime ? (Date.now() - this.startTime.getTime()) / 1000 : 0;
 
-      // Configurar callback para quando a gravação parar
+      // Configure callback when recording stops
       const originalOnStop = this.mediaRecorder.onstop;
       this.mediaRecorder.onstop = async () => {
         try {
@@ -133,7 +133,7 @@ export class WebAudioRecorder extends EventEmitter {
       this.mediaRecorder.stop();
       this.isRecording = false;
 
-      // Parar todas as tracks do stream
+      // Stop all tracks from the stream
       if (this.stream) {
         this.stream.getTracks().forEach(track => track.stop());
         this.stream = null;
@@ -145,24 +145,24 @@ export class WebAudioRecorder extends EventEmitter {
 
   private async processRecording(): Promise<string> {
     if (this.audioChunks.length === 0) {
-      throw new Error('Nenhum áudio foi gravado');
+      throw new Error('No audio was recorded');
     }
 
-    // Combinar chunks em um blob
+    // Combine chunks into a blob
     const audioBlob = new Blob(this.audioChunks, {
       type: this.audioChunks[0].type || 'audio/webm'
     });
 
-    // Converter para buffer
+    // Convert to buffer
     const arrayBuffer = await audioBlob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Salvar em arquivo temporário
+    // Save to temporary file
     const tempFilePath = path.join(app.getPath('temp'), `temp_audio_${uuidv4()}.webm`);
 
     await fs.promises.writeFile(tempFilePath, buffer);
 
-    console.log(`Áudio salvo: ${tempFilePath} (${buffer.length} bytes)`);
+    console.log(`Audio saved: ${tempFilePath} (${buffer.length} bytes)`);
     return tempFilePath;
   }
 
@@ -175,7 +175,7 @@ export class WebAudioRecorder extends EventEmitter {
       const devices = await navigator.mediaDevices.enumerateDevices();
       return devices.filter(device => device.kind === 'audioinput');
     } catch (error) {
-      console.error('Erro ao listar dispositivos:', error);
+      console.error('Error listing devices:', error);
       return [];
     }
   }

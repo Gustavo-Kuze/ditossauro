@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { AppSettings, TranscriptionSession, RecordingState } from './types';
 
-// Expor API segura para o renderer
+// Expose secure API to renderer
 contextBridge.exposeInMainWorld('electronAPI', {
   // Settings
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),

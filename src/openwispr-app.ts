@@ -28,7 +28,7 @@ export class OpenWisprApp extends EventEmitter {
     this.transcriptionHistory = this.historyManager.loadHistory();
     const settings = this.settingsManager.loadSettings();
 
-    // Inicializar o provedor de transcrição baseado nas configurações
+    // Initialize transcription provider based on settings
     this.transcriptionProvider = this.createTranscriptionProvider(settings);
 
     this.setupEventListeners();
@@ -58,7 +58,7 @@ export class OpenWisprApp extends EventEmitter {
         });
 
       default:
-        console.warn(`Provedor desconhecido: ${providerType}, usando Groq como padrão`);
+        console.warn(`Unknown provider: ${providerType}, using Groq as default`);
         return TranscriptionFactory.createProvider('groq', {
           apiKey: settings.api.groqApiKey,
           modelName: settings.transcription.groq.modelName,
@@ -68,55 +68,55 @@ export class OpenWisprApp extends EventEmitter {
   }
 
   private setupEventListeners(): void {
-    // Os event listeners agora são tratados via IPC
+    // Event listeners are now handled via IPC
   }
 
   private setupAudioHandlers(): void {
-    // Handler para processar dados de áudio do renderer
+    // Handler to process audio data from renderer
     ipcMain.handle('process-audio-data', async (_, audioData: number[], duration: number) => {
       try {
         return await this.processAudioData(audioData, duration);
       } catch (error) {
-        console.error('Erro ao processar áudio:', error);
+        console.error('Error processing audio:', error);
         throw error;
       }
     });
 
-    // Handler para eventos de áudio
+    // Handler for audio events
     ipcMain.on('audio-event', (_, eventType: string, data?: unknown) => {
       switch (eventType) {
         case 'recording-started':
           this.recordingState = { isRecording: true, startTime: new Date() };
           this.emit('recording-started');
-          console.log('🎤 Gravação iniciada (Web Audio API)');
+          console.log('🎤 Recording started (Web Audio API)');
           break;
         case 'recording-stopped':
           this.recordingState = { isRecording: false };
           this.emit('recording-stopped', data);
-          console.log('⏹️ Gravação parada');
+          console.log('⏹️ Recording stopped');
           break;
         case 'error':
           this.emit('error', new Error(data as string));
-          console.error('❌ Erro de áudio:', data);
+          console.error('❌ Audio error:', data);
           break;
       }
     });
   }
 
   private async processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> {
-    // Converter array de volta para Buffer
+    // Convert array back to Buffer
     const buffer = Buffer.from(audioData);
 
-    console.log(`📦 Dados de áudio recebidos: ${buffer.length} bytes`);
+    console.log(`📦 Received audio data: ${buffer.length} bytes`);
 
-    // Determinar extensão baseada no cabeçalho do arquivo
+    // Determine extension based on file header
     let extension = '.webm';
     let mimeType = 'audio/webm';
 
-    // Verificar o cabeçalho para identificar o formato
+    // Check header to identify format
     if (buffer.length > 4) {
       const header = buffer.toString('hex', 0, 4);
-      console.log(`🔍 Cabeçalho do arquivo: ${header}`);
+      console.log(`🔍 File header: ${header}`);
 
       // WebM header starts with 0x1A45DFA3
       if (buffer[0] === 0x1A && buffer[1] === 0x45) {
@@ -135,13 +135,13 @@ export class OpenWisprApp extends EventEmitter {
       }
     }
 
-    // Salvar em arquivo temporário com extensão correta
+    // Save to temporary file with correct extension
     const tempFilePath = path.join(app.getPath('temp'), `temp_audio_${uuidv4()}${extension}`);
     await fs.promises.writeFile(tempFilePath, buffer);
 
-    console.log(`💾 Áudio salvo: ${tempFilePath} (${buffer.length} bytes, ${mimeType})`);
+    console.log(`💾 Audio saved: ${tempFilePath} (${buffer.length} bytes, ${mimeType})`);
 
-    // Processar a transcrição
+    // Process transcription
     await this.processRecording({ audioFile: tempFilePath, duration });
 
     return { audioFile: tempFilePath, duration };
@@ -149,33 +149,33 @@ export class OpenWisprApp extends EventEmitter {
 
   async startRecording(): Promise<void> {
     if (this.recordingState.isRecording) {
-      console.log('⚠️ Já está gravando');
+      console.log('⚠️ Already recording');
       return;
     }
 
     if (!this.transcriptionProvider.isConfigured()) {
       const providerName = this.transcriptionProvider.getProviderName();
-      throw new Error(`${providerName} não está configurado corretamente`);
+      throw new Error(`${providerName} is not configured correctly`);
     }
 
-    // Delegar para o renderer process via Web Audio API
+    // Delegate to renderer process via Web Audio API
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       try {
         await this.mainWindow.webContents.executeJavaScript(`
           window.audioRecorder.startRecording()
         `);
       } catch (error) {
-        console.error('Erro ao iniciar gravação:', error);
-        throw new Error('Falha ao iniciar gravação. Verifique as permissões do microfone.');
+        console.error('Error starting recording:', error);
+        throw new Error('Failed to start recording. Check microphone permissions.');
       }
     } else {
-      throw new Error('Janela principal não disponível');
+      throw new Error('Main window not available');
     }
   }
 
   async stopRecording(): Promise<void> {
     if (!this.recordingState.isRecording) {
-      console.log('⚠️ Não está gravando');
+      console.log('⚠️ Not recording');
       return;
     }
 
@@ -186,7 +186,7 @@ export class OpenWisprApp extends EventEmitter {
         `);
       }
     } catch (error) {
-      console.error('Erro ao parar gravação:', error);
+      console.error('Error stopping recording:', error);
       this.emit('error', error);
     }
   }
@@ -194,7 +194,7 @@ export class OpenWisprApp extends EventEmitter {
   private async processRecording(recordingData: { audioFile: string; duration: number }): Promise<void> {
     try {
       this.emit('processing-started');
-      console.log('🔄 Processando transcrição...');
+      console.log('🔄 Processing transcription...');
 
       const settings = this.settingsManager.loadSettings();
 
@@ -209,32 +209,32 @@ export class OpenWisprApp extends EventEmitter {
         language
       );
 
-      // Criar sessão de transcrição
+      // Create transcription session
       const session: TranscriptionSession = {
         id: uuidv4(),
         timestamp: new Date(),
         transcription: transcriptionText,
         duration: recordingData.duration,
         language: settings.api.language,
-        confidence: 0.95 // Confiança padrão (pode variar por provedor)
+        confidence: 0.95 // Default confidence (may vary by provider)
       };
 
-      // Adicionar ao histórico
+      // Add to history
       this.transcriptionHistory.unshift(session);
 
-      // Manter apenas últimas 50 transcrições
+      // Keep only last 50 transcriptions
       if (this.transcriptionHistory.length > 50) {
         this.transcriptionHistory = this.transcriptionHistory.slice(0, 50);
       }
 
-      // Salvar histórico
+      // Save history
       this.historyManager.saveHistory(this.transcriptionHistory);
 
       this.emit('transcription-completed', session);
-      console.log('✅ Transcrição concluída:', transcriptionText);
+      console.log('✅ Transcription completed:', transcriptionText);
 
-      // Inserir texto automaticamente se configurado
-      // Mas NÃO inserir se estivermos em modo code snippet (será tratado pelo main.ts)
+      // Insert text automatically if configured
+      // But DO NOT insert if in code snippet mode (handled by main.ts)
       if (settings.behavior.autoInsert && transcriptionText.trim() && !this.isCodeSnippetMode) {
         await this.insertTranscriptionText(transcriptionText);
       }
@@ -242,11 +242,11 @@ export class OpenWisprApp extends EventEmitter {
       // Reset code snippet mode after processing
       this.isCodeSnippetMode = false;
 
-      // Limpar arquivo temporário
+      // Clean up temporary file
       this.cleanupTempFile(recordingData.audioFile);
 
     } catch (error) {
-      console.error('Erro ao processar gravação:', error);
+      console.error('Error processing recording:', error);
       this.emit('error', error);
     } finally {
       this.emit('processing-completed');
@@ -255,12 +255,12 @@ export class OpenWisprApp extends EventEmitter {
 
   async insertTranscriptionText(text: string): Promise<void> {
     try {
-      console.log('📝 Inserindo texto transcrito...');
+      console.log('📝 Inserting transcribed text...');
       const settings = this.settingsManager.loadSettings();
       await TextInserter.insertText(text, 'append', settings);
       this.emit('text-inserted', text);
     } catch (error) {
-      console.error('Erro ao inserir texto:', error);
+      console.error('Error inserting text:', error);
       this.emit('error', error);
     }
   }
@@ -289,17 +289,17 @@ export class OpenWisprApp extends EventEmitter {
   updateSettings(category: keyof AppSettings, setting: Record<string, unknown>): void {
     this.settingsManager.updateSetting(category, setting);
 
-    // Recarregar configurações nos componentes necessários
+    // Reload settings in necessary components
     const newSettings = this.settingsManager.loadSettings();
 
     if (category === 'api' || category === 'transcription') {
-      // Recriar o provedor de transcrição se as configurações mudaram
+      // Recreate the transcription provider if settings changed
       this.transcriptionProvider = this.createTranscriptionProvider(newSettings);
     }
 
     if (category === 'audio') {
-      // Configurações de áudio serão aplicadas na próxima gravação
-      console.log('Configurações de áudio atualizadas');
+      // Audio settings will be applied on next recording
+      console.log('Audio settings updated');
     }
 
     this.emit('settings-updated', newSettings);
@@ -309,16 +309,16 @@ export class OpenWisprApp extends EventEmitter {
     this.transcriptionHistory = [];
     this.historyManager.clearHistory();
     this.emit('history-cleared');
-    console.log('🗑️ Histórico de transcrições limpo');
+    console.log('🗑️ Transcription history cleared');
   }
 
   async testApiConnection(): Promise<boolean> {
     try {
       const providerName = this.transcriptionProvider.getProviderName();
-      console.log(`🧪 Testando conexão com ${providerName}...`);
+      console.log(`🧪 Testing connection to ${providerName}...`);
       return await this.transcriptionProvider.testConnection();
     } catch (error) {
-      console.error('❌ Erro ao testar conexão:', error);
+      console.error('❌ Error testing connection:', error);
       return false;
     }
   }
@@ -343,9 +343,9 @@ export class OpenWisprApp extends EventEmitter {
     ipcMain.handle('update-settings', (_, category: keyof AppSettings, setting: Record<string, unknown>) => {
       this.updateSettings(category, setting);
 
-      // Notificar main process se hotkeys foram atualizadas
+      // Notify main process if hotkeys were updated
       if (category === 'hotkeys') {
-        // Emitir evento para o main process reregistrar hotkeys
+        // Emit event for the main process to reregister hotkeys
         process.nextTick(() => {
           ipcMain.emit('hotkeys-updated');
         });

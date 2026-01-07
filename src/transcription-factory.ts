@@ -4,11 +4,11 @@ import { FasterWhisperClient } from './faster-whisper-client';
 import { GroqClient } from './groq-client';
 
 /**
- * Factory para criar instâncias de provedores de transcrição
+ * Factory to create transcription provider instances
  */
 export class TranscriptionFactory {
   /**
-   * Cria um provedor de transcrição baseado no tipo especificado
+   * Creates a transcription provider based on the specified type
    */
   static createProvider(
     type: TranscriptionProviderType,
@@ -31,12 +31,12 @@ export class TranscriptionFactory {
       }
 
       default:
-        throw new Error(`Provedor de transcrição não suportado: ${type}`);
+        throw new Error(`Transcription provider not supported: ${type}`);
     }
   }
 
   /**
-   * Lista todos os provedores disponíveis
+   * Lists all available providers
    */
   static getAvailableProviders(): { type: TranscriptionProviderType; name: string; description: string }[] {
     return [
@@ -59,7 +59,7 @@ export class TranscriptionFactory {
   }
 
   /**
-   * Retorna as configurações padrão para um provedor
+   * Returns the default settings for a provider
    */
   static getDefaultConfig(type: TranscriptionProviderType): FasterWhisperConfig | AssemblyAIConfig | GroqConfig {
     switch (type) {
@@ -87,7 +87,7 @@ export class TranscriptionFactory {
       }
 
       default:
-        throw new Error(`Provedor não suportado: ${type}`);
+        throw new Error(`Provider not supported: ${type}`);
     }
   }
 }

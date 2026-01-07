@@ -23,36 +23,36 @@ export class FasterWhisperClient implements ITranscriptionProvider {
 
   async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<string> {
     try {
-      console.log('🚀 Iniciando transcrição com Faster Whisper...');
-      console.log(`📁 Arquivo: ${audioFilePath}`);
-      console.log(`🌍 Idioma: ${language}`);
-      console.log(`🤖 Modelo: ${this.config.modelSize}`);
-      console.log(`💻 Dispositivo: ${this.config.device}`);
+      console.log('🚀 Starting transcription with Faster Whisper...');
+      console.log(`📁 File: ${audioFilePath}`);
+      console.log(`🌍 Language: ${language}`);
+      console.log(`🤖 Model: ${this.config.modelSize}`);
+      console.log(`💻 Device: ${this.config.device}`);
 
-      // Verificar se o arquivo de áudio existe
+      // Check if the audio file exists
       if (!fs.existsSync(audioFilePath)) {
-        throw new Error(`Arquivo de áudio não encontrado: ${audioFilePath}`);
+        throw new Error(`Audio file not found: ${audioFilePath}`);
       }
 
 
-      // Criar script Python temporário com as configurações
+      // Create temporary Python script with configurations
       const tempScriptPath = await this.createTempScript(audioFilePath, language);
 
       try {
-        // Executar o script Python
+        // Execute the Python script
         const result = await this.executePythonScript(tempScriptPath);
 
-        // Limpar script temporário
+        // Clean up temporary script
         this.cleanupTempFile(tempScriptPath);
 
         if (!result.text.trim()) {
-          throw new Error('Nenhum texto foi transcrito. Verifique se há fala no áudio.');
+          throw new Error('No text was transcribed. Check if there is speech in the audio.');
         }
 
-        console.log('✅ Transcrição concluída com sucesso!');
-        console.log(`📝 Texto (${result.text.length} caracteres): ${result.text.substring(0, 100)}...`);
-        console.log(`🌍 Idioma detectado: ${result.language}`);
-        console.log(`📊 Confiança: ${result.confidence ? (result.confidence * 100).toFixed(1) : 'N/A'}%`);
+        console.log('✅ Transcription completed successfully!');
+        console.log(`📝 Text (${result.text.length} characters): ${result.text.substring(0, 100)}...`);
+        console.log(`🌍 Detected language: ${result.language}`);
+        console.log(`📊 Confidence: ${result.confidence ? (result.confidence * 100).toFixed(1) : 'N/A'}%`);
 
         return result.text;
 
@@ -62,16 +62,16 @@ export class FasterWhisperClient implements ITranscriptionProvider {
       }
 
     } catch (error) {
-      console.error('❌ Erro durante transcrição com Faster Whisper:', error);
+      console.error('❌ Error during transcription with Faster Whisper:', error);
 
-      // Melhorar mensagens de erro
+      // Improve error messages
       if (error instanceof Error) {
         if (error.message.includes('python')) {
-          throw new Error('Python não encontrado. Verifique se o Python está instalado e no PATH.');
+          throw new Error('Python not found. Check if Python is installed and in PATH.');
         } else if (error.message.includes('faster_whisper')) {
-          throw new Error('Biblioteca faster_whisper não encontrada. Execute: pip install faster-whisper');
+          throw new Error('faster_whisper library not found. Run: pip install faster-whisper');
         } else if (error.message.includes('CUDA')) {
-          throw new Error('Erro CUDA. Tentando novamente com CPU...');
+          throw new Error('CUDA error. Trying again with CPU...');
         }
       }
 
@@ -82,7 +82,7 @@ export class FasterWhisperClient implements ITranscriptionProvider {
   private async createTempScript(audioFilePath: string, language: string): Promise<string> {
     const tempScriptPath = path.join(app.getPath('temp'), `temp_whisper_${Date.now()}.py`);
 
-    // Mapear idioma para código Whisper se necessário
+    // Map language to Whisper code if necessary
     const whisperLanguage = this.mapLanguageCode(language);
 
     const scriptContent = `#!/usr/bin/env python
@@ -94,26 +94,26 @@ from faster_whisper import WhisperModel
 import warnings
 warnings.filterwarnings("ignore")
 
-# Configurar encoding UTF-8
+# Configure UTF-8 encoding
 if sys.platform == 'win32':
     import codecs
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.detach())
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.detach())
 
 try:
-    # Configuração do modelo
+    # Model configuration
     model_size = "${this.config.modelSize}"
     device = "${this.config.device}"
     compute_type = "${this.config.computeType}"
     
-    # Inicializar modelo
+    # Initialize model
     model = WhisperModel(model_size, device=device, compute_type=compute_type)
     
-    # Transcrever áudio
+    # Transcribe audio
     audio_file = "${audioFilePath.replace(/\\/g, '\\\\')}"
     segments, info = model.transcribe(audio_file, language="${whisperLanguage}", beam_size=5)
     
-    # Coletar todos os segmentos
+    # Collect all segments
     all_segments = []
     full_text = ""
     
@@ -126,7 +126,7 @@ try:
         all_segments.append(segment_data)
         full_text += segment.text.strip() + " "
     
-    # Resultado final
+    # Final result
     result = {
         "success": True,
         "text": full_text.strip(),
@@ -180,13 +180,13 @@ except Exception as e:
 
       pythonProcess.on('close', (code) => {
         if (code !== 0) {
-          console.error('❌ Erro no script Python:', stderr);
-          reject(new Error(`Script Python falhou: ${stderr}`));
+          console.error('❌ Error in Python script:', stderr);
+          reject(new Error(`Python script failed: ${stderr}`));
           return;
         }
 
         try {
-          // Extrair apenas a última linha JSON válida
+          // Extract only the last valid JSON line
           const lines = stdout.trim().split('\n');
           let jsonResult = '';
 
@@ -199,13 +199,13 @@ except Exception as e:
           }
 
           if (!jsonResult) {
-            throw new Error('Nenhum resultado JSON válido encontrado na saída');
+            throw new Error('No valid JSON result found in output');
           }
 
           const result = JSON.parse(jsonResult);
 
           if (!result.success) {
-            throw new Error(result.error || 'Erro desconhecido na transcrição');
+            throw new Error(result.error || 'Unknown error in transcription');
           }
 
           resolve({
@@ -217,14 +217,14 @@ except Exception as e:
           });
 
         } catch (error) {
-          console.error('❌ Erro ao processar resultado:', error);
-          console.error('Saída completa:', stdout);
-          reject(new Error(`Erro ao processar resultado da transcrição: ${error}`));
+          console.error('❌ Error processing result:', error);
+          console.error('Full output:', stdout);
+          reject(new Error(`Error processing transcription result: ${error}`));
         }
       });
 
       pythonProcess.on('error', (error) => {
-        reject(new Error(`Erro ao executar Python: ${error.message}`));
+        reject(new Error(`Error executing Python: ${error.message}`));
       });
     });
   }
@@ -248,24 +248,24 @@ except Exception as e:
 
   async testConnection(): Promise<boolean> {
     try {
-      console.log('🧪 Testando Faster Whisper...');
+      console.log('🧪 Testing Faster Whisper...');
 
-      // Verificar se Python está disponível
+      // Check if Python is available
       const pythonVersion = await this.checkPythonVersion();
-      console.log(`🐍 Python encontrado: ${pythonVersion}`);
+      console.log(`🐍 Python found: ${pythonVersion}`);
 
-      // Verificar se faster_whisper está instalado
+      // Check if faster_whisper is installed
       const hasWhisper = await this.checkWhisperInstallation();
       if (!hasWhisper) {
-        console.error('❌ faster_whisper não está instalado');
+        console.error('❌ faster_whisper is not installed');
         return false;
       }
 
-      console.log('✅ Faster Whisper está configurado corretamente!');
+      console.log('✅ Faster Whisper is configured correctly!');
       return true;
 
     } catch (error) {
-      console.error('❌ Erro ao testar Faster Whisper:', error);
+      console.error('❌ Error testing Faster Whisper:', error);
       return false;
     }
   }
@@ -293,7 +293,7 @@ except Exception as e:
         if (code === 0) {
           resolve(output.trim());
         } else {
-          reject(new Error('Python não encontrado'));
+          reject(new Error('Python not found'));
         }
       });
     });
@@ -327,10 +327,10 @@ except Exception as e:
   }
 
   isConfigured(): boolean {
-    console.log('🔍 Verificando configuração do Faster Whisper...');
+    console.log('🔍 Checking Faster Whisper configuration...');
     console.log(`🐍 Python: ${this.config.pythonPath}`);
     const theReturn = this.config.pythonPath !== '';
-    console.log(`🔍 Resultado: ${theReturn}`);
+    console.log(`🔍 Result: ${theReturn}`);
     return theReturn;
   }
 
@@ -338,10 +338,10 @@ except Exception as e:
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        console.log('🗑️ Arquivo temporário removido:', filePath);
+        console.log('🗑️ Temporary file removed:', filePath);
       }
     } catch (err) {
-      console.error('Erro ao remover arquivo temporário:', err);
+      console.error('Error removing temporary file:', err);
     }
   }
 }

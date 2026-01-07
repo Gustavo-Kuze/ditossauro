@@ -31,7 +31,7 @@ export class HistoryManager {
                 timestamp: new Date(session.timestamp)
             }));
         } catch (error) {
-            console.error('Erro ao carregar histórico:', error);
+            console.error('Error loading history:', error);
             return [];
         }
     }
@@ -40,9 +40,9 @@ export class HistoryManager {
         try {
             const historyData = JSON.stringify(history, null, 2);
             fs.writeFileSync(this.historyPath, historyData, 'utf8');
-            // console.log('Histórico salvo com sucesso');
+            //       console.log('History saved successfully');
         } catch (error) {
-            console.error('Erro ao salvar histórico:', error);
+            console.error('Error saving history:', error);
             throw error;
         }
     }

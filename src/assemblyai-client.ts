@@ -15,24 +15,24 @@ export class AssemblyAIClient implements ITranscriptionProvider {
       this.client = new AssemblyAI({
         apiKey: this.apiKey,
       });
-      console.log('✅ Cliente AssemblyAI inicializado');
+      console.log('✅ AssemblyAI client initialized');
     } else {
       this.client = null;
-      console.log('⚠️ Chave API não fornecida - cliente não inicializado');
+      console.log('⚠️ API key not provided - client not initialized');
     }
   }
 
   async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<string> {
     if (!this.client) {
-      throw new Error('Cliente AssemblyAI não foi inicializado. Verifique a chave API.');
+      throw new Error('AssemblyAI client was not initialized. Check the API key.');
     }
 
     try {
-      console.log('🚀 Iniciando transcrição com AssemblyAI SDK...');
-      console.log(`📁 Arquivo: ${audioFilePath}`);
-      console.log(`🌍 Idioma: ${language}`);
+      console.log('🚀 Starting transcription with AssemblyAI SDK...');
+      console.log(`📁 File: ${audioFilePath}`);
+      console.log(`🌍 Language: ${language}`);
 
-      // Configurar parâmetros da transcrição
+      // Configure transcription parameters
       const params = {
         audio: audioFilePath,
         // language_code: language === 'pt' ? 'pt' : 'en',
@@ -46,51 +46,51 @@ export class AssemblyAIClient implements ITranscriptionProvider {
         sentiment_analysis: false, // Não precisamos de análise de sentimento
       };
 
-      console.log('📤 Enviando arquivo para transcrição...');
+      console.log('📤 Sending file for transcription...');
 
-      // Usar o SDK para transcrever (cuida automaticamente do upload e polling)
+      // Use the SDK to transcribe (handles upload and polling automatically)
       const transcript = await this.client.transcripts.transcribe(params);
 
-      // Verificar se houve erro
+      // Check if there was an error
       if (transcript.status === 'error') {
         const errorMessage = transcript.error || 'Erro desconhecido na transcrição';
-        console.error('❌ Erro na transcrição:', errorMessage);
+        console.error('❌ Error in transcription:', errorMessage);
         throw new Error(`Erro na transcrição: ${errorMessage}`);
       }
 
-      // Verificar se a transcrição foi concluída
+      // Check if the transcription was completed
       if (transcript.status !== 'completed') {
-        console.error('❌ Transcrição não foi concluída:', transcript.status);
-        throw new Error(`Transcrição falhou com status: ${transcript.status}`);
+        console.error('❌ Transcription was not completed:', transcript.status);
+        throw new Error(`Transcription failed with status: ${transcript.status}`);
       }
 
       const transcriptionText = transcript.text || '';
 
       if (!transcriptionText.trim()) {
-        console.warn('⚠️ Transcrição retornou vazia');
-        throw new Error('Nenhum texto foi transcrito. Verifique se há fala no áudio.');
+        console.warn('⚠️ Transcription returned empty');
+        throw new Error('No text was transcribed. Check if there is speech in the audio.');
       }
 
-      console.log('✅ Transcrição concluída com sucesso!');
-      console.log(`📝 Texto (${transcriptionText.length} caracteres): ${transcriptionText.substring(0, 100)}...`);
-      console.log(`📊 Confiança: ${transcript.confidence ? (transcript.confidence * 100).toFixed(1) : 'N/A'}%`);
-      console.log(`⏱️ Duração do áudio: ${transcript.audio_duration || 'N/A'}s`);
+      console.log('✅ Transcription completed successfully!');
+      console.log(`📝 Text (${transcriptionText.length} characters): ${transcriptionText.substring(0, 100)}...`);
+      console.log(`📊 Confidence: ${transcript.confidence ? (transcript.confidence * 100).toFixed(1) : 'N/A'}%`);
+      console.log(`⏱️ Audio duration: ${transcript.audio_duration || 'N/A'}s`);
 
       return transcriptionText;
 
     } catch (error) {
-      console.error('❌ Erro durante transcrição:', error);
+      console.error('❌ Error during transcription:', error);
 
-      // Melhorar mensagens de erro
+      // Improve error messages
       if (error instanceof Error) {
         if (error.message.includes('Invalid file format')) {
-          throw new Error('Formato de áudio não suportado. Tente gravar novamente.');
+          throw new Error('Unsupported audio format. Try recording again.');
         } else if (error.message.includes('File too large')) {
-          throw new Error('Arquivo de áudio muito grande. Tente uma gravação mais curta.');
+          throw new Error('Audio file too large. Try a shorter recording.');
         } else if (error.message.includes('Invalid API key')) {
-          throw new Error('Chave API inválida. Verifique sua configuração.');
+          throw new Error('Invalid API key. Check your configuration.');
         } else if (error.message.includes('Insufficient credits')) {
-          throw new Error('Créditos insuficientes na sua conta AssemblyAI.');
+          throw new Error('Insufficient credits in your AssemblyAI account.');
         }
       }
 
@@ -104,17 +104,17 @@ export class AssemblyAIClient implements ITranscriptionProvider {
     }
 
     try {
-      console.log('🧪 Testando conexão com AssemblyAI...');
+      console.log('🧪 Testing connection with AssemblyAI...');
 
-      // Fazer uma chamada simples para testar a conexão e chave API
-      // Vamos tentar listar transcrições (sem usar nenhuma)
+      // Make a simple call to test connection and API key
+      // Let's try to list transcriptions (without using any)
       await this.client.transcripts.list({ limit: 1 });
 
-      console.log('✅ Conexão com AssemblyAI funcionando!');
+      console.log('✅ Connection with AssemblyAI working!');
       return true;
 
     } catch (error) {
-      console.error('❌ Erro ao testar conexão:', error);
+      console.error('❌ Error testing connection:', error);
       return false;
     }
   }

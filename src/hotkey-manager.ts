@@ -3,10 +3,10 @@ import { HotkeyConfig } from './types';
 import { EventEmitter } from 'events';
 
 /**
- * Mapeamento de nomes de teclas para códigos do uiohook
+ * Mapping of key names to uiohook codes
  */
 const KEY_CODE_MAP: Record<string, number> = {
-  // Modificadores
+  // Modifiers
   'Control': UiohookKey.Ctrl,
   'ControlLeft': UiohookKey.CtrlLeft,
   'ControlRight': UiohookKey.CtrlRight,
@@ -20,7 +20,7 @@ const KEY_CODE_MAP: Record<string, number> = {
   'MetaLeft': UiohookKey.MetaLeft,
   'MetaRight': UiohookKey.MetaRight,
 
-  // Teclas de função
+  // Function keys
   'F1': UiohookKey.F1,
   'F2': UiohookKey.F2,
   'F3': UiohookKey.F3,
@@ -34,14 +34,14 @@ const KEY_CODE_MAP: Record<string, number> = {
   'F11': UiohookKey.F11,
   'F12': UiohookKey.F12,
 
-  // Teclas especiais
+  // Special keys
   'Escape': UiohookKey.Escape,
   'Space': UiohookKey.Space,
   'Enter': UiohookKey.Enter,
   'Tab': UiohookKey.Tab,
   'Backspace': UiohookKey.Backspace,
 
-  // Números
+  // Numbers
   '0': UiohookKey.Digit0,
   '1': UiohookKey.Digit1,
   '2': UiohookKey.Digit2,
@@ -53,7 +53,7 @@ const KEY_CODE_MAP: Record<string, number> = {
   '8': UiohookKey.Digit8,
   '9': UiohookKey.Digit9,
 
-  // Letras
+  // Letters
   'A': UiohookKey.A, 'B': UiohookKey.B, 'C': UiohookKey.C, 'D': UiohookKey.D,
   'E': UiohookKey.E, 'F': UiohookKey.F, 'G': UiohookKey.G, 'H': UiohookKey.H,
   'I': UiohookKey.I, 'J': UiohookKey.J, 'K': UiohookKey.K, 'L': UiohookKey.L,
@@ -93,14 +93,14 @@ export class HotkeyManager extends EventEmitter {
   private isListening = false;
   private lastStartStopToggleTime = 0;
   private lastCodeSnippetToggleTime = 0;
-  private readonly DEBOUNCE_MS = 100; // Debounce para evitar múltiplos toggles
+  private readonly DEBOUNCE_MS = 100; // Debounce to avoid multiple toggles
 
   constructor() {
     super();
   }
 
   /**
-   * Registra as hotkeys
+   * Registers the hotkeys
    */
   register(startStopConfig: HotkeyConfig, codeSnippetConfig: HotkeyConfig, cancelKey?: string): void {
     this.startStopConfig = startStopConfig;
@@ -113,15 +113,15 @@ export class HotkeyManager extends EventEmitter {
 
     const startStopKeysStr = startStopConfig.keys.join('+');
     const codeSnippetKeysStr = codeSnippetConfig.keys.join('+');
-    console.log(`✅ Hotkey registrada (start/stop): ${startStopKeysStr} (modo: ${startStopConfig.mode})`);
-    console.log(`✅ Hotkey registrada (code snippet): ${codeSnippetKeysStr} (modo: ${codeSnippetConfig.mode})`);
+    console.log(`✅ Hotkey registered (start/stop): ${startStopKeysStr} (mode: ${startStopConfig.mode})`);
+    console.log(`✅ Hotkey registered (code snippet): ${codeSnippetKeysStr} (mode: ${codeSnippetConfig.mode})`);
     if (cancelKey) {
-      console.log(`✅ Tecla de cancelamento: ${cancelKey}`);
+      console.log(`✅ Cancel key: ${cancelKey}`);
     }
   }
 
   /**
-   * Remove o registro de todas as hotkeys
+   * Removes the registration of all hotkeys
    */
   unregister(): void {
     this.stopListening();
@@ -131,11 +131,11 @@ export class HotkeyManager extends EventEmitter {
     this.pressedKeys.clear();
     this.isStartStopHotkeyActive = false;
     this.isCodeSnippetHotkeyActive = false;
-    console.log('🔇 Hotkeys desregistradas');
+    console.log('🔇 Hotkeys unregistered');
   }
 
   /**
-   * Inicia a escuta de eventos de teclado
+   * Starts listening for keyboard events
    */
   private startListening(): void {
     if (this.isListening) return;
@@ -152,14 +152,14 @@ export class HotkeyManager extends EventEmitter {
 
       this.checkHotkeys();
 
-      // Se a hotkey start/stop foi solta
+      // If the start/stop hotkey was released
       if (wasStartStopActive && !this.isStartStopHotkeyActive) {
         if (this.startStopConfig?.mode === 'push-to-talk') {
           this.emit('hotkey-released');
         }
       }
 
-      // Se a hotkey code snippet foi solta
+      // If the code snippet hotkey was released
       if (wasCodeSnippetActive && !this.isCodeSnippetHotkeyActive) {
         if (this.codeSnippetConfig?.mode === 'push-to-talk') {
           this.emit('code-snippet-hotkey-released');
@@ -169,11 +169,11 @@ export class HotkeyManager extends EventEmitter {
 
     uIOhook.start();
     this.isListening = true;
-    console.log('🎧 Iniciando escuta de hotkeys...');
+    console.log('🎧 Starting hotkey listening...');
   }
 
   /**
-   * Para a escuta de eventos de teclado
+   * Stops listening for keyboard events
    */
   private stopListening(): void {
     if (!this.isListening) return;
@@ -181,17 +181,17 @@ export class HotkeyManager extends EventEmitter {
     try {
       uIOhook.stop();
       this.isListening = false;
-      console.log('🔇 Escuta de hotkeys parada');
+      console.log('🔇 Hotkey listening stopped');
     } catch (error) {
-      console.error('Erro ao parar uIOhook:', error);
+      console.error('Error stopping uIOhook:', error);
     }
   }
 
   /**
-   * Verifica se alguma combinação de teclas está pressionada
+   * Checks if any key combination is pressed
    */
   private checkHotkeys(): void {
-    // Verificar tecla de cancelamento primeiro
+    // Check cancel key first
     if (this.cancelKey) {
       const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];
       if (cancelKeyCode && this.pressedKeys.has(cancelKeyCode)) {
@@ -200,7 +200,7 @@ export class HotkeyManager extends EventEmitter {
       }
     }
 
-    // Verificar hotkey de code snippet (mais específica - 3 teclas)
+    // Check code snippet hotkey (more specific - 3 keys)
     if (this.codeSnippetConfig) {
       this.checkSpecificHotkey(
         this.codeSnippetConfig,
@@ -212,8 +212,8 @@ export class HotkeyManager extends EventEmitter {
       );
     }
 
-    // Verificar hotkey de start/stop (menos específica - 2 teclas)
-    // Apenas se a code snippet não estiver ativa
+    // Check start/stop hotkey (less specific - 2 keys)
+    // Only if code snippet is not active
     if (this.startStopConfig && !this.isCodeSnippetHotkeyActive) {
       this.checkSpecificHotkey(
         this.startStopConfig,
@@ -227,7 +227,7 @@ export class HotkeyManager extends EventEmitter {
   }
 
   /**
-   * Verifica uma hotkey específica
+   * Checks a specific hotkey
    */
   private checkSpecificHotkey(
     config: HotkeyConfig,
@@ -243,32 +243,32 @@ export class HotkeyManager extends EventEmitter {
 
     if (requiredKeyCodes.length === 0) return;
 
-    // Verificar se todas as teclas necessárias estão pressionadas
+    // Check if all required keys are pressed
     const allKeysPressed = requiredKeyCodes.every(code => this.pressedKeys.has(code));
 
     if (allKeysPressed && !isActive) {
-      // Hotkey foi pressionada
+      // Hotkey was pressed
       setActive(true);
 
       if (config.mode === 'toggle') {
-        // Modo toggle: emitir apenas se passou o tempo de debounce
+        // Toggle mode: emit only if debounce time has passed
         const now = Date.now();
         if (now - lastToggleTime > this.DEBOUNCE_MS) {
           setToggleTime(now);
           this.emit(eventName);
         }
       } else {
-        // Modo push-to-talk: emitir imediatamente
+        // Push-to-talk mode: emit immediately
         this.emit(eventName);
       }
     } else if (!allKeysPressed && isActive) {
-      // Hotkey foi solta
+      // Hotkey was released
       setActive(false);
     }
   }
 
   /**
-   * Destrói o gerenciador de hotkeys
+   * Destroys the hotkey manager
    */
   destroy(): void {
     this.unregister();

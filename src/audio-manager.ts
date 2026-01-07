@@ -13,23 +13,23 @@ export class AudioManager extends EventEmitter {
   }
 
   private setupIpcHandlers(): void {
-    // Handler para iniciar gravação
+    // Handler to start recording
     ipcMain.handle('audio-start-recording', async () => {
       try {
-        // Enviar comando para o renderer process executar a gravação
+        // Send command to renderer process to execute recording
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
           return await this.mainWindow.webContents.executeJavaScript(`
             window.audioRecorder.startRecording()
           `);
         }
-        throw new Error('Janela não disponível');
+        throw new Error('Window not available');
       } catch (error) {
-        console.error('Erro ao iniciar gravação:', error);
+        console.error('Error starting recording:', error);
         throw error;
       }
     });
 
-    // Handler para parar gravação
+    // Handler to stop recording
     ipcMain.handle('audio-stop-recording', async () => {
       try {
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
@@ -37,14 +37,14 @@ export class AudioManager extends EventEmitter {
             window.audioRecorder.stopRecording()
           `);
         }
-        throw new Error('Janela não disponível');
+        throw new Error('Window not available');
       } catch (error) {
-        console.error('Erro ao parar gravação:', error);
+        console.error('Error stopping recording:', error);
         throw error;
       }
     });
 
-    // Handler para obter estado da gravação
+    // Handler to get recording state
     ipcMain.handle('audio-get-recording-state', async () => {
       try {
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
@@ -54,12 +54,12 @@ export class AudioManager extends EventEmitter {
         }
         return { isRecording: false };
       } catch (error) {
-        console.error('Erro ao obter estado:', error);
+        console.error('Error getting state:', error);
         return { isRecording: false };
       }
     });
 
-    // Handler para listar dispositivos de áudio
+    // Handler to list audio devices
     ipcMain.handle('audio-get-devices', async () => {
       try {
         if (this.mainWindow && !this.mainWindow.isDestroyed()) {
@@ -69,17 +69,17 @@ export class AudioManager extends EventEmitter {
         }
         return [];
       } catch (error) {
-        console.error('Erro ao listar dispositivos:', error);
+        console.error('Error listing devices:', error);
         return [];
       }
     });
   }
 
-  // Método para injetar o recorder no renderer
+  // Method to inject recorder into renderer
   injectAudioRecorder(): void {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
-    // Injetar código do WebAudioRecorder no renderer
+    // Inject WebAudioRecorder code into renderer
     this.mainWindow.webContents.executeJavaScript(`
       class WebAudioRecorderRenderer {
         constructor() {
@@ -92,12 +92,12 @@ export class AudioManager extends EventEmitter {
 
         async startRecording() {
           if (this.isRecording) {
-            console.log('Já está gravando...');
+            console.log('Already recording...');
             return;
           }
 
           try {
-            console.log('Iniciando gravação com Web Audio API...');
+            console.log('Starting recording with Web Audio API...');
             
             this.stream = await navigator.mediaDevices.getUserMedia({
               audio: {
@@ -133,17 +133,17 @@ export class AudioManager extends EventEmitter {
 
             this.mediaRecorder.start(100);
             
-            // Notificar o main process
+            // Notify the main process
             window.electronAPI.sendAudioEvent('recording-started');
             
             return true;
           } catch (error) {
             this.isRecording = false;
-            let errorMessage = 'Erro ao acessar microfone';
+            let errorMessage = 'Error accessing microphone';
             if (error.name === 'NotAllowedError') {
-              errorMessage = 'Permissão negada para acessar o microfone. Clique no ícone de microfone na barra de endereço e permita o acesso.';
+              errorMessage = 'Permission denied to access microphone. Click the microphone icon in the address bar and allow access.';
             } else if (error.name === 'NotFoundError') {
-              errorMessage = 'Nenhum microfone encontrado';
+              errorMessage = 'No microphone found';
             }
             window.electronAPI.sendAudioEvent('error', errorMessage);
             throw new Error(errorMessage);
@@ -152,7 +152,7 @@ export class AudioManager extends EventEmitter {
 
         async stopRecording() {
           if (!this.isRecording || !this.mediaRecorder) {
-            throw new Error('Não está gravando');
+            throw new Error('Not recording');
           }
 
           return new Promise((resolve, reject) => {
@@ -167,7 +167,7 @@ export class AudioManager extends EventEmitter {
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
                 
-                // Enviar dados para o main process
+                // Send data to the main process
                 const result = await window.electronAPI.processAudioData(Array.from(uint8Array), duration);
                 resolve(result);
               } catch (error) {
@@ -202,7 +202,7 @@ export class AudioManager extends EventEmitter {
       }
 
       window.audioRecorder = new WebAudioRecorderRenderer();
-      console.log('WebAudioRecorder injetado com sucesso');
+      console.log('WebAudioRecorder injected successfully');
     `);
   }
 }

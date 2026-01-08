@@ -58,7 +58,7 @@ export interface RecordingState {
   audioBuffer?: Buffer[];
 }
 
-export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python';
+export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys';
 
 export interface VoiceCommandResult {
   language: CodeLanguage;

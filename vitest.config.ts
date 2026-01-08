@@ -8,7 +8,7 @@ export default defineConfig({
     exclude: ['node_modules', 'out', '.vite', 'dist'],
 
     // Environment
-    environment: 'happy-dom', // For renderer tests
+    environment: 'node', // For unit tests
 
     // Coverage
     coverage: {
@@ -36,7 +36,7 @@ export default defineConfig({
     testTimeout: 10000, // 10s for integration tests
 
     // Globals (optional, Jest-like API)
-    globals: true,
+    globals: false,
 
     // Setup files
     setupFiles: ['./tests/setup.ts'],

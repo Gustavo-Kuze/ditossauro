@@ -63,8 +63,10 @@ export class VoiceCommandDetector {
    * Strips the command prefix from the transcription
    */
   private static stripCommandPrefix(transcription: string, keyword: string): string {
-    const pattern = new RegExp(`^${keyword}\\s*`, 'i');
-    return transcription.replace(pattern, '').trim();
+    // Match keyword at the start (case-insensitive)
+    const pattern = new RegExp(`^${keyword}\\b`, 'i');
+    const result = transcription.replace(pattern, '').trim();
+    return result;
   }
 
   /**
@@ -86,6 +88,7 @@ export class VoiceCommandDetector {
     const javascriptKeyword = i18nMain.t('voiceCommands.keywords.javascript');
     const typescriptKeyword = i18nMain.t('voiceCommands.keywords.typescript');
     const pythonKeyword = i18nMain.t('voiceCommands.keywords.python');
+    const hotkeysKeyword = i18nMain.t('voiceCommands.keywords.hotkeys');
 
     // Map keywords to languages
     // Note: Some keywords might be the same across languages (e.g., "javascript")
@@ -93,6 +96,7 @@ export class VoiceCommandDetector {
     keywordMap.set('javascript', [javascriptKeyword]);
     keywordMap.set('typescript', [typescriptKeyword]);
     keywordMap.set('python', [pythonKeyword]);
+    keywordMap.set('hotkeys', [hotkeysKeyword]);
 
     return keywordMap;
   }

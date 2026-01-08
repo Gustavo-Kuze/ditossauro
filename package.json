@@ -8,6 +8,7 @@
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
+    "build": "npm run make",
     "publish": "electron-forge publish",
     "lint": "eslint --ext .ts,.tsx .",
     "postinstall": "electron-rebuild -f -w uiohook-napi",

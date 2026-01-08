@@ -409,6 +409,30 @@ class OpenWisprElectronApp {
       const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
       console.log(`🎯 Detected language: ${commandResult.language}, stripped: "${commandResult.strippedTranscription}"`);
 
+      // Handle hotkeys command separately (no API key needed, no text insertion)
+      if (commandResult.language === 'hotkeys') {
+        try {
+          const hotkeyInterpreter = CodeInterpreterFactory.createInterpreter(
+            'hotkeys',
+            settings.api.groqApiKey
+          );
+          const result = await hotkeyInterpreter.interpretCode(
+            commandResult.strippedTranscription
+          );
+          console.log(`🎹 Hotkeys sent: ${result}`);
+          // Don't insert text for hotkeys commands
+          this.sendToRenderer('text-inserted', result);
+        } catch (error: any) {
+          console.error('❌ Error sending hotkeys:', error);
+          const errorMsg = error.message || 'Error sending hotkeys';
+          this.sendToRenderer('error', errorMsg);
+          // Log the error but don't let it crash the app
+          console.log('âś… App state recovered after hotkey error');
+        }
+        // Always return to reset state properly
+        return;
+      }
+
       // Create appropriate interpreter based on detected language
       const codeInterpreter = CodeInterpreterFactory.createInterpreter(
         commandResult.language,

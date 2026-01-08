@@ -51,13 +51,13 @@ describe('CodeInterpreterFactory', () => {
     it('should return all supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python']);
+      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys']);
     });
 
     it('should return array with 4 languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toHaveLength(4);
+      expect(languages).toHaveLength(5);
     });
 
     it('should include bash in supported languages', () => {

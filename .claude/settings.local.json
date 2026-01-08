@@ -6,7 +6,9 @@
       "Bash(npm install)",
       "Bash(bun install)",
       "Bash(yarn install)",
-      "Bash(npm run test)"
+      "Bash(npm run test)",
+      "Bash(npm test)",
+      "Bash(npm run build:*)"
     ]
   }
 }

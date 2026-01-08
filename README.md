@@ -101,7 +101,7 @@ When this mode is triggered, OpenWispr:
 - [x] Windows Support
 - [ ] Linux Support
 - [ ] MacOS Support
-- [ ] Unit Tests
+- [x] Unit Tests
 - [ ] E2E Tests
 - [ ] Support for OpenAI API
 - [ ] Support for Anthropic API

@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(npm install)",
+      "Bash(bun install)",
+      "Bash(yarn install)",
+      "Bash(npm run test)"
     ]
   }
 }

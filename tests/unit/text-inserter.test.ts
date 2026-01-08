@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TextInserter } from '@/text-inserter';
 import * as robot from 'robotjs';
 import { clipboard } from 'electron';

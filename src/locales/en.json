@@ -193,14 +193,16 @@
             "javascript": "javascript",
             "typescript": "typescript",
             "python": "python",
-            "hotkeys": "hotkeys"
+            "hotkeys": "hotkeys",
+            "translate": "translate"
         },
         "descriptions": {
             "command": "Generate bash/terminal commands",
             "javascript": "Generate JavaScript code",
             "typescript": "Generate TypeScript code",
             "python": "Generate Python code",
-            "hotkeys": "Send keyboard shortcuts to focused window"
+            "hotkeys": "Send keyboard shortcuts to focused window",
+            "translate": "Translate text to another language"
         }
     }
 }

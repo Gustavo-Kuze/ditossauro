@@ -4,6 +4,7 @@ import { JavaScriptCodeInterpreter } from '@/interpreters/javascript-code-interp
 import { BashCommandInterpreter } from '@/interpreters/bash-command-interpreter';
 import { TypeScriptCodeInterpreter } from '@/interpreters/typescript-code-interpreter';
 import { PythonCodeInterpreter } from '@/interpreters/python-code-interpreter';
+import { TranslateInterpreter } from '@/interpreters/translate-interpreter';
 
 describe('CodeInterpreterFactory', () => {
   describe('createInterpreter', () => {
@@ -31,6 +32,12 @@ describe('CodeInterpreterFactory', () => {
       expect(interpreter).toBeInstanceOf(PythonCodeInterpreter);
     });
 
+    it('should create TranslateInterpreter for translate language', () => {
+      const interpreter = CodeInterpreterFactory.createInterpreter('translate', 'test-api-key');
+
+      expect(interpreter).toBeInstanceOf(TranslateInterpreter);
+    });
+
     it('should throw error for unsupported language', () => {
       expect(() => {
         CodeInterpreterFactory.createInterpreter('unsupported' as any, 'test-api-key');
@@ -51,13 +58,13 @@ describe('CodeInterpreterFactory', () => {
     it('should return all supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys']);
+      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate']);
     });
 
-    it('should return array with 4 languages', () => {
+    it('should return array with 6 languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toHaveLength(5);
+      expect(languages).toHaveLength(6);
     });
 
     it('should include bash in supported languages', () => {
@@ -82,6 +89,12 @@ describe('CodeInterpreterFactory', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
       expect(languages).toContain('python');
+    });
+
+    it('should include translate in supported languages', () => {
+      const languages = CodeInterpreterFactory.getSupportedLanguages();
+
+      expect(languages).toContain('translate');
     });
   });
 });

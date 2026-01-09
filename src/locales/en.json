@@ -194,7 +194,8 @@
             "typescript": "typescript",
             "python": "python",
             "hotkeys": "hotkeys",
-            "translate": "translate"
+            "translate": "translate",
+            "bro": "bro"
         },
         "descriptions": {
             "command": "Generate bash/terminal commands",
@@ -202,7 +203,8 @@
             "typescript": "Generate TypeScript code",
             "python": "Generate Python code",
             "hotkeys": "Send keyboard shortcuts to focused window",
-            "translate": "Translate text to another language"
+            "translate": "Translate text to another language",
+            "bro": "Ask any question to your friendly conversational assistant"
         }
     }
 }

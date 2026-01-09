@@ -5,6 +5,7 @@ import { BashCommandInterpreter } from '@/interpreters/bash-command-interpreter'
 import { TypeScriptCodeInterpreter } from '@/interpreters/typescript-code-interpreter';
 import { PythonCodeInterpreter } from '@/interpreters/python-code-interpreter';
 import { TranslateInterpreter } from '@/interpreters/translate-interpreter';
+import { BroInterpreter } from '@/interpreters/bro-interpreter';
 
 describe('CodeInterpreterFactory', () => {
   describe('createInterpreter', () => {
@@ -38,6 +39,12 @@ describe('CodeInterpreterFactory', () => {
       expect(interpreter).toBeInstanceOf(TranslateInterpreter);
     });
 
+    it('should create BroInterpreter for bro language', () => {
+      const interpreter = CodeInterpreterFactory.createInterpreter('bro', 'test-api-key');
+
+      expect(interpreter).toBeInstanceOf(BroInterpreter);
+    });
+
     it('should throw error for unsupported language', () => {
       expect(() => {
         CodeInterpreterFactory.createInterpreter('unsupported' as any, 'test-api-key');
@@ -58,13 +65,13 @@ describe('CodeInterpreterFactory', () => {
     it('should return all supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate']);
+      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'bro']);
     });
 
-    it('should return array with 6 languages', () => {
+    it('should return array with 7 languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toHaveLength(6);
+      expect(languages).toHaveLength(7);
     });
 
     it('should include bash in supported languages', () => {
@@ -95,6 +102,12 @@ describe('CodeInterpreterFactory', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
       expect(languages).toContain('translate');
+    });
+
+    it('should include bro in supported languages', () => {
+      const languages = CodeInterpreterFactory.getSupportedLanguages();
+
+      expect(languages).toContain('bro');
     });
   });
 });

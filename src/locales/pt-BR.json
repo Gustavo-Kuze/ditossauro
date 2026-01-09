@@ -193,14 +193,16 @@
             "javascript": "javascript",
             "typescript": "typescript",
             "python": "python",
-            "hotkeys": "hotkeys"
+            "hotkeys": "hotkeys",
+            "translate": "traduzir"
         },
         "descriptions": {
             "command": "Gerar comandos bash/terminal",
             "javascript": "Gerar código JavaScript",
             "typescript": "Gerar código TypeScript",
             "python": "Gerar código Python",
-            "hotkeys": "Enviar atalhos de teclado para a janela focada"
+            "hotkeys": "Enviar atalhos de teclado para a janela focada",
+            "translate": "Traduzir texto para outro idioma"
         }
     }
 }

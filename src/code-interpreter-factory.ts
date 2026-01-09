@@ -4,6 +4,7 @@ import { BashCommandInterpreter } from './interpreters/bash-command-interpreter'
 import { TypeScriptCodeInterpreter } from './interpreters/typescript-code-interpreter';
 import { PythonCodeInterpreter } from './interpreters/python-code-interpreter';
 import { HotkeyInterpreter } from './interpreters/hotkey-interpreter';
+import { TranslateInterpreter } from './interpreters/translate-interpreter';
 import { CodeLanguage } from './types';
 
 export class CodeInterpreterFactory {
@@ -22,12 +23,14 @@ export class CodeInterpreterFactory {
         return new PythonCodeInterpreter(apiKey);
       case 'hotkeys':
         return new HotkeyInterpreter(apiKey);
+      case 'translate':
+        return new TranslateInterpreter(apiKey);
       default:
         throw new Error(`Unsupported code language: ${language}`);
     }
   }
 
   static getSupportedLanguages(): CodeLanguage[] {
-    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys'];
+    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate'];
   }
 }

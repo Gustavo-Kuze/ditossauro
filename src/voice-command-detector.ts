@@ -89,6 +89,7 @@ export class VoiceCommandDetector {
     const typescriptKeyword = i18nMain.t('voiceCommands.keywords.typescript');
     const pythonKeyword = i18nMain.t('voiceCommands.keywords.python');
     const hotkeysKeyword = i18nMain.t('voiceCommands.keywords.hotkeys');
+    const translateKeyword = i18nMain.t('voiceCommands.keywords.translate');
 
     // Map keywords to languages
     // Note: Some keywords might be the same across languages (e.g., "javascript")
@@ -97,6 +98,7 @@ export class VoiceCommandDetector {
     keywordMap.set('typescript', [typescriptKeyword]);
     keywordMap.set('python', [pythonKeyword]);
     keywordMap.set('hotkeys', [hotkeysKeyword]);
+    keywordMap.set('translate', [translateKeyword]);
 
     return keywordMap;
   }

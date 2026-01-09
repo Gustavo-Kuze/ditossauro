@@ -10,6 +10,7 @@ vi.mock('@/i18n-main', () => ({
         'voiceCommands.keywords.javascript': 'javascript',
         'voiceCommands.keywords.typescript': 'typescript',
         'voiceCommands.keywords.python': 'python',
+        'voiceCommands.keywords.translate': 'translate',
       };
       return translations[key] || key;
     }),
@@ -54,6 +55,14 @@ describe('VoiceCommandDetector', () => {
       expect(result.language).toBe('python');
       expect(result.strippedTranscription).toBe('print hello world');
       expect(result.detectedKeyword).toBe('python');
+    });
+
+    it('should detect "translate" keyword and return translate language', () => {
+      const result = VoiceCommandDetector.detectCommand('translate hello world to French', 'en');
+
+      expect(result.language).toBe('translate');
+      expect(result.strippedTranscription).toBe('hello world to French');
+      expect(result.detectedKeyword).toBe('translate');
     });
   });
 
@@ -171,6 +180,7 @@ describe('detectCommand - Portuguese Locale', () => {
         'voiceCommands.keywords.javascript': 'javascript',
         'voiceCommands.keywords.typescript': 'typescript',
         'voiceCommands.keywords.python': 'python',
+        'voiceCommands.keywords.translate': 'traduzir',
       };
       return translations[key] || key;
     });
@@ -195,6 +205,14 @@ describe('detectCommand - Portuguese Locale', () => {
 
     expect(result.language).toBe('javascript');
     expect(result.strippedTranscription).toBe('criar função');
+  });
+
+  it('should detect Portuguese "traduzir" keyword', () => {
+    const result = VoiceCommandDetector.detectCommand('traduzir olá mundo para francês', 'pt-BR');
+
+    expect(result.language).toBe('translate');
+    expect(result.strippedTranscription).toBe('olá mundo para francês');
+    expect(result.detectedKeyword).toBe('traduzir');
   });
 });
 
@@ -234,10 +252,11 @@ describe('detectCommand - Portuguese Locale', () => {
   describe('detectCommand - All Language Types', () => {
     it('should correctly map all supported languages', () => {
       const testCases = [
-        { input: 'command list files', expected: 'bash' }, // Use same pattern as working tests
+        { input: 'command list files', expected: 'bash' },
         { input: 'javascript create function', expected: 'javascript' },
         { input: 'typescript interface user', expected: 'typescript' },
         { input: 'python print hello', expected: 'python' },
+        { input: 'translate hello world to French', expected: 'translate' },
       ];
 
       testCases.forEach(({ input, expected }) => {

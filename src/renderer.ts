@@ -6,6 +6,8 @@ class OpenWisprUI {
   private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
+  private appVersion = '1.0.0';
+  private appAuthor = 'Unknown';
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -37,6 +39,8 @@ class OpenWisprUI {
   async init() {
     try {
       this.settings = await window.electronAPI.getSettings();
+      this.appVersion = await window.electronAPI.getVersion();
+      this.appAuthor = await window.electronAPI.getAuthor();
 
       // Initialize i18n with user's locale
       await i18n.init(this.settings.locale || 'pt-BR');
@@ -379,7 +383,8 @@ class OpenWisprUI {
             <div class="about-logo" id="aboutLogo"></div>
             <h2>OpenWispr</h2>
             <p>${i18n.t('about.description')}</p>
-            <p><strong>${i18n.t('app.version')}:</strong> 1.0.0</p>
+            <p><strong>${i18n.t('app.version')}:</strong> ${this.appVersion}</p>
+            <p><strong>Author:</strong> ${this.appAuthor}</p>
           </div>
         </div>
       </main>

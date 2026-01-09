@@ -194,7 +194,8 @@
             "typescript": "typescript",
             "python": "python",
             "hotkeys": "hotkeys",
-            "translate": "traduzir"
+            "translate": "traduzir",
+            "bro": "mano"
         },
         "descriptions": {
             "command": "Gerar comandos bash/terminal",
@@ -202,7 +203,8 @@
             "typescript": "Gerar código TypeScript",
             "python": "Gerar código Python",
             "hotkeys": "Enviar atalhos de teclado para a janela focada",
-            "translate": "Traduzir texto para outro idioma"
+            "translate": "Traduzir texto para outro idioma",
+            "bro": "Pergunte qualquer coisa para seu assistente conversacional amigável"
         }
     }
 }

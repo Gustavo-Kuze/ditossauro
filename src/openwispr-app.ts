@@ -397,6 +397,21 @@ export class OpenWisprApp extends EventEmitter {
         isConfigured: this.transcriptionProvider.isConfigured()
       };
     });
+
+    ipcMain.handle('get-version', () => {
+      return app.getVersion();
+    });
+
+    ipcMain.handle('get-author', () => {
+      const packagePath = path.join(__dirname, '../package.json');
+      try {
+        const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+        return packageJson.author || 'Unknown';
+      } catch (error) {
+        console.error('Error reading package.json:', error);
+        return 'Unknown';
+      }
+    });
   }
 
   private cleanupTempFile(filePath: string): void {

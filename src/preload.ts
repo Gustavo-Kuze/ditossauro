@@ -27,6 +27,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAvailableProviders: () => ipcRenderer.invoke('get-available-providers'),
   getCurrentProvider: () => ipcRenderer.invoke('get-current-provider'),
 
+  // App info
+  getVersion: () => ipcRenderer.invoke('get-version'),
+  getAuthor: () => ipcRenderer.invoke('get-author'),
+
   // Audio processing
   processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> =>
     ipcRenderer.invoke('process-audio-data', audioData, duration),
@@ -96,6 +100,8 @@ export interface ElectronAPI {
   testAPI(): Promise<boolean>;
   getAvailableProviders(): Promise<{ type: string; name: string; description: string }[]>;
   getCurrentProvider(): Promise<{ name: string; isConfigured: boolean }>;
+  getVersion(): Promise<string>;
+  getAuthor(): Promise<string>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   notifyHotkeysUpdated(): void;

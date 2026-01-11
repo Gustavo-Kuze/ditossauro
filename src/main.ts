@@ -33,6 +33,11 @@ class OpenWisprElectronApp {
     this.openWisprApp = new OpenWisprApp();
     this.hotkeyManager = new HotkeyManager();
 
+    // Set App User Model ID for Windows taskbar icon
+    if (process.platform === 'win32') {
+      app.setAppUserModelId('com.openwispr.app');
+    }
+
     // Initialize i18n
     const settings = this.openWisprApp.getSettings();
     i18nMain.init(settings.locale || 'pt-BR');
@@ -651,7 +656,32 @@ class OpenWisprElectronApp {
   }
 
   private getAppIcon(): NativeImage {
-    // Return an empty icon or use the idle tray icon as the app icon
+    const iconName = 'app_icon.png';
+    // Reuse the same logic as createTrayIcon for path resolution
+    const possiblePaths = [
+      // Production mode - extraResource copies to resources/assets/
+      path.join(process.resourcesPath || '', 'assets', iconName),
+      // Production mode - alternative
+      path.join(process.resourcesPath || '', 'src', 'assets', iconName),
+      // Development mode (Vite dev server)
+      path.join(__dirname, '..', 'src', 'assets', iconName),
+      // Alternative production path
+      path.join(__dirname, '..', 'assets', iconName),
+      // Direct path from project root
+      path.join(app.getAppPath(), 'src', 'assets', iconName),
+      // Production mode - app.asar.unpacked
+      path.join(process.resourcesPath || '', 'app.asar.unpacked', 'assets', iconName),
+    ];
+
+    for (const iconPath of possiblePaths) {
+      const icon = nativeImage.createFromPath(iconPath);
+      if (!icon.isEmpty()) {
+        console.log(`✓ Loaded app icon from: ${iconPath}`);
+        return icon;
+      }
+    }
+
+    console.warn('⚠️ Could not load app icon, using default');
     return nativeImage.createEmpty();
   }
 

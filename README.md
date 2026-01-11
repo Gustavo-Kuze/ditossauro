@@ -58,12 +58,14 @@ You can now speak **natural language instructions** and have OpenWispr generate:
 
 Available commands:
 
-* "command"
-* "javascript"
-* "typescript"
-* "python"
-* "bash"
-* "terminal"
+* "command" - for terminal commands
+* "javascript" - for JavaScript code snippets
+* "typescript" - for TypeScript code snippets
+* "python" - for Python code snippets
+* "bash" - for Bash scripts
+* "hotkeys" - for pressing hotkeys
+* "translate" - for translating text to other languages
+* "bro" - general purpose personal assistance
 
 This enables a workflow similar to *“dictation for developers”*.
 
@@ -74,6 +76,8 @@ This enables a workflow similar to *“dictation for developers”*.
 * "command show disk usage" → `df -h`
 * "javascript if user id exists then write user logged in" → `if(user.id) { console.log('user logged in'); }`
 * "javascript create variable is active set to true" → `const isActive = true;`
+* "translate cat to german" → `Katze`
+* "hotkeys control shift f" → Presses `CTRL + Shift + F` on the focused window (global search on VSCode, for example) 
 
 **Hotkey**
 
@@ -98,12 +102,18 @@ When this mode is triggered, OpenWispr:
 
 ## Roadmap
 
+- [x] Generate terminal commands
+- [x] Generate code snippets
+- [x] Translate text to other languages
+- [x] Press hotkeys from voice commands
+- [x] Quick questions and answers (personal assistant)
 - [x] Windows Support
 - [ ] Linux Support
 - [ ] MacOS Support
 - [x] Unit Tests
 - [ ] E2E Tests
 - [x] Press hotkeys based on voice commands
+- [x] Support for Groq API
 - [ ] Support for OpenAI API
 - [ ] Support for Anthropic API
 - [ ] Support for Google API

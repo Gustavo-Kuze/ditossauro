@@ -365,7 +365,7 @@ describe('HistoryManager', () => {
     it('should handle empty history lifecycle', () => {
       // Start with empty
       vi.mocked(fs.readFileSync).mockReturnValue('[]');
-      const history = historyManager.loadHistory();
+      let history = historyManager.loadHistory();
       expect(history).toEqual([]);
 
       // Add sessions

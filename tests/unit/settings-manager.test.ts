@@ -17,9 +17,9 @@ describe('SettingsManager', () => {
     // Default: file exists with empty object
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue('{}');
-    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.writeFileSync).mockImplementation(() => undefined);
     vi.mocked(fs.mkdirSync).mockImplementation(() => '');
-    vi.mocked(fs.copyFileSync).mockImplementation(() => {});
+    vi.mocked(fs.copyFileSync).mockImplementation(() => undefined);
   });
 
   describe('constructor and initialization', () => {

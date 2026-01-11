@@ -19,7 +19,7 @@ describe('HistoryManager', () => {
     // Default: file exists with empty array
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue('[]');
-    vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+    vi.mocked(fs.writeFileSync).mockImplementation(() => undefined);
 
     historyManager = new HistoryManager();
   });
@@ -299,7 +299,7 @@ describe('HistoryManager', () => {
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(existingSessions));
 
       // Verify history exists
-      let history = historyManager.loadHistory();
+      const history = historyManager.loadHistory();
       expect(history).toHaveLength(1);
 
       // Clear and update mock to return empty

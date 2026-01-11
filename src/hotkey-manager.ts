@@ -194,7 +194,7 @@ export class HotkeyManager extends EventEmitter {
   /**
    * Checks if any key combination is pressed
    */
-  private checkHotkeys(skipStartStop: boolean = false): void {
+  private checkHotkeys(skipStartStop = false): void {
     // Check cancel key first
     if (this.cancelKey) {
       const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];

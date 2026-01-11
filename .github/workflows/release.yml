@@ -155,10 +155,7 @@ jobs:
             ## OpenWispr v${{ steps.package_version.outputs.version }}
 
             ### What's New
-            - Voice command recognition for code snippet generation
-            - Support for multiple programming languages (JavaScript, TypeScript, Python, Bash)
-            - Multi-language support (English, Portuguese)
-            - Improved code interpretation with markdown stripping
+            - Various app improvements and bug fixes.
 
             ### Downloads
             - **Windows**: Download the `.exe` installer or `.nupkg` package

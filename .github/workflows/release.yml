@@ -155,7 +155,10 @@ jobs:
             ## OpenWispr v${{ steps.package_version.outputs.version }}
 
             ### What's New
-            - Various app improvements and bug fixes.
+            - Added automated PR test checks workflow for better code quality
+            - All pull requests now run linting and unit tests before merging
+            - Fixed TypeScript linting issues in hotkey manager and test files
+            - Improved test reliability and coverage reporting
 
             ### Downloads
             - **Windows**: Download the `.exe` installer or `.nupkg` package

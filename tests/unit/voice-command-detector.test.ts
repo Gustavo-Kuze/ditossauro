@@ -11,6 +11,8 @@ vi.mock('@/i18n-main', () => ({
         'voiceCommands.keywords.typescript': 'typescript',
         'voiceCommands.keywords.python': 'python',
         'voiceCommands.keywords.translate': 'translate',
+        'voiceCommands.keywords.hotkeys': 'hotkeys',
+        'voiceCommands.keywords.bro': 'bro',
       };
       return translations[key] || key;
     }),
@@ -64,6 +66,22 @@ describe('VoiceCommandDetector', () => {
       expect(result.strippedTranscription).toBe('hello world to French');
       expect(result.detectedKeyword).toBe('translate');
     });
+
+    it('should detect "hotkeys" keyword and return hotkeys language', () => {
+      const result = VoiceCommandDetector.detectCommand('hotkeys ctrl c', 'en');
+
+      expect(result.language).toBe('hotkeys');
+      expect(result.strippedTranscription).toBe('ctrl c');
+      expect(result.detectedKeyword).toBe('hotkeys');
+    });
+
+    it('should detect "bro" keyword and return bro language', () => {
+      const result = VoiceCommandDetector.detectCommand('bro how are you', 'en');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('how are you');
+      expect(result.detectedKeyword).toBe('bro');
+    });
   });
 
   describe('detectCommand - Default Behavior', () => {
@@ -104,6 +122,22 @@ describe('VoiceCommandDetector', () => {
 
       expect(result.language).toBe('python');
       expect(result.strippedTranscription).toBe('print hello');
+    });
+
+    it('should detect "Bro" with capital B', () => {
+      const result = VoiceCommandDetector.detectCommand('Bro how are you', 'en');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('how are you');
+      expect(result.detectedKeyword).toBe('bro');
+    });
+
+    it('should detect "BRO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('BRO tell me a joke', 'en');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('tell me a joke');
+      expect(result.detectedKeyword).toBe('bro');
     });
   });
 
@@ -163,58 +197,85 @@ describe('VoiceCommandDetector', () => {
     });
   });
 
-describe('detectCommand - Portuguese Locale', () => {
-  let originalMockImplementation: any;
+  describe('detectCommand - Portuguese Locale', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let originalMockImplementation: any;
 
-  beforeEach(async () => {
-    // Reimport to get fresh mock
-    const { i18nMain } = await import('@/i18n-main');
+    beforeEach(async () => {
+      // Reimport to get fresh mock
+      const { i18nMain } = await import('@/i18n-main');
 
-    // Save original implementation
-    originalMockImplementation = vi.mocked(i18nMain.t).getMockImplementation();
+      // Save original implementation
+      originalMockImplementation = vi.mocked(i18nMain.t).getMockImplementation();
 
-    // Override mock for Portuguese translations
-    vi.mocked(i18nMain.t).mockImplementation((key: string) => {
-      const translations: Record<string, string> = {
-        'voiceCommands.keywords.command': 'comando',
-        'voiceCommands.keywords.javascript': 'javascript',
-        'voiceCommands.keywords.typescript': 'typescript',
-        'voiceCommands.keywords.python': 'python',
-        'voiceCommands.keywords.translate': 'traduzir',
-      };
-      return translations[key] || key;
+      // Override mock for Portuguese translations
+      vi.mocked(i18nMain.t).mockImplementation((key: string) => {
+        const translations: Record<string, string> = {
+          'voiceCommands.keywords.command': 'comando',
+          'voiceCommands.keywords.javascript': 'javascript',
+          'voiceCommands.keywords.typescript': 'typescript',
+          'voiceCommands.keywords.python': 'python',
+          'voiceCommands.keywords.translate': 'traduzir',
+          'voiceCommands.keywords.hotkeys': 'hotkeys',
+          'voiceCommands.keywords.bro': 'mano',
+        };
+        return translations[key] || key;
+      });
+    });
+
+    afterEach(async () => {
+      // Restore original mock implementation
+      const { i18nMain } = await import('@/i18n-main');
+      vi.mocked(i18nMain.t).mockImplementation(originalMockImplementation);
+    });
+
+    it('should detect Portuguese "comando" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('comando listar arquivos', 'pt-BR');
+
+      expect(result.language).toBe('bash');
+      expect(result.strippedTranscription).toBe('listar arquivos');
+      expect(result.detectedKeyword).toBe('comando');
+    });
+
+    it('should still detect "javascript" in Portuguese locale', () => {
+      const result = VoiceCommandDetector.detectCommand('javascript criar função', 'pt-BR');
+
+      expect(result.language).toBe('javascript');
+      expect(result.strippedTranscription).toBe('criar função');
+    });
+
+    it('should detect Portuguese "traduzir" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('traduzir olá mundo para francês', 'pt-BR');
+
+      expect(result.language).toBe('translate');
+      expect(result.strippedTranscription).toBe('olá mundo para francês');
+      expect(result.detectedKeyword).toBe('traduzir');
+    });
+
+    it('should detect Portuguese "mano" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('mano como você está', 'pt-BR');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('como você está');
+      expect(result.detectedKeyword).toBe('mano');
+    });
+
+    it('should detect Portuguese "Mano" with capital M', () => {
+      const result = VoiceCommandDetector.detectCommand('Mano como você está', 'pt-BR');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('como você está');
+      expect(result.detectedKeyword).toBe('mano');
+    });
+
+    it('should detect Portuguese "MANO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('MANO me conte uma piada', 'pt-BR');
+
+      expect(result.language).toBe('bro');
+      expect(result.strippedTranscription).toBe('me conte uma piada');
+      expect(result.detectedKeyword).toBe('mano');
     });
   });
-
-  afterEach(async () => {
-    // Restore original mock implementation
-    const { i18nMain } = await import('@/i18n-main');
-    vi.mocked(i18nMain.t).mockImplementation(originalMockImplementation);
-  });
-
-  it('should detect Portuguese "comando" keyword', () => {
-    const result = VoiceCommandDetector.detectCommand('comando listar arquivos', 'pt-BR');
-
-    expect(result.language).toBe('bash');
-    expect(result.strippedTranscription).toBe('listar arquivos');
-    expect(result.detectedKeyword).toBe('comando');
-  });
-
-  it('should still detect "javascript" in Portuguese locale', () => {
-    const result = VoiceCommandDetector.detectCommand('javascript criar função', 'pt-BR');
-
-    expect(result.language).toBe('javascript');
-    expect(result.strippedTranscription).toBe('criar função');
-  });
-
-  it('should detect Portuguese "traduzir" keyword', () => {
-    const result = VoiceCommandDetector.detectCommand('traduzir olá mundo para francês', 'pt-BR');
-
-    expect(result.language).toBe('translate');
-    expect(result.strippedTranscription).toBe('olá mundo para francês');
-    expect(result.detectedKeyword).toBe('traduzir');
-  });
-});
 
   describe('detectCommand - Edge Cases', () => {
     it('should handle keyword with no following text', () => {

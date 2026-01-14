@@ -22,7 +22,7 @@ export class AssemblyAIClient implements ITranscriptionProvider {
     }
   }
 
-  async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<string> {
+  async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<import('./transcription-provider').TranscriptionResult> {
     if (!this.client) {
       throw new Error('AssemblyAI client was not initialized. Check the API key.');
     }
@@ -71,12 +71,22 @@ export class AssemblyAIClient implements ITranscriptionProvider {
         throw new Error('No text was transcribed. Check if there is speech in the audio.');
       }
 
+      const detectedLanguage = transcript.language_code || language || 'en';
+      const confidence = transcript.confidence || 0.9;
+      const duration = transcript.audio_duration || 0;
+
       console.log('✅ Transcription completed successfully!');
       console.log(`📝 Text (${transcriptionText.length} characters): ${transcriptionText.substring(0, 100)}...`);
-      console.log(`📊 Confidence: ${transcript.confidence ? (transcript.confidence * 100).toFixed(1) : 'N/A'}%`);
-      console.log(`⏱️ Audio duration: ${transcript.audio_duration || 'N/A'}s`);
+      console.log(`🌐 Detected language: ${detectedLanguage}`);
+      console.log(`📊 Confidence: ${(confidence * 100).toFixed(1)}%`);
+      console.log(`⏱️ Audio duration: ${duration}s`);
 
-      return transcriptionText;
+      return {
+        text: transcriptionText,
+        language: detectedLanguage,
+        confidence: confidence,
+        duration: duration,
+      };
 
     } catch (error) {
       console.error('❌ Error during transcription:', error);

@@ -117,14 +117,14 @@ export class GroqClient implements ITranscriptionProvider {
     }
   }
 
-  async transcribeAudio(audioFilePath: string, language?: string): Promise<string> {
+  async transcribeAudio(audioFilePath: string, language?: string): Promise<import('./transcription-provider').TranscriptionResult> {
     if (language) {
       this.language = language;
     }
     return this.transcribe(audioFilePath);
   }
 
-  private async transcribe(audioFilePath: string): Promise<string> {
+  private async transcribe(audioFilePath: string): Promise<import('./transcription-provider').TranscriptionResult> {
     if (!this.client) {
       throw new Error('Groq client not configured. Please set your API key.');
     }
@@ -175,20 +175,32 @@ export class GroqClient implements ITranscriptionProvider {
 
       if (!transcription.text || transcription.text.trim() === '') {
         console.warn('⚠️ Empty transcription received from Groq');
-        return '';
+        return {
+          text: '',
+          language: this.language || 'en',
+          confidence: 0,
+          duration: 0,
+        };
       }
 
       console.log(`📝 Transcription: ${transcription.text}`);
 
-      // Log additional metadata if available
-      if ('duration' in transcription) {
-        console.log(`⏱️ Audio duration: ${transcription.duration}s`);
-      }
-      if ('language' in transcription) {
-        console.log(`🌐 Detected language: ${transcription.language}`);
-      }
+      // Extract metadata
+      const detectedLanguage = ('language' in transcription && transcription.language) ? transcription.language as string : (this.language || 'en');
+      const duration = ('duration' in transcription && transcription.duration) ? transcription.duration as number : 0;
 
-      return transcription.text.trim();
+      // Log additional metadata if available
+      if (duration > 0) {
+        console.log(`⏱️ Audio duration: ${duration}s`);
+      }
+      console.log(`🌐 Detected language: ${detectedLanguage}`);
+
+      return {
+        text: transcription.text.trim(),
+        language: detectedLanguage,
+        confidence: 0.95, // Groq doesn't provide confidence, use default
+        duration: duration,
+      };
     } catch (error: any) {
       console.error('❌ Groq transcription error:', error);
 

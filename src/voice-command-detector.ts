@@ -55,7 +55,8 @@ export class VoiceCommandDetector {
    */
   private static matchesKeyword(transcription: string, keyword: string): boolean {
     const normalized = transcription.toLowerCase();
-    const pattern = new RegExp(`^${keyword.toLowerCase()}\\b`, 'i');
+    const keywordEscaped = this.escapeRegExp(keyword.toLowerCase());
+    const pattern = new RegExp(`^${keywordEscaped}\\b`);
     return pattern.test(normalized);
   }
 
@@ -64,9 +65,17 @@ export class VoiceCommandDetector {
    */
   private static stripCommandPrefix(transcription: string, keyword: string): string {
     // Match keyword at the start (case-insensitive)
-    const pattern = new RegExp(`^${keyword}\\b`, 'i');
+    const keywordEscaped = this.escapeRegExp(keyword);
+    const pattern = new RegExp(`^${keywordEscaped}\\b`, 'i');
     const result = transcription.replace(pattern, '').trim();
     return result;
+  }
+
+  /**
+   * Escapes special characters in a string for use in a regular expression
+   */
+  private static escapeRegExp(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**

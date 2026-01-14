@@ -366,6 +366,8 @@ class OpenWisprElectronApp {
   }
 
   private async handleCodeSnippetRecordingStop(): Promise<void> {
+    console.log('🎬 handleCodeSnippetRecordingStop() called');
+
     // Prevent duplicate processing
     if (this.isProcessingCodeSnippet) {
       console.log('⚠️ Already processing code snippet, ignoring duplicate call');
@@ -373,19 +375,24 @@ class OpenWisprElectronApp {
     }
 
     this.isProcessingCodeSnippet = true;
+    console.log('✅ isProcessingCodeSnippet set to true');
 
     try {
+      console.log('📦 Importing dependencies...');
       // Import dependencies
       const { VoiceCommandDetector } = await import('./voice-command-detector');
       const { CodeInterpreterFactory } = await import('./code-interpreter-factory');
       const { TextInserter } = await import('./text-inserter');
+      console.log('✅ Dependencies imported successfully');
 
-      // Set up the transcription promise BEFORE stopping recording
-      // to avoid race conditions
-      const transcriptionPromise = new Promise<string>((resolve) => {
-        const handler = (session: any) => {
+      console.log('📋 Setting up transcription listener for code snippet mode...');
+
+      // Set up listener BEFORE stopping recording to avoid race condition
+      const transcriptionPromise = new Promise<import('./types').TranscriptionSession>((resolve) => {
+        const handler = (completedSession: import('./types').TranscriptionSession) => {
+          console.log('📨 Received transcription-completed event in code snippet mode');
           this.openWisprApp.off('transcription-completed', handler);
-          resolve(session.transcription);
+          resolve(completedSession);
         };
         this.openWisprApp.once('transcription-completed', handler);
       });
@@ -394,21 +401,45 @@ class OpenWisprElectronApp {
       // In push-to-talk mode, recording is already stopped by the hotkey release
       const isRecording = this.openWisprApp.getRecordingState().isRecording;
       if (isRecording) {
+        console.log('⏸️ Stopping recording for code snippet mode...');
         try {
           await this.openWisprApp.stopRecording();
         } catch (error) {
           console.error('Error stopping recording:', error);
           // Continue anyway - transcription might already be in progress
         }
+      } else {
+        console.log('ℹ️ Recording already stopped, waiting for transcription...');
       }
 
       // Wait for transcription to complete
-      const transcription = await transcriptionPromise;
+      console.log('⏳ Waiting for transcription to complete...');
+      const session = await transcriptionPromise;
+      console.log('✅ Transcription promise resolved');
+
+      const transcription = session.transcription;
       console.log(`📝 Transcription for code snippet: "${transcription}"`);
 
       // Get settings
       const settings = this.openWisprApp.getSettings();
-      const locale = settings.locale || 'en';
+
+      // Map detected language to locale (e.g., "pt"/"Portuguese" -> "pt-BR", "en"/"English" -> "en")
+      const detectedLanguage = session.language || 'en';
+      console.log(`🌐 Detected language from session: "${detectedLanguage}"`);
+
+      // Normalize language - Groq returns full names like "Portuguese", "English"
+      const normalizedLanguage = detectedLanguage.toLowerCase();
+      let locale: string;
+
+      if (normalizedLanguage === 'pt' || normalizedLanguage === 'portuguese') {
+        locale = 'pt-BR';
+      } else if (normalizedLanguage === 'en' || normalizedLanguage === 'english') {
+        locale = 'en';
+      } else {
+        locale = settings.locale || 'en';
+      }
+
+      console.log(`🗺️ Mapped to locale: "${locale}"`);
 
       // Detect voice command
       const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
@@ -466,8 +497,13 @@ class OpenWisprElectronApp {
         console.error('❌ Error interpreting code:', error);
         this.sendToRenderer('error', error.message || 'Error interpreting code');
       }
+    } catch (error: any) {
+      console.error('❌ FATAL ERROR in handleCodeSnippetRecordingStop:', error);
+      console.error('Stack trace:', error.stack);
+      this.sendToRenderer('error', error.message || 'Error processing code snippet');
     } finally {
       // Reset the processing flag
+      console.log('🔄 Resetting isProcessingCodeSnippet flag');
       this.isProcessingCodeSnippet = false;
     }
   }

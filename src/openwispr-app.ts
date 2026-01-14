@@ -204,7 +204,7 @@ export class OpenWisprApp extends EventEmitter {
         language = settings.transcription.groq.language;
       }
 
-      const transcriptionText = await this.transcriptionProvider.transcribeAudio(
+      const transcriptionResult = await this.transcriptionProvider.transcribeAudio(
         recordingData.audioFile,
         language
       );
@@ -213,10 +213,10 @@ export class OpenWisprApp extends EventEmitter {
       const session: TranscriptionSession = {
         id: uuidv4(),
         timestamp: new Date(),
-        transcription: transcriptionText,
-        duration: recordingData.duration,
-        language: settings.api.language,
-        confidence: 0.95 // Default confidence (may vary by provider)
+        transcription: transcriptionResult.text,
+        duration: transcriptionResult.duration || recordingData.duration,
+        language: transcriptionResult.language, // Use detected language from transcription
+        confidence: transcriptionResult.confidence || 0.95
       };
 
       // Add to history
@@ -231,12 +231,12 @@ export class OpenWisprApp extends EventEmitter {
       this.historyManager.saveHistory(this.transcriptionHistory);
 
       this.emit('transcription-completed', session);
-      console.log('✅ Transcription completed:', transcriptionText);
+      console.log('✅ Transcription completed:', transcriptionResult.text);
 
       // Insert text automatically if configured
       // But DO NOT insert if in code snippet mode (handled by main.ts)
-      if (settings.behavior.autoInsert && transcriptionText.trim() && !this.isCodeSnippetMode) {
-        await this.insertTranscriptionText(transcriptionText);
+      if (settings.behavior.autoInsert && transcriptionResult.text.trim() && !this.isCodeSnippetMode) {
+        await this.insertTranscriptionText(transcriptionResult.text);
       }
 
       // Reset code snippet mode after processing

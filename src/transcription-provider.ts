@@ -56,16 +56,6 @@ export interface TranscriptionSegment {
 }
 
 /**
- * Settings for Faster Whisper
- */
-export interface FasterWhisperConfig {
-  modelSize: 'tiny' | 'base' | 'small' | 'medium' | 'large' | 'large-v2' | 'large-v3';
-  device: 'cpu' | 'cuda';
-  computeType: 'int8' | 'int8_float16' | 'int16' | 'float16' | 'float32';
-  pythonPath?: string;
-}
-
-/**
  * Settings for AssemblyAI
  */
 export interface AssemblyAIConfig {
@@ -84,4 +74,4 @@ export interface GroqConfig {
 /**
  * Types of available providers
  */
-export type TranscriptionProviderType = 'assemblyai' | 'faster-whisper' | 'groq';
+export type TranscriptionProviderType = 'assemblyai' | 'groq';

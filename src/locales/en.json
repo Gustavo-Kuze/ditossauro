@@ -51,8 +51,7 @@
             "choose": "Choose provider",
             "groq": "Groq (Cloud - Ultra Fast) ⚡",
             "assemblyai": "AssemblyAI (Cloud)",
-            "fasterWhisper": "Faster Whisper (Local)",
-            "groqHelp": "Groq offers ultra-fast transcription with Whisper Large V3. AssemblyAI has high accuracy. Faster Whisper runs locally.",
+            "groqHelp": "Groq offers ultra-fast transcription with Whisper Large V3. AssemblyAI has high accuracy.",
             "configured": "Configured",
             "notConfigured": "Not configured"
         },
@@ -95,39 +94,6 @@
             "testing": "Testing...",
             "testSuccess": "AssemblyAI connection working!",
             "testError": "AssemblyAI connection failed. Check your API key."
-        },
-        "whisper": {
-            "title": "Faster Whisper Settings",
-            "modelSize": "Model Size",
-            "modelTiny": "Tiny (~39 MB) - Fastest",
-            "modelBase": "Base (~74 MB) - Recommended",
-            "modelSmall": "Small (~244 MB) - Good quality",
-            "modelMedium": "Medium (~769 MB) - High quality",
-            "modelLarge": "Large (~1550 MB) - Maximum quality",
-            "modelLargeV2": "Large-v2 (~1550 MB) - Improved",
-            "modelLargeV3": "Large-v3 (~1550 MB) - Latest",
-            "modelHelp": "Larger models have better quality but are slower",
-            "device": "Device",
-            "deviceCPU": "CPU - Compatible with any system",
-            "deviceCUDA": "CUDA - NVIDIA GPU (requires CUDA installed)",
-            "computeType": "Compute Type",
-            "computeInt8": "INT8 - Faster, less memory",
-            "computeInt8Float16": "INT8 + Float16 - Balanced",
-            "computeFloat16": "Float16 - Better quality (GPU)",
-            "computeFloat32": "Float32 - Maximum quality",
-            "pythonPath": "Python Path",
-            "pythonPathPlaceholder": "python",
-            "pythonPathHelp": "Command to run Python (e.g.: python, python3, C:\\\\Python\\\\python.exe)",
-            "testWhisper": "Test Whisper",
-            "testing": "Testing...",
-            "testSuccess": "Faster Whisper working!",
-            "testError": "Error testing Faster Whisper. Check installation.",
-            "requirements": {
-                "title": "Requirements:",
-                "line1": "• Python 3.8+ installed",
-                "line2": "• Run:",
-                "line3": "• For GPU: CUDA Toolkit installed"
-            }
         }
     },
     "history": {

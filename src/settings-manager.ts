@@ -29,12 +29,6 @@ export class SettingsManager {
     },
     transcription: {
       provider: 'groq' as const,
-      fasterWhisper: {
-        modelSize: 'base' as const,
-        device: 'cpu' as const,
-        computeType: 'int8' as const,
-        pythonPath: 'python'
-      },
       groq: {
         modelName: 'whisper-large-v3' as const,
         language: '' // Empty for auto-detect
@@ -97,10 +91,6 @@ export class SettingsManager {
         transcription: {
           ...this.defaultSettings.transcription,
           ...settings.transcription,
-          fasterWhisper: {
-            ...this.defaultSettings.transcription.fasterWhisper,
-            ...(settings.transcription?.fasterWhisper || {})
-          },
           groq: {
             ...this.defaultSettings.transcription.groq,
             ...(settings.transcription?.groq || {})

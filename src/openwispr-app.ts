@@ -45,11 +45,6 @@ export class OpenWisprApp extends EventEmitter {
           apiKey: settings.api.assemblyAiKey
         });
 
-      case 'faster-whisper':
-        return TranscriptionFactory.createProvider('faster-whisper', {
-          ...settings.transcription.fasterWhisper
-        });
-
       case 'groq':
         return TranscriptionFactory.createProvider('groq', {
           apiKey: settings.api.groqApiKey,

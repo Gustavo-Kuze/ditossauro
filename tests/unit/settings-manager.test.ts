@@ -253,7 +253,6 @@ describe('SettingsManager', () => {
       expect(savedData.transcription.provider).toBe('assemblyai');
       // Other transcription settings should remain from defaults
       expect(savedData.transcription.groq).toBeDefined();
-      expect(savedData.transcription.fasterWhisper).toBeDefined();
     });
   });
 

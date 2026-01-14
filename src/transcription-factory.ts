@@ -1,6 +1,5 @@
-import { ITranscriptionProvider, TranscriptionProviderType, FasterWhisperConfig, AssemblyAIConfig, GroqConfig } from './transcription-provider';
+import { ITranscriptionProvider, TranscriptionProviderType, AssemblyAIConfig, GroqConfig } from './transcription-provider';
 import { AssemblyAIClient } from './assemblyai-client';
-import { FasterWhisperClient } from './faster-whisper-client';
 import { GroqClient } from './groq-client';
 
 /**
@@ -12,17 +11,12 @@ export class TranscriptionFactory {
    */
   static createProvider(
     type: TranscriptionProviderType,
-    config?: FasterWhisperConfig | AssemblyAIConfig | GroqConfig
+    config?: AssemblyAIConfig | GroqConfig
   ): ITranscriptionProvider {
     switch (type) {
       case 'assemblyai': {
         const assemblyConfig = config as AssemblyAIConfig;
         return new AssemblyAIClient(assemblyConfig?.apiKey || '');
-      }
-
-      case 'faster-whisper': {
-        const whisperConfig = config as FasterWhisperConfig;
-        return new FasterWhisperClient(whisperConfig);
       }
 
       case 'groq': {
@@ -49,11 +43,6 @@ export class TranscriptionFactory {
         type: 'assemblyai',
         name: 'AssemblyAI',
         description: 'Serviço de transcrição em nuvem com alta precisão'
-      },
-      {
-        type: 'faster-whisper',
-        name: 'Faster Whisper',
-        description: 'Transcrição local usando OpenAI Whisper otimizado'
       }
     ];
   }
@@ -61,21 +50,12 @@ export class TranscriptionFactory {
   /**
    * Returns the default settings for a provider
    */
-  static getDefaultConfig(type: TranscriptionProviderType): FasterWhisperConfig | AssemblyAIConfig | GroqConfig {
+  static getDefaultConfig(type: TranscriptionProviderType): AssemblyAIConfig | GroqConfig {
     switch (type) {
       case 'assemblyai': {
         return {
           apiKey: ''
         } as AssemblyAIConfig;
-      }
-
-      case 'faster-whisper': {
-        return {
-          modelSize: 'base',
-          device: 'cpu',
-          computeType: 'int8',
-          pythonPath: 'python'
-        } as FasterWhisperConfig;
       }
 
       case 'groq': {

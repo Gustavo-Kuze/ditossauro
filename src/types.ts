@@ -32,13 +32,7 @@ export interface AppSettings {
     language: string;
   };
   transcription: {
-    provider: 'assemblyai' | 'faster-whisper' | 'groq';
-    fasterWhisper: {
-      modelSize: 'tiny' | 'base' | 'small' | 'medium' | 'large' | 'large-v2' | 'large-v3';
-      device: 'cpu' | 'cuda';
-      computeType: 'int8' | 'int8_float16' | 'int16' | 'float16' | 'float32';
-      pythonPath: string;
-    };
+    provider: 'assemblyai' | 'groq';
     groq: {
       modelName: 'whisper-large-v3' | 'whisper-large-v3-turbo';
       language: string; // Empty string for auto-detect, or ISO code like 'pt', 'en'

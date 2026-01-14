@@ -51,8 +51,7 @@
             "choose": "Escolha o provedor",
             "groq": "Groq (Nuvem - Ultra Rápido) ⚡",
             "assemblyai": "AssemblyAI (Nuvem)",
-            "fasterWhisper": "Faster Whisper (Local)",
-            "groqHelp": "Groq oferece transcrição ultra-rápida com Whisper Large V3. AssemblyAI tem alta precisão. Faster Whisper roda localmente.",
+            "groqHelp": "Groq oferece transcrição ultra-rápida com Whisper Large V3. AssemblyAI tem alta precisão.",
             "configured": "Configurado",
             "notConfigured": "Não configurado"
         },
@@ -95,39 +94,6 @@
             "testing": "Testando...",
             "testSuccess": "Conexão com AssemblyAI funcionando!",
             "testError": "Falha na conexão com AssemblyAI. Verifique sua chave API."
-        },
-        "whisper": {
-            "title": "Configurações Faster Whisper",
-            "modelSize": "Tamanho do Modelo",
-            "modelTiny": "Tiny (~39 MB) - Mais rápido",
-            "modelBase": "Base (~74 MB) - Recomendado",
-            "modelSmall": "Small (~244 MB) - Boa qualidade",
-            "modelMedium": "Medium (~769 MB) - Alta qualidade",
-            "modelLarge": "Large (~1550 MB) - Máxima qualidade",
-            "modelLargeV2": "Large-v2 (~1550 MB) - Melhorado",
-            "modelLargeV3": "Large-v3 (~1550 MB) - Mais recente",
-            "modelHelp": "Modelos maiores têm melhor qualidade mas são mais lentos",
-            "device": "Dispositivo",
-            "deviceCPU": "CPU - Compatível com qualquer sistema",
-            "deviceCUDA": "CUDA - GPU NVIDIA (requer CUDA instalado)",
-            "computeType": "Tipo de Computação",
-            "computeInt8": "INT8 - Mais rápido, menor memória",
-            "computeInt8Float16": "INT8 + Float16 - Balanceado",
-            "computeFloat16": "Float16 - Melhor qualidade (GPU)",
-            "computeFloat32": "Float32 - Máxima qualidade",
-            "pythonPath": "Caminho do Python",
-            "pythonPathPlaceholder": "python",
-            "pythonPathHelp": "Comando para executar Python (ex: python, python3, C:\\\\Python\\\\python.exe)",
-            "testWhisper": "Testar Whisper",
-            "testing": "Testando...",
-            "testSuccess": "Faster Whisper funcionando!",
-            "testError": "Erro ao testar Faster Whisper. Verifique a instalação.",
-            "requirements": {
-                "title": "Requisitos:",
-                "line1": "• Python 3.8+ instalado",
-                "line2": "• Execute:",
-                "line3": "• Para GPU: CUDA Toolkit instalado"
-            }
         }
     },
     "history": {

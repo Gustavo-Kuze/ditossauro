@@ -37,6 +37,26 @@ export abstract class BaseCodeInterpreter {
     return cleaned.trim();
   }
 
+  /**
+   * Handles Groq API errors by logging and throwing appropriate error messages
+   * @param error - The error object from the Groq API call
+   * @throws Error with user-friendly message based on error type
+   */
+  private handleGroqApiError(error: any): never {
+    console.error('❌ Groq code interpretation error:', error);
+
+    // Handle specific Groq API errors
+    if (error?.status === 401) {
+      throw new Error('Invalid Groq API key. Please check your credentials.');
+    } else if (error?.status === 429) {
+      throw new Error('Groq API rate limit exceeded. Please try again later.');
+    } else if (error?.message) {
+      throw new Error(`Groq API error: ${error.message}`);
+    } else {
+      throw new Error('Unknown error occurred during Groq code interpretation');
+    }
+  }
+
   isConfigured(): boolean {
     return this.client !== null && this.apiKey.length > 0;
   }
@@ -88,18 +108,7 @@ export abstract class BaseCodeInterpreter {
 
       return result.trim();
     } catch (error: any) {
-      console.error('❌ Groq code interpretation error:', error);
-
-      // Handle specific Groq API errors
-      if (error?.status === 401) {
-        throw new Error('Invalid Groq API key. Please check your credentials.');
-      } else if (error?.status === 429) {
-        throw new Error('Groq API rate limit exceeded. Please try again later.');
-      } else if (error?.message) {
-        throw new Error(`Groq API error: ${error.message}`);
-      } else {
-        throw new Error('Unknown error occurred during Groq code interpretation');
-      }
+      this.handleGroqApiError(error);
     }
   }
 
@@ -152,18 +161,7 @@ export abstract class BaseCodeInterpreter {
       console.log(`✅ Code interpretation result: "${result}"`);
       return result.trim();
     } catch (error: any) {
-      console.error('❌ Groq code interpretation error:', error);
-
-      // Handle specific Groq API errors
-      if (error?.status === 401) {
-        throw new Error('Invalid Groq API key. Please check your credentials.');
-      } else if (error?.status === 429) {
-        throw new Error('Groq API rate limit exceeded. Please try again later.');
-      } else if (error?.message) {
-        throw new Error(`Groq API error: ${error.message}`);
-      } else {
-        throw new Error('Unknown error occurred during Groq code interpretation');
-      }
+      this.handleGroqApiError(error);
     }
   }
 }

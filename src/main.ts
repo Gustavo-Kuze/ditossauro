@@ -723,9 +723,9 @@ class OpenWisprElectronApp {
 
   private createTrayIcon(state: 'idle' | 'recording' | 'processing'): NativeImage {
     const iconFiles = {
-      idle: 'blue_microphone.png',
-      recording: 'red_microphone.png',
-      processing: 'yellow_microphone.png',
+      idle: 'default_tray_icon.png',
+      recording: 'recording_tray_icon.png',
+      processing: 'processing_tray_icon.png',
     };
 
     // Try multiple possible paths for development and production

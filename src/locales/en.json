@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "OpenWispr",
+        "name": "Ditossauro",
         "description": "Voice Transcription",
         "version": "Version"
     },
@@ -153,9 +153,9 @@
         "history": "History",
         "quit": "Quit",
         "tooltip": {
-            "idle": "OpenWispr - Ready",
-            "recording": "OpenWispr - Recording...",
-            "processing": "OpenWispr - Processing..."
+            "idle": "Ditossauro - Ready",
+            "recording": "Ditossauro - Recording...",
+            "processing": "Ditossauro - Processing..."
         }
     },
     "notifications": {

@@ -2,7 +2,7 @@ import './index.css';
 import { AppSettings, TranscriptionSession } from './types';
 import { i18n } from './i18n';
 
-class OpenWisprUI {
+class DitossauroUI {
   private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
@@ -58,7 +58,7 @@ class OpenWisprUI {
         this.updateLastTranscription(this.transcriptionHistory[0].transcription);
       }
 
-      console.log('✅ OpenWispr initialized');
+      console.log('✅ Ditossauro initialized');
     } catch (error) {
       console.error('❌ Error:', error);
       alert(i18n.t('errors.initError'));
@@ -74,7 +74,7 @@ class OpenWisprUI {
       <div class="header">
         <div class="logo">
           <span class="logo-icon" id="logoIcon"></span>
-          <h1>OpenWispr</h1>
+          <h1>Ditossauro</h1>
         </div>
       </div>
 
@@ -381,7 +381,7 @@ class OpenWisprUI {
         <div id="aboutTab" class="tab-content hidden">
           <div class="card text-center">
             <div class="about-logo" id="aboutLogo"></div>
-            <h2>OpenWispr</h2>
+            <h2>Ditossauro</h2>
             <p>${i18n.t('about.description')}</p>
             <p><strong>${i18n.t('app.version')}:</strong> ${this.appVersion}</p>
             <p><strong>Author:</strong> ${this.appAuthor}</p>
@@ -439,7 +439,7 @@ class OpenWisprUI {
 
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
-    if (aboutLogo) aboutLogo.innerHTML = this.createIcon('mic', 64);
+    if (aboutLogo) aboutLogo.innerHTML = '<img src="src/assets/app_icon.png" width="64" height="64" alt="Ditosauro" />';
 
     // Settings section title icons
     const languageTitleIcon = document.getElementById('languageTitleIcon');
@@ -1013,5 +1013,5 @@ class OpenWisprUI {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new OpenWisprUI();
+  new DitossauroUI();
 });

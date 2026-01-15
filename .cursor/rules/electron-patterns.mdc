@@ -2,7 +2,7 @@
 globs: **/main.ts,**/preload.ts
 ---
 
-# Electron Application Patterns for OpenWispr
+# Electron Application Patterns for Ditossauro
 
 ## Main Process Architecture
 

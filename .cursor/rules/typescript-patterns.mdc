@@ -2,7 +2,7 @@
 globs: *.ts,*.tsx
 ---
 
-# TypeScript Coding Patterns for OpenWispr
+# TypeScript Coding Patterns for Ditossauro
 
 ## Type Definitions
 Always use the centralized type definitions from [types.ts](mdc:src/types.ts). Key interfaces:

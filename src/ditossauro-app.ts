@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ipcMain, app } from 'electron';
 
-export class OpenWisprApp extends EventEmitter {
+export class DitossauroApp extends EventEmitter {
   private transcriptionProvider: ITranscriptionProvider;
   private settingsManager: SettingsManager;
   private historyManager: HistoryManager;

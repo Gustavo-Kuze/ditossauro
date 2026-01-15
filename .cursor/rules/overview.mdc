@@ -2,11 +2,11 @@
 alwaysApply: true
 ---
 
-# OpenWispr Development Rules Overview
+# Ditossauro Development Rules Overview
 
 ## Rule Categories
 
-This project uses focused Cursor Rules for different aspects of the OpenWispr Electron application:
+This project uses focused Cursor Rules for different aspects of the Ditossauro Electron application:
 
 ### 1. [Project Architecture](mdc:.cursor/rules/project-architecture.mdc)
 - **Always applies** - Core project structure and component relationships
@@ -65,22 +65,22 @@ Ask Cursor to apply specific rules when needed:
 ### Adding New Settings
 1. Update [types.ts](mdc:src/types.ts) `AppSettings` interface
 2. Modify [settings-manager.ts](mdc:src/settings-manager.ts) defaults
-3. Add IPC handlers in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+3. Add IPC handlers in [ditossauro-app.ts](mdc:src/ditossauro-app.ts)
 4. Update renderer UI to use new settings
 
 ### Adding New Recording Features
 1. Extend Web Audio Recorder injection in [main.ts](mdc:src/main.ts)
-2. Add processing logic in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+2. Add processing logic in [ditossauro-app.ts](mdc:src/ditossauro-app.ts)
 3. Follow [audio processing](mdc:.cursor/rules/audio-processing.mdc) patterns
 
 ### Adding New API Integrations
 1. Create new client following [api-integration.mdc](mdc:.cursor/rules/api-integration.mdc)
-2. Add initialization in [openwispr-app.ts](mdc:src/openwispr-app.ts)
+2. Add initialization in [ditossauro-app.ts](mdc:src/ditossauro-app.ts)
 3. Implement proper error handling and logging
 
 ## Key Files Reference
 - **[main.ts](mdc:src/main.ts)**: Main Electron process, system integration
-- **[openwispr-app.ts](mdc:src/openwispr-app.ts)**: Core application logic
+- **[ditossauro-app.ts](mdc:src/ditossauro-app.ts)**: Core application logic
 - **[types.ts](mdc:src/types.ts)**: TypeScript definitions
 - **[settings-manager.ts](mdc:src/settings-manager.ts)**: Configuration persistence
 - **[assemblyai-client.ts](mdc:src/assemblyai-client.ts)**: API integration

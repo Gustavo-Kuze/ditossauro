@@ -1,6 +1,6 @@
 # Voice Commands Testing Guide
 
-This guide provides comprehensive testing instructions for the new voice command feature in OpenWispr.
+This guide provides comprehensive testing instructions for the new voice command feature in Ditossauro.
 
 ## Automated Tests
 

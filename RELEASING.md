@@ -30,9 +30,9 @@ When you push to `main`:
 
 | Platform | Files |
 |----------|-------|
-| **Windows** | `OpenWispr-Setup-{version}.exe`<br>`OpenWispr-{version}-full.nupkg`<br>`openwispr-win32-x64-{version}.zip` |
-| **macOS** | `openwispr-darwin-x64-{version}.zip` |
-| **Linux** | `openwispr_{version}_amd64.deb`<br>`openwispr-{version}.x86_64.rpm` |
+| **Windows** | `Ditossauro-Setup-{version}.exe`<br>`Ditossauro-{version}-full.nupkg`<br>`ditossauro-win32-x64-{version}.zip` |
+| **macOS** | `ditossauro-darwin-x64-{version}.zip` |
+| **Linux** | `ditossauro_{version}_amd64.deb`<br>`ditossauro-{version}.x86_64.rpm` |
 
 ## Monitoring the Build
 

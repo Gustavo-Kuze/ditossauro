@@ -152,7 +152,7 @@ jobs:
           tag_name: v${{ steps.package_version.outputs.version }}
           name: Release v${{ steps.package_version.outputs.version }}
           body: |
-            ## OpenWispr v${{ steps.package_version.outputs.version }}
+            ## Ditossauro v${{ steps.package_version.outputs.version }}
 
             ### What's New
             - Added automated PR test checks workflow for better code quality

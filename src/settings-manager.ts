@@ -25,6 +25,7 @@ export class SettingsManager {
     api: {
       assemblyAiKey: process.env.ASSEMBLYAI_API_KEY || '',
       groqApiKey: process.env.GROQ_API_KEY || '',
+      zaiApiKey: process.env.ZAI_API_KEY || '',
       language: 'pt'
     },
     transcription: {
@@ -32,6 +33,17 @@ export class SettingsManager {
       groq: {
         modelName: 'whisper-large-v3' as const,
         language: '' // Empty for auto-detect
+      }
+    },
+    codeGeneration: {
+      provider: 'groq' as const,
+      groq: {
+        model: 'moonshotai/kimi-k2-instruct-0905'
+      },
+      zai: {
+        model: 'GLM-4.7' as const,
+        temperature: 1.0,
+        maxTokens: 4096
       }
     },
     behavior: {
@@ -94,6 +106,18 @@ export class SettingsManager {
           groq: {
             ...this.defaultSettings.transcription.groq,
             ...(settings.transcription?.groq || {})
+          }
+        },
+        codeGeneration: {
+          ...this.defaultSettings.codeGeneration,
+          ...settings.codeGeneration,
+          groq: {
+            ...this.defaultSettings.codeGeneration.groq,
+            ...(settings.codeGeneration?.groq || {})
+          },
+          zai: {
+            ...this.defaultSettings.codeGeneration.zai,
+            ...(settings.codeGeneration?.zai || {})
           }
         },
         behavior: { ...this.defaultSettings.behavior, ...settings.behavior }

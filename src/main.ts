@@ -450,7 +450,7 @@ class OpenWisprElectronApp {
         try {
           const hotkeyInterpreter = CodeInterpreterFactory.createInterpreter(
             'hotkeys',
-            settings.api.groqApiKey
+            settings
           );
           const result = await hotkeyInterpreter.interpretCode(
             commandResult.strippedTranscription
@@ -472,12 +472,12 @@ class OpenWisprElectronApp {
       // Create appropriate interpreter based on detected language
       const codeInterpreter = CodeInterpreterFactory.createInterpreter(
         commandResult.language,
-        settings.api.groqApiKey
+        settings
       );
 
       if (!codeInterpreter.isConfigured()) {
-        console.error('❌ Groq API key not configured');
-        this.sendToRenderer('error', i18nMain.t('notifications.groqNotConfigured'));
+        console.error('❌ Code generation provider not configured');
+        this.sendToRenderer('error', i18nMain.t('notifications.codeGenNotConfigured'));
         return;
       }
 

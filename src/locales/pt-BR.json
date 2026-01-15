@@ -94,6 +94,40 @@
             "testing": "Testando...",
             "testSuccess": "Conexão com AssemblyAI funcionando!",
             "testError": "Falha na conexão com AssemblyAI. Verifique sua chave API."
+        },
+        "codeGeneration": {
+            "title": "Provedor de Geração de Código",
+            "choose": "Escolha o provedor para geração de código e comandos",
+            "groq": "Groq (Ultra Rápido)",
+            "zai": "Z AI (Modelos GLM)",
+            "help": "Este provedor é usado para converter fala em código, comandos e respostas de chat."
+        },
+        "zai": {
+            "title": "Configurações Z AI",
+            "apiKey": "Chave API Z AI",
+            "apiKeyPlaceholder": "Sua chave API Z AI",
+            "apiKeyHelp": "Obtenha sua chave em",
+            "model": "Modelo GLM",
+            "modelGLM47": "GLM-4.7 (Mais Recente e Recomendado)",
+            "modelGLM46": "GLM-4.6",
+            "modelGLM45": "GLM-4.5",
+            "modelGLM432B": "GLM-4-32B (Contexto Estendido)",
+            "modelHelp": "GLM-4.7 é o modelo mais recente e capaz.",
+            "temperature": "Temperatura",
+            "temperatureHelp": "Controla aleatoriedade (0 = determinístico, 2 = criativo). Padrão: 1.0",
+            "maxTokens": "Máximo de Tokens",
+            "maxTokensHelp": "Comprimento máximo do código gerado. Padrão: 4096",
+            "testConnection": "Testar Conexão",
+            "testing": "Testando...",
+            "testSuccess": "Conexão com Z AI funcionando!",
+            "testError": "Falha na conexão com Z AI. Verifique sua chave API.",
+            "info": {
+                "title": "Informações Z AI:",
+                "line1": "• Modelos GLM avançados para geração de código",
+                "line2": "• Suporta múltiplas linguagens de programação",
+                "line3": "• API compatível com OpenAI",
+                "line4": "• Otimizado para tarefas de codificação"
+            }
         }
     },
     "history": {
@@ -127,7 +161,8 @@
     "notifications": {
         "minimizedToTray": "Aplicativo minimizado para a bandeja do sistema",
         "transcriptionCompleted": "Transcrição Concluída",
-        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+        "groqNotConfigured": "Chave API do Groq não configurada. Configure sua chave API nas configurações.",
+        "codeGenNotConfigured": "Provedor de geração de código não configurado. Configure sua chave API nas configurações."
     },
     "errors": {
         "initError": "Erro ao inicializar aplicativo",

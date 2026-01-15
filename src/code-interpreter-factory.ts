@@ -6,28 +6,33 @@ import { PythonCodeInterpreter } from './interpreters/python-code-interpreter';
 import { HotkeyInterpreter } from './interpreters/hotkey-interpreter';
 import { TranslateInterpreter } from './interpreters/translate-interpreter';
 import { BroInterpreter } from './interpreters/bro-interpreter';
-import { CodeLanguage } from './types';
+import { CodeLanguage, AppSettings } from './types';
+import { ProviderFactory } from './providers/provider-factory';
 
 export class CodeInterpreterFactory {
   static createInterpreter(
     language: CodeLanguage,
-    apiKey: string
+    settings: AppSettings
   ): BaseCodeInterpreter {
+    // Create provider based on settings
+    const provider = ProviderFactory.createProvider(settings);
+    const options = ProviderFactory.getCompletionOptions(settings);
+
     switch (language) {
       case 'bash':
-        return new BashCommandInterpreter(apiKey);
+        return new BashCommandInterpreter(provider, options);
       case 'javascript':
-        return new JavaScriptCodeInterpreter(apiKey);
+        return new JavaScriptCodeInterpreter(provider, options);
       case 'typescript':
-        return new TypeScriptCodeInterpreter(apiKey);
+        return new TypeScriptCodeInterpreter(provider, options);
       case 'python':
-        return new PythonCodeInterpreter(apiKey);
+        return new PythonCodeInterpreter(provider, options);
       case 'hotkeys':
-        return new HotkeyInterpreter(apiKey);
+        return new HotkeyInterpreter(provider, options);
       case 'translate':
-        return new TranslateInterpreter(apiKey);
+        return new TranslateInterpreter(provider, options);
       case 'bro':
-        return new BroInterpreter(apiKey);
+        return new BroInterpreter(provider, options);
       default:
         throw new Error(`Unsupported code language: ${language}`);
     }

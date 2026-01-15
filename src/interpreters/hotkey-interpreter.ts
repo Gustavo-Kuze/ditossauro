@@ -1,14 +1,18 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 import { HotkeySender } from '../hotkey-sender';
+import { LLMProvider } from '../providers/llm-provider.interface';
 
 /**
  * HotkeyInterpreter interprets hotkey commands and sends them to the focused window.
  * Unlike code interpreters that generate code, this interpreter sends keyboard shortcuts.
  */
 export class HotkeyInterpreter extends BaseCodeInterpreter {
-  constructor(apiKey?: string) {
-    super(apiKey || '');
-    // HotkeyInterpreter doesn't need an API key, but we accept it for interface compatibility
+  constructor(
+    provider: LLMProvider,
+    completionOptions: { model: string; temperature: number; maxTokens: number }
+  ) {
+    super(provider, completionOptions);
+    // HotkeyInterpreter doesn't need an LLM provider, but we accept it for interface compatibility
   }
 
   /**

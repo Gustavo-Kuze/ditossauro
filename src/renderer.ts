@@ -298,6 +298,67 @@ class OpenWisprUI {
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="codeGenTitleIcon"></span>
+                <span>${i18n.t('settings.codeGeneration.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.codeGeneration.choose')}</label>
+              <select class="form-select" id="codeGenProvider">
+                <option value="groq">${i18n.t('settings.codeGeneration.groq')}</option>
+                <option value="zai">${i18n.t('settings.codeGeneration.zai')}</option>
+              </select>
+              <small class="form-help">${i18n.t('settings.codeGeneration.help')}</small>
+            </div>
+          </div>
+
+          <div class="card" id="zaiConfig">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="zaiTitleIcon"></span>
+                <span>${i18n.t('settings.zai.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.zai.apiKey')}</label>
+              <input type="password" class="form-input" id="zaiApiKey" placeholder="${i18n.t('settings.zai.apiKeyPlaceholder')}">
+              <small class="form-help">${i18n.t('settings.zai.apiKeyHelp')} <a href="https://docs.z.ai" target="_blank">docs.z.ai</a></small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.zai.model')}</label>
+              <select class="form-select" id="zaiModel">
+                <option value="GLM-4.7">${i18n.t('settings.zai.modelGLM47')}</option>
+                <option value="GLM-4.6">${i18n.t('settings.zai.modelGLM46')}</option>
+                <option value="GLM-4.5">${i18n.t('settings.zai.modelGLM45')}</option>
+                <option value="GLM-4-32B-0414-128K">${i18n.t('settings.zai.modelGLM432B')}</option>
+              </select>
+              <small class="form-help">${i18n.t('settings.zai.modelHelp')}</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.zai.temperature')}</label>
+              <input type="number" class="form-input" id="zaiTemperature" min="0" max="2" step="0.1" value="1.0">
+              <small class="form-help">${i18n.t('settings.zai.temperatureHelp')}</small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.zai.maxTokens')}</label>
+              <input type="number" class="form-input" id="zaiMaxTokens" min="512" max="32768" step="512" value="4096">
+              <small class="form-help">${i18n.t('settings.zai.maxTokensHelp')}</small>
+            </div>
+            <div class="alert alert-info">
+              <strong>
+                <span class="inline-icon" id="zaiInfoIcon"></span>
+                ${i18n.t('settings.zai.info.title')}
+              </strong><br>
+              • ${i18n.t('settings.zai.info.line1')}<br>
+              • ${i18n.t('settings.zai.info.line2')}<br>
+              • ${i18n.t('settings.zai.info.line3')}<br>
+              • ${i18n.t('settings.zai.info.line4')}
+            </div>
+          </div>
+
           <div class="text-center">
             <button class="btn btn-primary" id="saveSettingsBtn">
               <span class="btn-icon" id="saveIcon"></span>
@@ -401,9 +462,18 @@ class OpenWisprUI {
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
 
+    const codeGenTitleIcon = document.getElementById('codeGenTitleIcon');
+    if (codeGenTitleIcon) codeGenTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const zaiTitleIcon = document.getElementById('zaiTitleIcon');
+    if (zaiTitleIcon) zaiTitleIcon.innerHTML = this.createIcon('zap', 20);
+
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
     if (groqInfoIcon) groqInfoIcon.innerHTML = this.createIcon('lightbulb', 16);
+
+    const zaiInfoIcon = document.getElementById('zaiInfoIcon');
+    if (zaiInfoIcon) zaiInfoIcon.innerHTML = this.createIcon('lightbulb', 16);
 
     const whisperReqIcon = document.getElementById('whisperReqIcon');
     if (whisperReqIcon) whisperReqIcon.innerHTML = this.createIcon('clipboard', 16);
@@ -486,6 +556,12 @@ class OpenWisprUI {
     document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
       const provider = (e.target as HTMLSelectElement).value;
       this.toggleProviderConfig(provider);
+    });
+
+    // Event listeners for code generation settings
+    document.getElementById('codeGenProvider')?.addEventListener('change', (e) => {
+      const provider = (e.target as HTMLSelectElement).value;
+      this.toggleCodeGenConfig(provider);
     });
 
     document.getElementById('testAssemblyBtn')?.addEventListener('click', () => {
@@ -615,6 +691,23 @@ class OpenWisprUI {
     if (groqModelName) groqModelName.value = this.settings.transcription.groq.modelName;
     if (groqLanguage) groqLanguage.value = this.settings.transcription.groq.language;
 
+    // Code Generation Settings
+    const codeGenProvider = document.getElementById('codeGenProvider') as HTMLSelectElement;
+    if (codeGenProvider) {
+      codeGenProvider.value = this.settings.codeGeneration?.provider || 'groq';
+      this.toggleCodeGenConfig(this.settings.codeGeneration?.provider || 'groq');
+    }
+
+    // Z AI Settings
+    const zaiApiKey = document.getElementById('zaiApiKey') as HTMLInputElement;
+    const zaiModel = document.getElementById('zaiModel') as HTMLSelectElement;
+    const zaiTemperature = document.getElementById('zaiTemperature') as HTMLInputElement;
+    const zaiMaxTokens = document.getElementById('zaiMaxTokens') as HTMLInputElement;
+    if (zaiApiKey) zaiApiKey.value = this.settings.api.zaiApiKey || '';
+    if (zaiModel) zaiModel.value = this.settings.codeGeneration?.zai?.model || 'GLM-4.7';
+    if (zaiTemperature) zaiTemperature.value = String(this.settings.codeGeneration?.zai?.temperature || 1.0);
+    if (zaiMaxTokens) zaiMaxTokens.value = String(this.settings.codeGeneration?.zai?.maxTokens || 4096);
+
     this.updateHistoryUI();
     this.updateProviderStatus();
     this.updateHotkeyHint();
@@ -674,11 +767,13 @@ class OpenWisprUI {
       // API Settings
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
       const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
+      const zaiApiKey = (document.getElementById('zaiApiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
 
       await window.electronAPI.updateSettings('api', {
         assemblyAiKey: apiKey,
         groqApiKey: groqApiKey,
+        zaiApiKey: zaiApiKey,
         language: language,
       });
 
@@ -692,6 +787,24 @@ class OpenWisprUI {
         groq: {
           modelName: groqModelName,
           language: groqLanguage
+        }
+      });
+
+      // Code Generation Settings
+      const codeGenProvider = (document.getElementById('codeGenProvider') as HTMLSelectElement)?.value;
+      const zaiModel = (document.getElementById('zaiModel') as HTMLSelectElement)?.value;
+      const zaiTemperature = parseFloat((document.getElementById('zaiTemperature') as HTMLInputElement)?.value || '1.0');
+      const zaiMaxTokens = parseInt((document.getElementById('zaiMaxTokens') as HTMLInputElement)?.value || '4096');
+
+      await window.electronAPI.updateSettings('codeGeneration', {
+        provider: codeGenProvider,
+        groq: {
+          model: 'moonshotai/kimi-k2-instruct-0905'
+        },
+        zai: {
+          model: zaiModel,
+          temperature: zaiTemperature,
+          maxTokens: zaiMaxTokens
         }
       });
 
@@ -732,6 +845,17 @@ class OpenWisprUI {
       groqConfig?.classList.remove('hidden');
     } else if (provider === 'assemblyai') {
       assemblyConfig?.classList.remove('hidden');
+    }
+  }
+
+  toggleCodeGenConfig(provider: string) {
+    const zaiConfig = document.getElementById('zaiConfig');
+
+    // Show Z AI config only if Z AI is selected
+    if (provider === 'zai') {
+      zaiConfig?.classList.remove('hidden');
+    } else {
+      zaiConfig?.classList.add('hidden');
     }
   }
 

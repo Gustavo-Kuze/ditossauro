@@ -1,17 +1,20 @@
-import Groq from 'groq-sdk';
+import { LLMProvider } from '../providers/llm-provider.interface';
+import { ChatMessage } from '../types';
 
 export abstract class BaseCodeInterpreter {
-  protected client: Groq | null = null;
-  protected apiKey: string;
+  protected provider: LLMProvider;
+  protected completionOptions: {
+    model: string;
+    temperature: number;
+    maxTokens: number;
+  };
 
-  constructor(apiKey: string) {
-    this.apiKey = apiKey || '';
-
-    if (this.apiKey) {
-      this.client = new Groq({
-        apiKey: this.apiKey,
-      });
-    }
+  constructor(
+    provider: LLMProvider,
+    completionOptions: { model: string; temperature: number; maxTokens: number }
+  ) {
+    this.provider = provider;
+    this.completionOptions = completionOptions;
   }
 
   protected abstract getSystemPrompt(): string;
@@ -38,19 +41,12 @@ export abstract class BaseCodeInterpreter {
   }
 
   isConfigured(): boolean {
-    return this.client !== null && this.apiKey.length > 0;
-  }
-
-  setApiKey(apiKey: string): void {
-    this.apiKey = apiKey;
-    if (this.apiKey) {
-      this.client = new Groq({ apiKey: this.apiKey });
-    }
+    return this.provider.isConfigured();
   }
 
   async interpretCode(transcribedText: string): Promise<string> {
-    if (!this.client) {
-      throw new Error('Groq client not configured. Please set your API key.');
+    if (!this.provider.isConfigured()) {
+      throw new Error('Code generation provider not configured. Please set your API key.');
     }
 
     if (!transcribedText || transcribedText.trim() === '') {
@@ -58,48 +54,31 @@ export abstract class BaseCodeInterpreter {
     }
 
     try {
-      console.log(`🤖 Interpreting code with Groq: "${transcribedText}"`);
+      console.log(`🤖 Interpreting code: "${transcribedText}"`);
 
-      const chatCompletion = await this.client.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content: this.getSystemPrompt()
-          },
-          {
-            role: 'user',
-            content: transcribedText
-          }
-        ],
-        model: 'moonshotai/kimi-k2-instruct-0905',
-        temperature: 0.6,
-        max_completion_tokens: 4096,
-        top_p: 1,
-        stream: false,
-        stop: null
+      const messages: ChatMessage[] = [
+        {
+          role: 'system',
+          content: this.getSystemPrompt()
+        },
+        {
+          role: 'user',
+          content: transcribedText
+        }
+      ];
+
+      const rawResult = await this.provider.createChatCompletion(messages, {
+        ...this.completionOptions,
+        stream: false
       });
 
-      const rawResult = chatCompletion.choices[0]?.message?.content || transcribedText;
-
-      // Strip markdown code block formatting
       const result = this.stripMarkdownCodeBlocks(rawResult);
-
       console.log(`✅ Code interpretation result: "${result}"`);
 
       return result.trim();
     } catch (error: any) {
-      console.error('❌ Groq code interpretation error:', error);
-
-      // Handle specific Groq API errors
-      if (error?.status === 401) {
-        throw new Error('Invalid Groq API key. Please check your credentials.');
-      } else if (error?.status === 429) {
-        throw new Error('Groq API rate limit exceeded. Please try again later.');
-      } else if (error?.message) {
-        throw new Error(`Groq API error: ${error.message}`);
-      } else {
-        throw new Error('Unknown error occurred during Groq code interpretation');
-      }
+      console.error('❌ Code interpretation error:', error);
+      throw error; // Provider handles specific error messages
     }
   }
 
@@ -107,8 +86,8 @@ export abstract class BaseCodeInterpreter {
     transcribedText: string,
     onChunk: (chunk: string) => void
   ): Promise<string> {
-    if (!this.client) {
-      throw new Error('Groq client not configured. Please set your API key.');
+    if (!this.provider.isConfigured()) {
+      throw new Error('Code generation provider not configured. Please set your API key.');
     }
 
     if (!transcribedText || transcribedText.trim() === '') {
@@ -116,54 +95,35 @@ export abstract class BaseCodeInterpreter {
     }
 
     try {
-      console.log(`🤖 Interpreting code with Groq (streaming): "${transcribedText}"`);
+      console.log(`🤖 Interpreting code (streaming): "${transcribedText}"`);
 
-      const chatCompletion = await this.client.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content: this.getSystemPrompt()
-          },
-          {
-            role: 'user',
-            content: transcribedText
-          }
-        ],
-        model: 'moonshotai/kimi-k2-instruct-0905',
-        temperature: 0.6,
-        max_completion_tokens: 4096,
-        top_p: 1,
-        stream: true,
-        stop: null
-      });
-
-      let fullContent = '';
-      for await (const chunk of chatCompletion) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) {
-          fullContent += content;
-          onChunk(content);
+      const messages: ChatMessage[] = [
+        {
+          role: 'system',
+          content: this.getSystemPrompt()
+        },
+        {
+          role: 'user',
+          content: transcribedText
         }
-      }
+      ];
 
-      // Strip markdown code block formatting
+      const fullContent = await this.provider.createChatCompletionStream(
+        messages,
+        {
+          ...this.completionOptions,
+          stream: true
+        },
+        onChunk
+      );
+
       const result = this.stripMarkdownCodeBlocks(fullContent);
-
       console.log(`✅ Code interpretation result: "${result}"`);
+
       return result.trim();
     } catch (error: any) {
-      console.error('❌ Groq code interpretation error:', error);
-
-      // Handle specific Groq API errors
-      if (error?.status === 401) {
-        throw new Error('Invalid Groq API key. Please check your credentials.');
-      } else if (error?.status === 429) {
-        throw new Error('Groq API rate limit exceeded. Please try again later.');
-      } else if (error?.message) {
-        throw new Error(`Groq API error: ${error.message}`);
-      } else {
-        throw new Error('Unknown error occurred during Groq code interpretation');
-      }
+      console.error('❌ Code interpretation error (streaming):', error);
+      throw error;
     }
   }
 }

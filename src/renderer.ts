@@ -218,7 +218,6 @@ class OpenWisprUI {
               <select class="form-select" id="transcriptionProvider">
                 <option value="groq">${i18n.t('settings.provider.groq')}</option>
                 <option value="assemblyai">${i18n.t('settings.provider.assemblyai')}</option>
-                <option value="faster-whisper">${i18n.t('settings.provider.fasterWhisper')}</option>
               </select>
               <small class="form-help">${i18n.t('settings.provider.groqHelp')}</small>
             </div>
@@ -299,61 +298,64 @@ class OpenWisprUI {
             </div>
           </div>
 
-          <div class="card hidden" id="whisperConfig">
+          <div class="card">
             <div class="card-header">
               <h3 class="card-title">
-                <span class="title-icon" id="whisperTitleIcon"></span>
-                <span>${i18n.t('settings.whisper.title')}</span>
+                <span class="title-icon" id="codeGenTitleIcon"></span>
+                <span>${i18n.t('settings.codeGeneration.title')}</span>
               </h3>
             </div>
             <div class="form-group">
-              <label class="form-label">${i18n.t('settings.whisper.modelSize')}</label>
-              <select class="form-select" id="whisperModelSize">
-                <option value="tiny">${i18n.t('settings.whisper.modelTiny')}</option>
-                <option value="base">${i18n.t('settings.whisper.modelBase')}</option>
-                <option value="small">${i18n.t('settings.whisper.modelSmall')}</option>
-                <option value="medium">${i18n.t('settings.whisper.modelMedium')}</option>
-                <option value="large">${i18n.t('settings.whisper.modelLarge')}</option>
-                <option value="large-v2">${i18n.t('settings.whisper.modelLargeV2')}</option>
-                <option value="large-v3">${i18n.t('settings.whisper.modelLargeV3')}</option>
+              <label class="form-label">${i18n.t('settings.codeGeneration.choose')}</label>
+              <select class="form-select" id="codeGenProvider">
+                <option value="groq">${i18n.t('settings.codeGeneration.groq')}</option>
+                <option value="zai">${i18n.t('settings.codeGeneration.zai')}</option>
               </select>
-              <small class="form-help">${i18n.t('settings.whisper.modelHelp')}</small>
+              <small class="form-help">${i18n.t('settings.codeGeneration.help')}</small>
+            </div>
+          </div>
+
+          <div class="card" id="zaiConfig">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="zaiTitleIcon"></span>
+                <span>${i18n.t('settings.zai.title')}</span>
+              </h3>
             </div>
             <div class="form-group">
-              <label class="form-label">${i18n.t('settings.whisper.device')}</label>
-              <select class="form-select" id="whisperDevice">
-                <option value="cpu">${i18n.t('settings.whisper.deviceCPU')}</option>
-                <option value="cuda">${i18n.t('settings.whisper.deviceCUDA')}</option>
+              <label class="form-label">${i18n.t('settings.zai.apiKey')}</label>
+              <input type="password" class="form-input" id="zaiApiKey" placeholder="${i18n.t('settings.zai.apiKeyPlaceholder')}">
+              <small class="form-help">${i18n.t('settings.zai.apiKeyHelp')} <a href="https://docs.z.ai" target="_blank">docs.z.ai</a></small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">${i18n.t('settings.zai.model')}</label>
+              <select class="form-select" id="zaiModel">
+                <option value="GLM-4.7">${i18n.t('settings.zai.modelGLM47')}</option>
+                <option value="GLM-4.6">${i18n.t('settings.zai.modelGLM46')}</option>
+                <option value="GLM-4.5">${i18n.t('settings.zai.modelGLM45')}</option>
+                <option value="GLM-4-32B-0414-128K">${i18n.t('settings.zai.modelGLM432B')}</option>
               </select>
+              <small class="form-help">${i18n.t('settings.zai.modelHelp')}</small>
             </div>
             <div class="form-group">
-              <label class="form-label">${i18n.t('settings.whisper.computeType')}</label>
-              <select class="form-select" id="whisperComputeType">
-                <option value="int8">${i18n.t('settings.whisper.computeInt8')}</option>
-                <option value="int8_float16">${i18n.t('settings.whisper.computeInt8Float16')}</option>
-                <option value="float16">${i18n.t('settings.whisper.computeFloat16')}</option>
-                <option value="float32">${i18n.t('settings.whisper.computeFloat32')}</option>
-              </select>
+              <label class="form-label">${i18n.t('settings.zai.temperature')}</label>
+              <input type="number" class="form-input" id="zaiTemperature" min="0" max="2" step="0.1" value="1.0">
+              <small class="form-help">${i18n.t('settings.zai.temperatureHelp')}</small>
             </div>
             <div class="form-group">
-              <label class="form-label">${i18n.t('settings.whisper.pythonPath')}</label>
-              <input type="text" class="form-input" id="whisperPythonPath" value="python" placeholder="${i18n.t('settings.whisper.pythonPathPlaceholder')}">
-              <small class="form-help">${i18n.t('settings.whisper.pythonPathHelp')}</small>
-            </div>
-            <div class="form-group">
-              <button class="btn btn-secondary" id="testWhisperBtn">
-                <span class="btn-icon" id="testWhisperIcon"></span>
-                <span>${i18n.t('settings.whisper.testWhisper')}</span>
-              </button>
+              <label class="form-label">${i18n.t('settings.zai.maxTokens')}</label>
+              <input type="number" class="form-input" id="zaiMaxTokens" min="512" max="32768" step="512" value="4096">
+              <small class="form-help">${i18n.t('settings.zai.maxTokensHelp')}</small>
             </div>
             <div class="alert alert-info">
               <strong>
-                <span class="inline-icon" id="whisperReqIcon"></span>
-                ${i18n.t('settings.whisper.requirements.title')}
+                <span class="inline-icon" id="zaiInfoIcon"></span>
+                ${i18n.t('settings.zai.info.title')}
               </strong><br>
-              • ${i18n.t('settings.whisper.requirements.line1')}<br>
-              • ${i18n.t('settings.whisper.requirements.line2')} <code>pip install faster-whisper</code><br>
-              • ${i18n.t('settings.whisper.requirements.line3')}
+              • ${i18n.t('settings.zai.info.line1')}<br>
+              • ${i18n.t('settings.zai.info.line2')}<br>
+              • ${i18n.t('settings.zai.info.line3')}<br>
+              • ${i18n.t('settings.zai.info.line4')}
             </div>
           </div>
 
@@ -460,9 +462,18 @@ class OpenWisprUI {
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
 
+    const codeGenTitleIcon = document.getElementById('codeGenTitleIcon');
+    if (codeGenTitleIcon) codeGenTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const zaiTitleIcon = document.getElementById('zaiTitleIcon');
+    if (zaiTitleIcon) zaiTitleIcon.innerHTML = this.createIcon('zap', 20);
+
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
     if (groqInfoIcon) groqInfoIcon.innerHTML = this.createIcon('lightbulb', 16);
+
+    const zaiInfoIcon = document.getElementById('zaiInfoIcon');
+    if (zaiInfoIcon) zaiInfoIcon.innerHTML = this.createIcon('lightbulb', 16);
 
     const whisperReqIcon = document.getElementById('whisperReqIcon');
     if (whisperReqIcon) whisperReqIcon.innerHTML = this.createIcon('clipboard', 16);
@@ -547,12 +558,14 @@ class OpenWisprUI {
       this.toggleProviderConfig(provider);
     });
 
-    document.getElementById('testAssemblyBtn')?.addEventListener('click', () => {
-      this.testAssemblyAI();
+    // Event listeners for code generation settings
+    document.getElementById('codeGenProvider')?.addEventListener('change', (e) => {
+      const provider = (e.target as HTMLSelectElement).value;
+      this.toggleCodeGenConfig(provider);
     });
 
-    document.getElementById('testWhisperBtn')?.addEventListener('click', () => {
-      this.testFasterWhisper();
+    document.getElementById('testAssemblyBtn')?.addEventListener('click', () => {
+      this.testAssemblyAI();
     });
 
     document.getElementById('testGroqBtn')?.addEventListener('click', () => {
@@ -678,16 +691,22 @@ class OpenWisprUI {
     if (groqModelName) groqModelName.value = this.settings.transcription.groq.modelName;
     if (groqLanguage) groqLanguage.value = this.settings.transcription.groq.language;
 
-    // Faster Whisper Settings
-    const whisperModelSize = document.getElementById('whisperModelSize') as HTMLSelectElement;
-    const whisperDevice = document.getElementById('whisperDevice') as HTMLSelectElement;
-    const whisperComputeType = document.getElementById('whisperComputeType') as HTMLSelectElement;
-    const whisperPythonPath = document.getElementById('whisperPythonPath') as HTMLInputElement;
+    // Code Generation Settings
+    const codeGenProvider = document.getElementById('codeGenProvider') as HTMLSelectElement;
+    if (codeGenProvider) {
+      codeGenProvider.value = this.settings.codeGeneration?.provider || 'groq';
+      this.toggleCodeGenConfig(this.settings.codeGeneration?.provider || 'groq');
+    }
 
-    if (whisperModelSize) whisperModelSize.value = this.settings.transcription.fasterWhisper.modelSize;
-    if (whisperDevice) whisperDevice.value = this.settings.transcription.fasterWhisper.device;
-    if (whisperComputeType) whisperComputeType.value = this.settings.transcription.fasterWhisper.computeType;
-    if (whisperPythonPath) whisperPythonPath.value = this.settings.transcription.fasterWhisper.pythonPath;
+    // Z AI Settings
+    const zaiApiKey = document.getElementById('zaiApiKey') as HTMLInputElement;
+    const zaiModel = document.getElementById('zaiModel') as HTMLSelectElement;
+    const zaiTemperature = document.getElementById('zaiTemperature') as HTMLInputElement;
+    const zaiMaxTokens = document.getElementById('zaiMaxTokens') as HTMLInputElement;
+    if (zaiApiKey) zaiApiKey.value = this.settings.api.zaiApiKey || '';
+    if (zaiModel) zaiModel.value = this.settings.codeGeneration?.zai?.model || 'GLM-4.7';
+    if (zaiTemperature) zaiTemperature.value = String(this.settings.codeGeneration?.zai?.temperature || 1.0);
+    if (zaiMaxTokens) zaiMaxTokens.value = String(this.settings.codeGeneration?.zai?.maxTokens || 4096);
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -748,11 +767,13 @@ class OpenWisprUI {
       // API Settings
       const apiKey = (document.getElementById('apiKey') as HTMLInputElement)?.value;
       const groqApiKey = (document.getElementById('groqApiKey') as HTMLInputElement)?.value;
+      const zaiApiKey = (document.getElementById('zaiApiKey') as HTMLInputElement)?.value;
       const language = (document.getElementById('language') as HTMLSelectElement)?.value;
 
       await window.electronAPI.updateSettings('api', {
         assemblyAiKey: apiKey,
         groqApiKey: groqApiKey,
+        zaiApiKey: zaiApiKey,
         language: language,
       });
 
@@ -760,22 +781,30 @@ class OpenWisprUI {
       const provider = (document.getElementById('transcriptionProvider') as HTMLSelectElement)?.value;
       const groqModelName = (document.getElementById('groqModelName') as HTMLSelectElement)?.value;
       const groqLanguage = (document.getElementById('groqLanguage') as HTMLSelectElement)?.value;
-      const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
-      const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
-      const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
-      const whisperPythonPath = (document.getElementById('whisperPythonPath') as HTMLInputElement)?.value;
 
       await window.electronAPI.updateSettings('transcription', {
         provider: provider,
         groq: {
           modelName: groqModelName,
           language: groqLanguage
+        }
+      });
+
+      // Code Generation Settings
+      const codeGenProvider = (document.getElementById('codeGenProvider') as HTMLSelectElement)?.value;
+      const zaiModel = (document.getElementById('zaiModel') as HTMLSelectElement)?.value;
+      const zaiTemperature = parseFloat((document.getElementById('zaiTemperature') as HTMLInputElement)?.value || '1.0');
+      const zaiMaxTokens = parseInt((document.getElementById('zaiMaxTokens') as HTMLInputElement)?.value || '4096');
+
+      await window.electronAPI.updateSettings('codeGeneration', {
+        provider: codeGenProvider,
+        groq: {
+          model: 'moonshotai/kimi-k2-instruct-0905'
         },
-        fasterWhisper: {
-          modelSize: whisperModelSize,
-          device: whisperDevice,
-          computeType: whisperComputeType,
-          pythonPath: whisperPythonPath
+        zai: {
+          model: zaiModel,
+          temperature: zaiTemperature,
+          maxTokens: zaiMaxTokens
         }
       });
 
@@ -806,20 +835,27 @@ class OpenWisprUI {
   toggleProviderConfig(provider: string) {
     const groqConfig = document.getElementById('groqConfig');
     const assemblyConfig = document.getElementById('assemblyaiConfig');
-    const whisperConfig = document.getElementById('whisperConfig');
 
     // Hide all first
     groqConfig?.classList.add('hidden');
     assemblyConfig?.classList.add('hidden');
-    whisperConfig?.classList.add('hidden');
 
     // Show the selected one
     if (provider === 'groq') {
       groqConfig?.classList.remove('hidden');
     } else if (provider === 'assemblyai') {
       assemblyConfig?.classList.remove('hidden');
-    } else if (provider === 'faster-whisper') {
-      whisperConfig?.classList.remove('hidden');
+    }
+  }
+
+  toggleCodeGenConfig(provider: string) {
+    const zaiConfig = document.getElementById('zaiConfig');
+
+    // Show Z AI config only if Z AI is selected
+    if (provider === 'zai') {
+      zaiConfig?.classList.remove('hidden');
+    } else {
+      zaiConfig?.classList.add('hidden');
     }
   }
 
@@ -891,8 +927,7 @@ class OpenWisprUI {
         groq: {
           modelName: groqModelName,
           language: groqLanguage
-        },
-        fasterWhisper: this.settings?.transcription.fasterWhisper || {}
+        }
       });
 
       const result = await window.electronAPI.testAPI();
@@ -911,45 +946,6 @@ class OpenWisprUI {
     }
   }
 
-  async testFasterWhisper() {
-    const button = document.getElementById('testWhisperBtn') as HTMLButtonElement;
-    const originalText = button.textContent;
-
-    try {
-      button.textContent = '🔄 ' + i18n.t('settings.whisper.testing');
-      button.disabled = true;
-
-      // First, save the current Whisper settings
-      const whisperModelSize = (document.getElementById('whisperModelSize') as HTMLSelectElement)?.value;
-      const whisperDevice = (document.getElementById('whisperDevice') as HTMLSelectElement)?.value;
-      const whisperComputeType = (document.getElementById('whisperComputeType') as HTMLSelectElement)?.value;
-      const whisperPythonPath = (document.getElementById('whisperPythonPath') as HTMLInputElement)?.value;
-
-      await window.electronAPI.updateSettings('transcription', {
-        provider: 'faster-whisper',
-        fasterWhisper: {
-          modelSize: whisperModelSize,
-          device: whisperDevice,
-          computeType: whisperComputeType,
-          pythonPath: whisperPythonPath
-        }
-      });
-
-      const result = await window.electronAPI.testAPI();
-
-      if (result) {
-        alert('✅ ' + i18n.t('settings.whisper.testSuccess'));
-      } else {
-        alert('❌ ' + i18n.t('settings.whisper.testError'));
-      }
-    } catch (error) {
-      console.error('Error testing Faster Whisper:', error);
-      alert('❌ ' + i18n.t('settings.whisper.testError'));
-    } finally {
-      button.textContent = originalText;
-      button.disabled = false;
-    }
-  }
 
   updateHotkeyDisplay() {
     const selectedKeys: string[] = [];

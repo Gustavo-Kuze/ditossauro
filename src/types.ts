@@ -29,19 +29,25 @@ export interface AppSettings {
   api: {
     assemblyAiKey: string;
     groqApiKey: string;
+    zaiApiKey: string;
     language: string;
   };
   transcription: {
-    provider: 'assemblyai' | 'faster-whisper' | 'groq';
-    fasterWhisper: {
-      modelSize: 'tiny' | 'base' | 'small' | 'medium' | 'large' | 'large-v2' | 'large-v3';
-      device: 'cpu' | 'cuda';
-      computeType: 'int8' | 'int8_float16' | 'int16' | 'float16' | 'float32';
-      pythonPath: string;
-    };
+    provider: 'assemblyai' | 'groq';
     groq: {
       modelName: 'whisper-large-v3' | 'whisper-large-v3-turbo';
       language: string; // Empty string for auto-detect, or ISO code like 'pt', 'en'
+    };
+  };
+  codeGeneration: {
+    provider: 'groq' | 'zai';
+    groq: {
+      model: string;
+    };
+    zai: {
+      model: 'GLM-4.7' | 'GLM-4.6' | 'GLM-4.5' | 'GLM-4-32B-0414-128K';
+      temperature: number;
+      maxTokens: number;
     };
   };
   behavior: {
@@ -64,6 +70,19 @@ export interface VoiceCommandResult {
   language: CodeLanguage;
   strippedTranscription: string;
   detectedKeyword?: string;
+}
+
+// Chat completion interfaces for LLM providers
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+export interface ChatCompletionOptions {
+  model: string;
+  temperature: number;
+  maxTokens: number;
+  stream: boolean;
 }
 
 // AssemblyAIResponse removed - now using official SDK types

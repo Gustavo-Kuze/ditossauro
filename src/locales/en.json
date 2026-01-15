@@ -51,8 +51,7 @@
             "choose": "Choose provider",
             "groq": "Groq (Cloud - Ultra Fast) ⚡",
             "assemblyai": "AssemblyAI (Cloud)",
-            "fasterWhisper": "Faster Whisper (Local)",
-            "groqHelp": "Groq offers ultra-fast transcription with Whisper Large V3. AssemblyAI has high accuracy. Faster Whisper runs locally.",
+            "groqHelp": "Groq offers ultra-fast transcription with Whisper Large V3. AssemblyAI has high accuracy.",
             "configured": "Configured",
             "notConfigured": "Not configured"
         },
@@ -96,37 +95,38 @@
             "testSuccess": "AssemblyAI connection working!",
             "testError": "AssemblyAI connection failed. Check your API key."
         },
-        "whisper": {
-            "title": "Faster Whisper Settings",
-            "modelSize": "Model Size",
-            "modelTiny": "Tiny (~39 MB) - Fastest",
-            "modelBase": "Base (~74 MB) - Recommended",
-            "modelSmall": "Small (~244 MB) - Good quality",
-            "modelMedium": "Medium (~769 MB) - High quality",
-            "modelLarge": "Large (~1550 MB) - Maximum quality",
-            "modelLargeV2": "Large-v2 (~1550 MB) - Improved",
-            "modelLargeV3": "Large-v3 (~1550 MB) - Latest",
-            "modelHelp": "Larger models have better quality but are slower",
-            "device": "Device",
-            "deviceCPU": "CPU - Compatible with any system",
-            "deviceCUDA": "CUDA - NVIDIA GPU (requires CUDA installed)",
-            "computeType": "Compute Type",
-            "computeInt8": "INT8 - Faster, less memory",
-            "computeInt8Float16": "INT8 + Float16 - Balanced",
-            "computeFloat16": "Float16 - Better quality (GPU)",
-            "computeFloat32": "Float32 - Maximum quality",
-            "pythonPath": "Python Path",
-            "pythonPathPlaceholder": "python",
-            "pythonPathHelp": "Command to run Python (e.g.: python, python3, C:\\\\Python\\\\python.exe)",
-            "testWhisper": "Test Whisper",
+        "codeGeneration": {
+            "title": "Code Generation Provider",
+            "choose": "Choose provider for code and command generation",
+            "groq": "Groq (Ultra Fast)",
+            "zai": "Z AI (GLM Models)",
+            "help": "This provider is used for converting speech to code, commands, and chat responses."
+        },
+        "zai": {
+            "title": "Z AI Settings",
+            "apiKey": "Z AI API Key",
+            "apiKeyPlaceholder": "Your Z AI API key",
+            "apiKeyHelp": "Get your key at",
+            "model": "GLM Model",
+            "modelGLM47": "GLM-4.7 (Latest & Recommended)",
+            "modelGLM46": "GLM-4.6",
+            "modelGLM45": "GLM-4.5",
+            "modelGLM432B": "GLM-4-32B (Extended Context)",
+            "modelHelp": "GLM-4.7 is the latest and most capable model.",
+            "temperature": "Temperature",
+            "temperatureHelp": "Controls randomness (0 = deterministic, 2 = creative). Default: 1.0",
+            "maxTokens": "Max Tokens",
+            "maxTokensHelp": "Maximum length of generated code. Default: 4096",
+            "testConnection": "Test Connection",
             "testing": "Testing...",
-            "testSuccess": "Faster Whisper working!",
-            "testError": "Error testing Faster Whisper. Check installation.",
-            "requirements": {
-                "title": "Requirements:",
-                "line1": "• Python 3.8+ installed",
-                "line2": "• Run:",
-                "line3": "• For GPU: CUDA Toolkit installed"
+            "testSuccess": "Z AI connection working!",
+            "testError": "Z AI connection failed. Check your API key.",
+            "info": {
+                "title": "Z AI Info:",
+                "line1": "• Advanced GLM models for code generation",
+                "line2": "• Supports multiple programming languages",
+                "line3": "• OpenAI-compatible API",
+                "line4": "• Optimized for coding tasks"
             }
         }
     },
@@ -161,7 +161,8 @@
     "notifications": {
         "minimizedToTray": "Application minimized to system tray",
         "transcriptionCompleted": "Transcription Completed",
-        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings.",
+        "codeGenNotConfigured": "Code generation provider not configured. Please set your API key in settings."
     },
     "errors": {
         "initError": "Error initializing application",

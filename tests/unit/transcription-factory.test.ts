@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { TranscriptionFactory } from '@/transcription-factory';
 import { AssemblyAIClient } from '@/assemblyai-client';
-import { FasterWhisperClient } from '@/faster-whisper-client';
 import { GroqClient } from '@/groq-client';
 
 describe('TranscriptionFactory', () => {
@@ -12,17 +11,6 @@ describe('TranscriptionFactory', () => {
       });
 
       expect(provider).toBeInstanceOf(AssemblyAIClient);
-    });
-
-    it('should create FasterWhisperClient for faster-whisper type', () => {
-      const provider = TranscriptionFactory.createProvider('faster-whisper', {
-        modelSize: 'base',
-        device: 'cpu',
-        computeType: 'int8',
-        pythonPath: 'python'
-      });
-
-      expect(provider).toBeInstanceOf(FasterWhisperClient);
     });
 
     it('should create GroqClient for groq type', () => {
@@ -49,10 +37,10 @@ describe('TranscriptionFactory', () => {
   });
 
   describe('getAvailableProviders', () => {
-    it('should return array of 3 providers', () => {
+    it('should return array of 2 providers', () => {
       const providers = TranscriptionFactory.getAvailableProviders();
 
-      expect(providers).toHaveLength(3);
+      expect(providers).toHaveLength(2);
     });
 
     it('should include groq provider', () => {
@@ -70,14 +58,6 @@ describe('TranscriptionFactory', () => {
 
       expect(assemblyProvider).toBeDefined();
       expect(assemblyProvider?.name).toBe('AssemblyAI');
-    });
-
-    it('should include faster-whisper provider', () => {
-      const providers = TranscriptionFactory.getAvailableProviders();
-      const whisperProvider = providers.find(p => p.type === 'faster-whisper');
-
-      expect(whisperProvider).toBeDefined();
-      expect(whisperProvider?.name).toBe('Faster Whisper');
     });
 
     it('should return providers with type, name, and description', () => {
@@ -103,17 +83,6 @@ describe('TranscriptionFactory', () => {
       });
     });
 
-    it('should return default config for faster-whisper', () => {
-      const config = TranscriptionFactory.getDefaultConfig('faster-whisper');
-
-      expect(config).toEqual({
-        modelSize: 'base',
-        device: 'cpu',
-        computeType: 'int8',
-        pythonPath: 'python'
-      });
-    });
-
     it('should return default config for groq', () => {
       const config = TranscriptionFactory.getDefaultConfig('groq');
 
@@ -136,12 +105,6 @@ describe('TranscriptionFactory', () => {
 
       expect((assemblyConfig as any).apiKey).toBe('');
       expect((groqConfig as any).apiKey).toBe('');
-    });
-
-    it('should return config with base model for faster-whisper', () => {
-      const config = TranscriptionFactory.getDefaultConfig('faster-whisper');
-
-      expect((config as any).modelSize).toBe('base');
     });
   });
 });

@@ -1,5 +1,7 @@
 # Ditossauro
 
+<img src="src/assets/app_icon.png" alt="Ditossauro Logo" width="150" />
+
 Ditossauro is an open-source desktop voice productivity tool. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.
 
 The app is designed for developers who want fast, hands-free interaction with their system while coding or working in the terminal.

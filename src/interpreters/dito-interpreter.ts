@@ -1,8 +1,8 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 
-export class BroInterpreter extends BaseCodeInterpreter {
+export class DitoInterpreter extends BaseCodeInterpreter {
   protected getSystemPrompt(): string {
-    return `## LLM Prompt – Conversational Assistant (Bro Mode)
+    return `## LLM Prompt – Conversational Assistant (Dito Mode)
 
 ### Model Role
 

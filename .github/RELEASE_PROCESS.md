@@ -1,6 +1,6 @@
 # Release Process
 
-This document describes how to create a new release of OpenWispr.
+This document describes how to create a new release of Ditossauro.
 
 ## Automatic Releases via GitHub Actions
 

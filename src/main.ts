@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, Tray, Menu, ipcMain, nativeImage, N
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import dotenv from 'dotenv';
-import { OpenWisprApp } from './openwispr-app';
+import { DitossauroApp } from './ditossauro-app';
 import { HotkeyManager } from './hotkey-manager';
 import { i18nMain } from './i18n-main';
 
@@ -13,11 +13,11 @@ if (started) {
   app.quit();
 }
 
-class OpenWisprElectronApp {
+class DitossauroElectronApp {
   private mainWindow: BrowserWindow | null = null;
   private floatingWindow: BrowserWindow | null = null;
   private tray: Tray | null = null;
-  private openWisprApp: OpenWisprApp;
+  private ditossauroApp: DitossauroApp;
   private hotkeyManager: HotkeyManager;
   private isQuitting = false;
   private hasShownTrayNotification = false;
@@ -29,17 +29,17 @@ class OpenWisprElectronApp {
   };
 
   constructor() {
-    // Init OpenWisprApp for registering IPC handlers
-    this.openWisprApp = new OpenWisprApp();
+    // Init DitossauroApp for registering IPC handlers
+    this.ditossauroApp = new DitossauroApp();
     this.hotkeyManager = new HotkeyManager();
 
     // Set App User Model ID for Windows taskbar icon
     if (process.platform === 'win32') {
-      app.setAppUserModelId('com.openwispr.app');
+      app.setAppUserModelId('com.ditossauro.app');
     }
 
     // Initialize i18n
-    const settings = this.openWisprApp.getSettings();
+    const settings = this.ditossauroApp.getSettings();
     i18nMain.init(settings.locale || 'pt-BR');
 
     // Create tray icons
@@ -49,7 +49,7 @@ class OpenWisprElectronApp {
       processing: this.createTrayIcon('processing'),
     };
 
-    this.setupOpenWisprListeners();
+    this.setupDitossauroListeners();
     this.setupHotkeyListeners();
   }
 
@@ -86,7 +86,7 @@ class OpenWisprElectronApp {
         // Show notification informing that the app continues running (only once per session)
         if (Notification.isSupported() && !this.hasShownTrayNotification) {
           new Notification({
-            title: 'OpenWispr',
+            title: 'Ditossauro',
             body: i18nMain.t('notifications.minimizedToTray'),
           }).show();
           this.hasShownTrayNotification = true;
@@ -95,14 +95,14 @@ class OpenWisprElectronApp {
     });
 
     this.mainWindow.on('ready-to-show', () => {
-      // Update window reference in OpenWisprApp
-      this.openWisprApp.setMainWindow(this.mainWindow);
+      // Update window reference in DitossauroApp
+      this.ditossauroApp.setMainWindow(this.mainWindow);
 
       // Inject Web Audio Recorder
       this.injectWebAudioRecorder();
 
       // Show only if not to start minimized
-      const settings = this.openWisprApp.getSettings();
+      const settings = this.ditossauroApp.getSettings();
       if (!settings.behavior?.startMinimized) {
         this.mainWindow?.show();
       }
@@ -208,7 +208,7 @@ class OpenWisprElectronApp {
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'OpenWispr',
+        label: 'Ditossauro',
         type: 'normal',
         enabled: false,
       },
@@ -225,7 +225,7 @@ class OpenWisprElectronApp {
         type: 'submenu',
         submenu: [
           {
-            label: this.openWisprApp.getRecordingState().isRecording ? '🎤 ' + i18nMain.t('tray.recording') : '⏹️ ' + i18nMain.t('tray.stopped'),
+            label: this.ditossauroApp.getRecordingState().isRecording ? '🎤 ' + i18nMain.t('tray.recording') : '⏹️ ' + i18nMain.t('tray.stopped'),
             enabled: false,
           },
           {
@@ -233,13 +233,13 @@ class OpenWisprElectronApp {
           },
           {
             label: i18nMain.t('tray.startRecording'),
-            click: () => this.openWisprApp.startRecording().catch(console.error),
-            enabled: !this.openWisprApp.getRecordingState().isRecording,
+            click: () => this.ditossauroApp.startRecording().catch(console.error),
+            enabled: !this.ditossauroApp.getRecordingState().isRecording,
           },
           {
             label: i18nMain.t('tray.stopRecording'),
-            click: () => this.openWisprApp.stopRecording().catch(console.error),
-            enabled: this.openWisprApp.getRecordingState().isRecording,
+            click: () => this.ditossauroApp.stopRecording().catch(console.error),
+            enabled: this.ditossauroApp.getRecordingState().isRecording,
           },
         ],
       },
@@ -267,7 +267,7 @@ class OpenWisprElectronApp {
     ]);
 
     this.tray.setContextMenu(contextMenu);
-    this.tray.setToolTip('OpenWispr - ' + i18nMain.t('app.description'));
+    this.tray.setToolTip('Ditossauro - ' + i18nMain.t('app.description'));
 
     this.tray.on('click', () => {
       this.showWindow();
@@ -275,7 +275,7 @@ class OpenWisprElectronApp {
   }
 
   setupGlobalShortcuts(): void {
-    const settings = this.openWisprApp.getSettings();
+    const settings = this.ditossauroApp.getSettings();
 
     // Register hotkeys using the new HotkeyManager
     this.hotkeyManager.register(
@@ -288,33 +288,33 @@ class OpenWisprElectronApp {
   setupHotkeyListeners(): void {
     // Listener for when the hotkey is pressed
     this.hotkeyManager.on('hotkey-pressed', async () => {
-      const settings = this.openWisprApp.getSettings();
-      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      const settings = this.ditossauroApp.getSettings();
+      const isRecording = this.ditossauroApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.startStop.mode === 'toggle') {
         // Toggle mode: alternate between record and stop
         if (isRecording) {
-          await this.openWisprApp.stopRecording();
+          await this.ditossauroApp.stopRecording();
         } else {
-          await this.openWisprApp.startRecording();
+          await this.ditossauroApp.startRecording();
         }
       } else {
         // Push-to-talk mode: start recording
         if (!isRecording) {
-          await this.openWisprApp.startRecording();
+          await this.ditossauroApp.startRecording();
         }
       }
     });
 
     // Listener for when the hotkey is released (only in push-to-talk)
     this.hotkeyManager.on('hotkey-released', async () => {
-      const settings = this.openWisprApp.getSettings();
-      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      const settings = this.ditossauroApp.getSettings();
+      const isRecording = this.ditossauroApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.startStop.mode === 'push-to-talk' && isRecording) {
         console.log('⏹️ Stopping recording (hotkey released)');
         try {
-          await this.openWisprApp.stopRecording();
+          await this.ditossauroApp.stopRecording();
         } catch (error) {
           console.error('Error stopping recording on hotkey release:', error);
         }
@@ -323,7 +323,7 @@ class OpenWisprElectronApp {
 
     // Listener for cancellation
     this.hotkeyManager.on('cancel-pressed', () => {
-      if (this.openWisprApp.getRecordingState().isRecording) {
+      if (this.ditossauroApp.getRecordingState().isRecording) {
         console.log('⏹️ Recording canceled by user');
         // Implement cancellation logic if needed
       }
@@ -331,8 +331,8 @@ class OpenWisprElectronApp {
 
     // Listener for when the code snippet hotkey is pressed
     this.hotkeyManager.on('code-snippet-hotkey-pressed', async () => {
-      const settings = this.openWisprApp.getSettings();
-      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      const settings = this.ditossauroApp.getSettings();
+      const isRecording = this.ditossauroApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.codeSnippet.mode === 'toggle') {
         // Toggle mode: alternate between record and stop
@@ -340,23 +340,23 @@ class OpenWisprElectronApp {
           await this.handleCodeSnippetRecordingStop();
         } else {
           // Enable code snippet mode before starting recording
-          this.openWisprApp.setCodeSnippetMode(true);
-          await this.openWisprApp.startRecording();
+          this.ditossauroApp.setCodeSnippetMode(true);
+          await this.ditossauroApp.startRecording();
         }
       } else {
         // Modo push-to-talk: iniciar gravação
         if (!isRecording) {
           // Enable code snippet mode before starting recording
-          this.openWisprApp.setCodeSnippetMode(true);
-          await this.openWisprApp.startRecording();
+          this.ditossauroApp.setCodeSnippetMode(true);
+          await this.ditossauroApp.startRecording();
         }
       }
     });
 
     // Listener for when the code snippet hotkey is released (only in push-to-talk)
     this.hotkeyManager.on('code-snippet-hotkey-released', async () => {
-      const settings = this.openWisprApp.getSettings();
-      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      const settings = this.ditossauroApp.getSettings();
+      const isRecording = this.ditossauroApp.getRecordingState().isRecording;
 
       if (settings.hotkeys.codeSnippet.mode === 'push-to-talk' && isRecording) {
         console.log('⏹️ Stopping code snippet recording (hotkey released)');
@@ -391,19 +391,19 @@ class OpenWisprElectronApp {
       const transcriptionPromise = new Promise<import('./types').TranscriptionSession>((resolve) => {
         const handler = (completedSession: import('./types').TranscriptionSession) => {
           console.log('📨 Received transcription-completed event in code snippet mode');
-          this.openWisprApp.off('transcription-completed', handler);
+          this.ditossauroApp.off('transcription-completed', handler);
           resolve(completedSession);
         };
-        this.openWisprApp.once('transcription-completed', handler);
+        this.ditossauroApp.once('transcription-completed', handler);
       });
 
       // Stop recording if still recording (in case called from toggle mode)
       // In push-to-talk mode, recording is already stopped by the hotkey release
-      const isRecording = this.openWisprApp.getRecordingState().isRecording;
+      const isRecording = this.ditossauroApp.getRecordingState().isRecording;
       if (isRecording) {
         console.log('⏸️ Stopping recording for code snippet mode...');
         try {
-          await this.openWisprApp.stopRecording();
+          await this.ditossauroApp.stopRecording();
         } catch (error) {
           console.error('Error stopping recording:', error);
           // Continue anyway - transcription might already be in progress
@@ -421,7 +421,7 @@ class OpenWisprElectronApp {
       console.log(`📝 Transcription for code snippet: "${transcription}"`);
 
       // Get settings
-      const settings = this.openWisprApp.getSettings();
+      const settings = this.ditossauroApp.getSettings();
 
       // Map detected language to locale (e.g., "pt"/"Portuguese" -> "pt-BR", "en"/"English" -> "en")
       const detectedLanguage = session.language || 'en';
@@ -509,7 +509,7 @@ class OpenWisprElectronApp {
   }
 
   setupIpcHandlers(): void {
-    // Electron App specific handlers (not OpenWisprApp)
+    // Electron App specific handlers (not DitossauroApp)
 
     // Reregister hotkeys when hotkey settings change
     ipcMain.on('hotkeys-updated', () => {
@@ -525,19 +525,19 @@ class OpenWisprElectronApp {
           console.log('Pause command received');
           break;
         case 'stop':
-          await this.openWisprApp.stopRecording();
+          await this.ditossauroApp.stopRecording();
           break;
       }
     });
 
     // Get recording state for floating window
     ipcMain.handle('get-floating-state', async () => {
-      return this.openWisprApp.getRecordingState();
+      return this.ditossauroApp.getRecordingState();
     });
   }
 
-  setupOpenWisprListeners(): void {
-    this.openWisprApp.on('recording-started', () => {
+  setupDitossauroListeners(): void {
+    this.ditossauroApp.on('recording-started', () => {
       this.sendToRenderer('recording-started');
       this.sendToFloatingWindow('recording-started');
       this.showFloatingWindow();
@@ -545,7 +545,7 @@ class OpenWisprElectronApp {
       this.updateTrayMenu();
     });
 
-    this.openWisprApp.on('recording-stopped', () => {
+    this.ditossauroApp.on('recording-stopped', () => {
       this.sendToRenderer('recording-stopped');
       this.sendToFloatingWindow('recording-stopped');
       // Keep floating window visible - don't hide it
@@ -553,12 +553,12 @@ class OpenWisprElectronApp {
       this.updateTrayMenu();
     });
 
-    this.openWisprApp.on('processing-started', () => {
+    this.ditossauroApp.on('processing-started', () => {
       this.sendToRenderer('processing-started');
       this.updateTrayIcon('processing');
     });
 
-    this.openWisprApp.on('transcription-completed', (session) => {
+    this.ditossauroApp.on('transcription-completed', (session) => {
       this.sendToRenderer('transcription-completed', session);
       this.updateTrayIcon('idle');
 
@@ -570,19 +570,19 @@ class OpenWisprElectronApp {
       }
     });
 
-    this.openWisprApp.on('text-inserted', (text) => {
+    this.ditossauroApp.on('text-inserted', (text) => {
       this.sendToRenderer('text-inserted', text);
     });
 
-    this.openWisprApp.on('settings-updated', (settings) => {
+    this.ditossauroApp.on('settings-updated', (settings) => {
       if (settings.locale) {
         i18nMain.setLocale(settings.locale);
         this.updateTrayMenu();
       }
     });
 
-    this.openWisprApp.on('error', (error) => {
-      console.error('OpenWispr Error:', error);
+    this.ditossauroApp.on('error', (error) => {
+      console.error('Ditossauro Error:', error);
       this.sendToRenderer('error', error.message);
     });
   }
@@ -603,11 +603,11 @@ class OpenWisprElectronApp {
     if (!this.tray) return;
 
     // Recreate the menu instead of trying to update the existing one
-    const isRecording = this.openWisprApp.getRecordingState().isRecording;
+    const isRecording = this.ditossauroApp.getRecordingState().isRecording;
 
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: 'OpenWispr',
+        label: 'Ditossauro',
         type: 'normal',
         enabled: false,
       },
@@ -632,12 +632,12 @@ class OpenWisprElectronApp {
           },
           {
             label: i18nMain.t('tray.startRecording'),
-            click: () => this.openWisprApp.startRecording().catch(console.error),
+            click: () => this.ditossauroApp.startRecording().catch(console.error),
             enabled: !isRecording,
           },
           {
             label: i18nMain.t('tray.stopRecording'),
-            click: () => this.openWisprApp.stopRecording().catch(console.error),
+            click: () => this.ditossauroApp.stopRecording().catch(console.error),
             enabled: isRecording,
           },
         ],
@@ -687,7 +687,7 @@ class OpenWisprElectronApp {
     this.isQuitting = true;
     this.hotkeyManager.destroy();
     globalShortcut.unregisterAll();
-    this.openWisprApp.destroy();
+    this.ditossauroApp.destroy();
     app.quit();
   }
 
@@ -723,9 +723,9 @@ class OpenWisprElectronApp {
 
   private createTrayIcon(state: 'idle' | 'recording' | 'processing'): NativeImage {
     const iconFiles = {
-      idle: 'blue_microphone.png',
-      recording: 'red_microphone.png',
-      processing: 'yellow_microphone.png',
+      idle: 'default_tray_icon.png',
+      recording: 'recording_tray_icon.png',
+      processing: 'processing_tray_icon.png',
     };
 
     // Try multiple possible paths for development and production
@@ -945,23 +945,23 @@ class OpenWisprElectronApp {
 }
 
 // Inicializar aplicação
-const openWisprElectronApp = new OpenWisprElectronApp();
+const ditossauroElectronApp = new DitossauroElectronApp();
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.whenReady().then(() => {
-  openWisprElectronApp.createWindow();
-  openWisprElectronApp.createTray();
-  openWisprElectronApp.setupGlobalShortcuts();
-  openWisprElectronApp.setupIpcHandlers();
+  ditossauroElectronApp.createWindow();
+  ditossauroElectronApp.createTray();
+  ditossauroElectronApp.setupGlobalShortcuts();
+  ditossauroElectronApp.setupIpcHandlers();
 
   // Always show floating window on startup
-  openWisprElectronApp.createFloatingWindow();
-  openWisprElectronApp.showFloatingWindow();
+  ditossauroElectronApp.createFloatingWindow();
+  ditossauroElectronApp.showFloatingWindow();
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      openWisprElectronApp.createWindow();
+      ditossauroElectronApp.createWindow();
     }
   });
 });
@@ -969,7 +969,7 @@ app.whenReady().then(() => {
 // Quit when all windows are closed, except on macOS.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    openWisprElectronApp.quit();
+    ditossauroElectronApp.quit();
   }
 });
 

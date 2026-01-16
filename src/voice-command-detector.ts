@@ -92,24 +92,29 @@ export class VoiceCommandDetector {
     // Create map of language to keywords
     const keywordMap = new Map<CodeLanguage, string[]>();
 
-    // Get keywords from i18n
+    // Get keywords from i18n (can be pipe-separated for multiple variations)
     const commandKeyword = i18nMain.t('voiceCommands.keywords.command');
     const javascriptKeyword = i18nMain.t('voiceCommands.keywords.javascript');
     const typescriptKeyword = i18nMain.t('voiceCommands.keywords.typescript');
     const pythonKeyword = i18nMain.t('voiceCommands.keywords.python');
     const hotkeysKeyword = i18nMain.t('voiceCommands.keywords.hotkeys');
     const translateKeyword = i18nMain.t('voiceCommands.keywords.translate');
-    const broKeyword = i18nMain.t('voiceCommands.keywords.bro');
+    const ditoKeyword = i18nMain.t('voiceCommands.keywords.dito');
+
+    // Helper function to split keywords by pipe for multiple variations
+    const splitKeywords = (keyword: string): string[] => {
+      return keyword.split('|').map(k => k.trim()).filter(k => k.length > 0);
+    };
 
     // Map keywords to languages
     // Note: Some keywords might be the same across languages (e.g., "javascript")
-    keywordMap.set('bash', [commandKeyword]);
-    keywordMap.set('javascript', [javascriptKeyword]);
-    keywordMap.set('typescript', [typescriptKeyword]);
-    keywordMap.set('python', [pythonKeyword]);
-    keywordMap.set('hotkeys', [hotkeysKeyword]);
-    keywordMap.set('translate', [translateKeyword]);
-    keywordMap.set('bro', [broKeyword]);
+    keywordMap.set('bash', splitKeywords(commandKeyword));
+    keywordMap.set('javascript', splitKeywords(javascriptKeyword));
+    keywordMap.set('typescript', splitKeywords(typescriptKeyword));
+    keywordMap.set('python', splitKeywords(pythonKeyword));
+    keywordMap.set('hotkeys', splitKeywords(hotkeysKeyword));
+    keywordMap.set('translate', splitKeywords(translateKeyword));
+    keywordMap.set('dito', splitKeywords(ditoKeyword));
 
     return keywordMap;
   }

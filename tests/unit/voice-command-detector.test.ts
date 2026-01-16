@@ -12,7 +12,7 @@ vi.mock('@/i18n-main', () => ({
         'voiceCommands.keywords.python': 'python',
         'voiceCommands.keywords.translate': 'translate',
         'voiceCommands.keywords.hotkeys': 'hotkeys',
-        'voiceCommands.keywords.bro': 'bro',
+        'voiceCommands.keywords.dito': 'dito|ditto',
       };
       return translations[key] || key;
     }),
@@ -75,12 +75,20 @@ describe('VoiceCommandDetector', () => {
       expect(result.detectedKeyword).toBe('hotkeys');
     });
 
-    it('should detect "bro" keyword and return bro language', () => {
-      const result = VoiceCommandDetector.detectCommand('bro how are you', 'en');
+    it('should detect "dito" keyword and return dito language', () => {
+      const result = VoiceCommandDetector.detectCommand('dito how are you', 'en');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('how are you');
-      expect(result.detectedKeyword).toBe('bro');
+      expect(result.detectedKeyword).toBe('dito');
+    });
+
+    it('should detect "ditto" keyword and return dito language', () => {
+      const result = VoiceCommandDetector.detectCommand('ditto how are you', 'en');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('how are you');
+      expect(result.detectedKeyword).toBe('ditto');
     });
   });
 
@@ -124,20 +132,36 @@ describe('VoiceCommandDetector', () => {
       expect(result.strippedTranscription).toBe('print hello');
     });
 
-    it('should detect "Bro" with capital B', () => {
-      const result = VoiceCommandDetector.detectCommand('Bro how are you', 'en');
+    it('should detect "Dito" with capital D', () => {
+      const result = VoiceCommandDetector.detectCommand('Dito how are you', 'en');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('how are you');
-      expect(result.detectedKeyword).toBe('bro');
+      expect(result.detectedKeyword).toBe('dito');
     });
 
-    it('should detect "BRO" all caps', () => {
-      const result = VoiceCommandDetector.detectCommand('BRO tell me a joke', 'en');
+    it('should detect "DITO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('DITO tell me a joke', 'en');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('tell me a joke');
-      expect(result.detectedKeyword).toBe('bro');
+      expect(result.detectedKeyword).toBe('dito');
+    });
+
+    it('should detect "Ditto" with capital D', () => {
+      const result = VoiceCommandDetector.detectCommand('Ditto what is the time', 'en');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('what is the time');
+      expect(result.detectedKeyword).toBe('ditto');
+    });
+
+    it('should detect "DITTO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('DITTO tell me a joke', 'en');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('tell me a joke');
+      expect(result.detectedKeyword).toBe('ditto');
     });
   });
 
@@ -217,7 +241,7 @@ describe('VoiceCommandDetector', () => {
           'voiceCommands.keywords.python': 'python',
           'voiceCommands.keywords.translate': 'traduzir',
           'voiceCommands.keywords.hotkeys': 'hotkeys',
-          'voiceCommands.keywords.bro': 'mano',
+          'voiceCommands.keywords.dito': 'dito|ditto',
         };
         return translations[key] || key;
       });
@@ -252,28 +276,52 @@ describe('VoiceCommandDetector', () => {
       expect(result.detectedKeyword).toBe('traduzir');
     });
 
-    it('should detect Portuguese "mano" keyword', () => {
-      const result = VoiceCommandDetector.detectCommand('mano como você está', 'pt-BR');
+    it('should detect Portuguese "dito" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('dito como você está', 'pt-BR');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('como você está');
-      expect(result.detectedKeyword).toBe('mano');
+      expect(result.detectedKeyword).toBe('dito');
     });
 
-    it('should detect Portuguese "Mano" with capital M', () => {
-      const result = VoiceCommandDetector.detectCommand('Mano como você está', 'pt-BR');
+    it('should detect Portuguese "Dito" with capital D', () => {
+      const result = VoiceCommandDetector.detectCommand('Dito como você está', 'pt-BR');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('como você está');
-      expect(result.detectedKeyword).toBe('mano');
+      expect(result.detectedKeyword).toBe('dito');
     });
 
-    it('should detect Portuguese "MANO" all caps', () => {
-      const result = VoiceCommandDetector.detectCommand('MANO me conte uma piada', 'pt-BR');
+    it('should detect Portuguese "DITO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('DITO me conte uma piada', 'pt-BR');
 
-      expect(result.language).toBe('bro');
+      expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('me conte uma piada');
-      expect(result.detectedKeyword).toBe('mano');
+      expect(result.detectedKeyword).toBe('dito');
+    });
+
+    it('should detect Portuguese "ditto" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('ditto como você está', 'pt-BR');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('como você está');
+      expect(result.detectedKeyword).toBe('ditto');
+    });
+
+    it('should detect Portuguese "Ditto" with capital D', () => {
+      const result = VoiceCommandDetector.detectCommand('Ditto qual é o horário', 'pt-BR');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('qual é o horário');
+      expect(result.detectedKeyword).toBe('ditto');
+    });
+
+    it('should detect Portuguese "DITTO" all caps', () => {
+      const result = VoiceCommandDetector.detectCommand('DITTO me conte uma piada', 'pt-BR');
+
+      expect(result.language).toBe('dito');
+      expect(result.strippedTranscription).toBe('me conte uma piada');
+      expect(result.detectedKeyword).toBe('ditto');
     });
   });
 

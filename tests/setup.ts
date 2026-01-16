@@ -16,7 +16,7 @@ vi.mock('electron', () => ({
       };
       return paths[name] || '/mock/path';
     }),
-    getName: vi.fn(() => 'OpenWispr'),
+    getName: vi.fn(() => 'Ditossauro'),
     getVersion: vi.fn(() => '1.0.0'),
   },
   ipcMain: {

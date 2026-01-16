@@ -2,7 +2,7 @@
 description: "IPC communication patterns between main and renderer processes"
 ---
 
-# IPC Communication Patterns for OpenWispr
+# IPC Communication Patterns for Ditossauro
 
 ## Main Process IPC Handlers
 
@@ -87,11 +87,11 @@ private sendToRenderer(event: string, data?: any): void {
 }
 
 // Usage in event handlers
-this.openWisprApp.on('transcription-completed', (session) => {
+this.ditossauroApp.on('transcription-completed', (session) => {
   this.sendToRenderer('transcription-completed', session);
 });
 
-this.openWisprApp.on('recording-started', () => {
+this.ditossauroApp.on('recording-started', () => {
   this.sendToRenderer('recording-started');
   this.updateTrayMenu();
 });

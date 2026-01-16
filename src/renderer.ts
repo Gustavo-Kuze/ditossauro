@@ -2,12 +2,13 @@ import './index.css';
 import { AppSettings, TranscriptionSession } from './types';
 import { i18n } from './i18n';
 
-class OpenWisprUI {
+class DitossauroUI {
   private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
   private appVersion = '1.0.0';
   private appAuthor = 'Unknown';
+  private appIconPath = '';
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -41,6 +42,7 @@ class OpenWisprUI {
       this.settings = await window.electronAPI.getSettings();
       this.appVersion = await window.electronAPI.getVersion();
       this.appAuthor = await window.electronAPI.getAuthor();
+      this.appIconPath = await window.electronAPI.getAppIconPath();
 
       // Initialize i18n with user's locale
       await i18n.init(this.settings.locale || 'pt-BR');
@@ -58,7 +60,7 @@ class OpenWisprUI {
         this.updateLastTranscription(this.transcriptionHistory[0].transcription);
       }
 
-      console.log('✅ OpenWispr initialized');
+      console.log('✅ Ditossauro initialized');
     } catch (error) {
       console.error('❌ Error:', error);
       alert(i18n.t('errors.initError'));
@@ -74,7 +76,7 @@ class OpenWisprUI {
       <div class="header">
         <div class="logo">
           <span class="logo-icon" id="logoIcon"></span>
-          <h1>OpenWispr</h1>
+          <h1>Ditossauro</h1>
         </div>
       </div>
 
@@ -381,7 +383,7 @@ class OpenWisprUI {
         <div id="aboutTab" class="tab-content hidden">
           <div class="card text-center">
             <div class="about-logo" id="aboutLogo"></div>
-            <h2>OpenWispr</h2>
+            <h2>Ditossauro</h2>
             <p>${i18n.t('about.description')}</p>
             <p><strong>${i18n.t('app.version')}:</strong> ${this.appVersion}</p>
             <p><strong>Author:</strong> ${this.appAuthor}</p>
@@ -439,7 +441,9 @@ class OpenWisprUI {
 
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
-    if (aboutLogo) aboutLogo.innerHTML = this.createIcon('mic', 64);
+    if (aboutLogo && this.appIconPath) {
+      aboutLogo.innerHTML = `<img src="${this.appIconPath}" width="64" height="64" alt="Ditossauro" />`;
+    }
 
     // Settings section title icons
     const languageTitleIcon = document.getElementById('languageTitleIcon');
@@ -1013,5 +1017,5 @@ class OpenWisprUI {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  new OpenWisprUI();
+  new DitossauroUI();
 });

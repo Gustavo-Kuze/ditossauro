@@ -65,7 +65,7 @@ Available commands:
 * "bash" - for Bash scripts
 * "hotkeys" - for pressing hotkeys
 * "translate" - for translating text to other languages
-* "bro" - general purpose personal assistance
+* "dito" - general purpose personal assistance
 
 This enables a workflow similar to *“dictation for developers”*.
 

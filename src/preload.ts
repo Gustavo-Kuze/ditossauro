@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // App info
   getVersion: () => ipcRenderer.invoke('get-version'),
   getAuthor: () => ipcRenderer.invoke('get-author'),
+  getAppIconPath: () => ipcRenderer.invoke('get-app-icon-path'),
 
   // Audio processing
   processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> =>
@@ -102,6 +103,7 @@ export interface ElectronAPI {
   getCurrentProvider(): Promise<{ name: string; isConfigured: boolean }>;
   getVersion(): Promise<string>;
   getAuthor(): Promise<string>;
+  getAppIconPath(): Promise<string>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   notifyHotkeysUpdated(): void;

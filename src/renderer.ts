@@ -8,6 +8,7 @@ class DitossauroUI {
   private transcriptionHistory: TranscriptionSession[] = [];
   private appVersion = '1.0.0';
   private appAuthor = 'Unknown';
+  private appIconPath = '';
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -41,6 +42,7 @@ class DitossauroUI {
       this.settings = await window.electronAPI.getSettings();
       this.appVersion = await window.electronAPI.getVersion();
       this.appAuthor = await window.electronAPI.getAuthor();
+      this.appIconPath = await window.electronAPI.getAppIconPath();
 
       // Initialize i18n with user's locale
       await i18n.init(this.settings.locale || 'pt-BR');
@@ -439,7 +441,9 @@ class DitossauroUI {
 
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
-    if (aboutLogo) aboutLogo.innerHTML = '<img src="src/assets/app_icon.png" width="64" height="64" alt="Ditosauro" />';
+    if (aboutLogo && this.appIconPath) {
+      aboutLogo.innerHTML = `<img src="${this.appIconPath}" width="64" height="64" alt="Ditossauro" />`;
+    }
 
     // Settings section title icons
     const languageTitleIcon = document.getElementById('languageTitleIcon');

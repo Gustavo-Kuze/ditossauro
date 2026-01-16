@@ -10,47 +10,36 @@ The app is designed for developers who want fast, hands-free interaction with th
 
 ---
 
-## 📦 Requirements
-
-Before running Ditossauro, make sure you have the following:
-
-### System Requirements
-
-* A working **microphone**
-
-### Software Requirements
-
-* **Node.js** (recommended: latest LTS)
-* **npm** or **yarn**
-* **Git**
-
-### API Keys
-
-* **Groq API Key** (required)
-  * Used for Whisper-based speech-to-text, LLM processing and code generation
-
-Set the API key in the app settings when you start it.
-
-> ⚠️ Without a valid Groq API key, transcription and code/command generation will not work.
-
----
-
 ## ✨ Features
 
 ### 🎙️ Speech Transcription (Plain Text)
 
-* High-quality speech-to-text powered by **Whisper via the Groq API**
-* Outputs **plain text only**, ideal for writing messages, notes, or documentation
-
-**Hotkey**
+**Press**
 
 ```
 CTRL + Win (hold)
 ```
+**For**:
+* High-quality speech-to-text powered by **Whisper via the Groq API**
+* Outputs **plain text only**, ideal for writing messages, notes, or documentation
 
 ---
 
 ### 💻 Code & Command Generation from Voice
+
+**Press**
+
+```
+CTRL + Shift + Win
+```
+**For**:
+* Advanced code and command generation using **Whisper + LLMs via the Groq API**
+
+When this mode is triggered, Ditossauro:
+
+1. Transcribes your speech using Whisper (Groq)
+2. Interprets intent (code vs command)
+3. Outputs **only the generated code or command**, no extra text
 
 You can now speak **natural language instructions** and have Ditossauro generate:
 
@@ -83,17 +72,30 @@ This enables a workflow similar to *“dictation for developers”*.
 * "translate cat to german" → `Katze`
 * "hotkeys control shift f" → Presses `CTRL + Shift + F` on the focused window (global search on VSCode, for example) 
 
-**Hotkey**
+---
 
-```
-CTRL + Shift + Win
-```
+## 📦 Requirements
 
-When this mode is triggered, Ditossauro:
+Before running Ditossauro, make sure you have the following:
 
-1. Transcribes your speech using Whisper (Groq)
-2. Interprets intent (code vs command)
-3. Outputs **only the generated code or command**, no extra text
+### System Requirements
+
+* A working **microphone**
+
+### Software Requirements
+
+* **Node.js** (recommended: latest LTS)
+* **npm** or **yarn**
+* **Git**
+
+### API Keys
+
+* **Groq API Key** (required)
+  * Used for Whisper-based speech-to-text, LLM processing and code generation
+
+Set the API key in the app settings when you start it.
+
+> ⚠️ Without a valid Groq API key, transcription and code/command generation will not work.
 
 ---
 

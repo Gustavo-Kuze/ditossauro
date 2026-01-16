@@ -1,6 +1,6 @@
 {
     "app": {
-        "name": "OpenWispr",
+        "name": "Ditossauro",
         "description": "Transcrição de Voz",
         "version": "Versão"
     },
@@ -153,9 +153,9 @@
         "history": "Histórico",
         "quit": "Sair",
         "tooltip": {
-            "idle": "OpenWispr - Pronto",
-            "recording": "OpenWispr - Gravando...",
-            "processing": "OpenWispr - Processando..."
+            "idle": "Ditossauro - Pronto",
+            "recording": "Ditossauro - Gravando...",
+            "processing": "Ditossauro - Processando..."
         }
     },
     "notifications": {
@@ -195,7 +195,7 @@
             "python": "python",
             "hotkeys": "hotkeys",
             "translate": "traduzir",
-            "bro": "mano"
+            "dito": "dito|ditto"
         },
         "descriptions": {
             "command": "Gerar comandos bash/terminal",
@@ -204,7 +204,7 @@
             "python": "Gerar código Python",
             "hotkeys": "Enviar atalhos de teclado para a janela focada",
             "translate": "Traduzir texto para outro idioma",
-            "bro": "Pergunte qualquer coisa para seu assistente conversacional amigável"
+            "dito": "Pergunte qualquer coisa para seu assistente conversacional amigável"
         }
     }
 }

@@ -14,7 +14,7 @@ git commit -m "chore: bump version to 1.0.8"
 git push origin main
 
 # 3. Wait ~10-15 minutes for GitHub Actions to build
-# 4. Check releases: https://github.com/Gustavo-Kuze/openwispr/releases
+# 4. Check releases: https://github.com/Gustavo-Kuze/ditossauro/releases
 ```
 
 ## What Happens Automatically
@@ -30,13 +30,13 @@ When you push to `main`:
 
 | Platform | Files |
 |----------|-------|
-| **Windows** | `OpenWispr-Setup-{version}.exe`<br>`OpenWispr-{version}-full.nupkg`<br>`openwispr-win32-x64-{version}.zip` |
-| **macOS** | `openwispr-darwin-x64-{version}.zip` |
-| **Linux** | `openwispr_{version}_amd64.deb`<br>`openwispr-{version}.x86_64.rpm` |
+| **Windows** | `Ditossauro-Setup-{version}.exe`<br>`Ditossauro-{version}-full.nupkg`<br>`ditossauro-win32-x64-{version}.zip` |
+| **macOS** | `ditossauro-darwin-x64-{version}.zip` |
+| **Linux** | `ditossauro_{version}_amd64.deb`<br>`ditossauro-{version}.x86_64.rpm` |
 
 ## Monitoring the Build
 
-1. Go to: https://github.com/Gustavo-Kuze/openwispr/actions
+1. Go to: https://github.com/Gustavo-Kuze/ditossauro/actions
 2. Click the latest "Build and Release" workflow
 3. Watch each platform build in parallel
 4. Green checkmark = success ✅

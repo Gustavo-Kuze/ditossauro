@@ -23,7 +23,7 @@ body {
     left: -20px;
     right: -20px;
     bottom: -20px;
-    background: radial-gradient(circle, rgba(19, 91, 236, 0.2) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(139, 207, 62, 0.2) 0%, transparent 70%);
     filter: blur(20px);
     z-index: -1;
     pointer-events: none;
@@ -33,7 +33,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    background: rgba(28, 31, 39, 0.95);
+    background: rgba(28, 31, 36, 0.95);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50px;
@@ -59,7 +59,7 @@ body {
 .divider {
     width: 1px;
     height: 24px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
 }
 
@@ -103,14 +103,14 @@ body {
 }
 
 .mic-button.idle:hover {
-    background: #7c8591;
+    background: #4A4F55;
     box-shadow: 0 0 20px rgba(107, 114, 128, 0.7);
 }
 
 /* Processing state - Orange with spin */
 .mic-button.processing {
-    background: #f59e0b;
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    background: #F28C28;
+    box-shadow: 0 0 15px rgba(242, 140, 40, 0.5);
     animation: spin 2s linear infinite;
     cursor: not-allowed;
     pointer-events: none;
@@ -156,7 +156,7 @@ body {
 .bar {
     width: 4px;
     height: 8px;
-    background: #135bec;
+    background: #8BCF3E;
     border-radius: 2px;
     transition: height 0.1s ease;
 }

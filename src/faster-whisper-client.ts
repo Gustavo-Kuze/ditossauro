@@ -21,7 +21,7 @@ export class FasterWhisperClient implements ITranscriptionProvider {
     return 'Faster Whisper (Local)';
   }
 
-  async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<string> {
+  async transcribeAudio(audioFilePath: string, language = 'pt'): Promise<import('./transcription-provider').TranscriptionResult> {
     try {
       console.log('🚀 Starting transcription with Faster Whisper...');
       console.log(`📁 File: ${audioFilePath}`);
@@ -54,7 +54,12 @@ export class FasterWhisperClient implements ITranscriptionProvider {
         console.log(`🌍 Detected language: ${result.language}`);
         console.log(`📊 Confidence: ${result.confidence ? (result.confidence * 100).toFixed(1) : 'N/A'}%`);
 
-        return result.text;
+        return {
+          text: result.text,
+          language: result.language || language || 'en',
+          confidence: result.confidence || 0.9,
+          duration: 0, // Faster Whisper doesn't provide duration easily
+        };
 
       } catch (error) {
         this.cleanupTempFile(tempScriptPath);

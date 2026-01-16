@@ -152,13 +152,11 @@ jobs:
           tag_name: v${{ steps.package_version.outputs.version }}
           name: Release v${{ steps.package_version.outputs.version }}
           body: |
-            ## OpenWispr v${{ steps.package_version.outputs.version }}
+            ## Ditossauro v${{ steps.package_version.outputs.version }}
 
             ### What's New
-            - Added automated PR test checks workflow for better code quality
-            - All pull requests now run linting and unit tests before merging
-            - Fixed TypeScript linting issues in hotkey manager and test files
-            - Improved test reliability and coverage reporting
+            - Full app rebranding of OpenWispr to Ditossauro
+            - Renamed the "bro" command to "dito" for personal assistant interactions
 
             ### Downloads
             - **Windows**: Download the `.exe` installer or `.nupkg` package

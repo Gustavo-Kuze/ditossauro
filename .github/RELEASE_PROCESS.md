@@ -1,6 +1,6 @@
 # Release Process
 
-This document describes how to create a new release of OpenWispr.
+This document describes how to create a new release of Ditossauro.
 
 ## Automatic Releases via GitHub Actions
 
@@ -52,7 +52,7 @@ The project is configured with a GitHub Actions workflow that automatically buil
 
 4. **Wait for GitHub Actions** to build and create the release (takes ~10-15 minutes)
 
-5. **Check the release**: Visit https://github.com/Gustavo-Kuze/openwispr/releases
+5. **Check the release**: Visit https://github.com/Gustavo-Kuze/ditossauro/releases
 
 ### Method 2: Manual version bump
 

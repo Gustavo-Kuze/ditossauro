@@ -5,7 +5,7 @@ import { TypeScriptCodeInterpreter } from './interpreters/typescript-code-interp
 import { PythonCodeInterpreter } from './interpreters/python-code-interpreter';
 import { HotkeyInterpreter } from './interpreters/hotkey-interpreter';
 import { TranslateInterpreter } from './interpreters/translate-interpreter';
-import { BroInterpreter } from './interpreters/bro-interpreter';
+import { DitoInterpreter } from './interpreters/dito-interpreter';
 import { CodeLanguage } from './types';
 
 export class CodeInterpreterFactory {
@@ -26,14 +26,14 @@ export class CodeInterpreterFactory {
         return new HotkeyInterpreter(apiKey);
       case 'translate':
         return new TranslateInterpreter(apiKey);
-      case 'bro':
-        return new BroInterpreter(apiKey);
+      case 'dito':
+        return new DitoInterpreter(apiKey);
       default:
         throw new Error(`Unsupported code language: ${language}`);
     }
   }
 
   static getSupportedLanguages(): CodeLanguage[] {
-    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'bro'];
+    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito'];
   }
 }

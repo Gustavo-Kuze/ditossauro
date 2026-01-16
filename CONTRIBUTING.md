@@ -1,8 +1,8 @@
-# Contributing to OpenWispr
+# Contributing to Ditossauro
 
 First off, thanks for taking the time to contribute! 🎉
 
-The following is a set of guidelines for contributing to OpenWispr. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to Ditossauro. These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 ## Getting Started
 
@@ -17,8 +17,8 @@ The following is a set of guidelines for contributing to OpenWispr. These are mo
 1.  **Fork the repository** on GitHub.
 2.  **Clone your fork** locally:
     ```bash
-    git clone https://github.com/your-username/openwispr.git
-    cd openwispr
+    git clone https://github.com/your-username/ditossauro.git
+    cd ditossauro
     ```
 3.  **Install dependencies**:
     ```bash

@@ -6,9 +6,9 @@ export interface ITranscriptionProvider {
    * Transcribes an audio file
    * @param audioFilePath Path to the audio file
    * @param language Language code (optional)
-   * @returns Transcribed text
+   * @returns Transcription result with text and detected language
    */
-  transcribeAudio(audioFilePath: string, language?: string): Promise<string>;
+  transcribeAudio(audioFilePath: string, language?: string): Promise<TranscriptionResult>;
 
   /**
    * Tests the provider's connection/configuration

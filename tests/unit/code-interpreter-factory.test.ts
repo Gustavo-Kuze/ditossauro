@@ -5,7 +5,7 @@ import { BashCommandInterpreter } from '@/interpreters/bash-command-interpreter'
 import { TypeScriptCodeInterpreter } from '@/interpreters/typescript-code-interpreter';
 import { PythonCodeInterpreter } from '@/interpreters/python-code-interpreter';
 import { TranslateInterpreter } from '@/interpreters/translate-interpreter';
-import { BroInterpreter } from '@/interpreters/bro-interpreter';
+import { DitoInterpreter } from '@/interpreters/dito-interpreter';
 
 describe('CodeInterpreterFactory', () => {
   describe('createInterpreter', () => {
@@ -39,10 +39,10 @@ describe('CodeInterpreterFactory', () => {
       expect(interpreter).toBeInstanceOf(TranslateInterpreter);
     });
 
-    it('should create BroInterpreter for bro language', () => {
-      const interpreter = CodeInterpreterFactory.createInterpreter('bro', 'test-api-key');
+    it('should create DitoInterpreter for dito language', () => {
+      const interpreter = CodeInterpreterFactory.createInterpreter('dito', 'test-api-key');
 
-      expect(interpreter).toBeInstanceOf(BroInterpreter);
+      expect(interpreter).toBeInstanceOf(DitoInterpreter);
     });
 
     it('should throw error for unsupported language', () => {
@@ -65,7 +65,7 @@ describe('CodeInterpreterFactory', () => {
     it('should return all supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'bro']);
+      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito']);
     });
 
     it('should return array with 7 languages', () => {
@@ -104,10 +104,10 @@ describe('CodeInterpreterFactory', () => {
       expect(languages).toContain('translate');
     });
 
-    it('should include bro in supported languages', () => {
+    it('should include dito in supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toContain('bro');
+      expect(languages).toContain('dito');
     });
   });
 });

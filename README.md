@@ -1,6 +1,10 @@
-# OpenWispr
+# Ditossauro
 
-OpenWispr is an open-source desktop voice productivity tool inspired by WisprFlow. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.
+[![Inglês](https://img.shields.io/badge/Lang-Inglês-blue)](README.md) [![Português](https://img.shields.io/badge/Lang-Português-green)](README-pt-BR.md)
+
+<img src="src/assets/app_icon.png" alt="Ditossauro Logo" width="150" />
+
+Ditossauro is an open-source desktop voice productivity tool. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.
 
 The app is designed for developers who want fast, hands-free interaction with their system while coding or working in the terminal.
 
@@ -8,7 +12,7 @@ The app is designed for developers who want fast, hands-free interaction with th
 
 ## 📦 Requirements
 
-Before running OpenWispr, make sure you have the following:
+Before running Ditossauro, make sure you have the following:
 
 ### System Requirements
 
@@ -48,7 +52,7 @@ CTRL + Win (hold)
 
 ### 💻 Code & Command Generation from Voice
 
-You can now speak **natural language instructions** and have OpenWispr generate:
+You can now speak **natural language instructions** and have Ditossauro generate:
 
 * Source code (JavaScript, Python, etc.)
 * Shell / terminal commands
@@ -65,7 +69,7 @@ Available commands:
 * "bash" - for Bash scripts
 * "hotkeys" - for pressing hotkeys
 * "translate" - for translating text to other languages
-* "bro" - general purpose personal assistance
+* "dito" - general purpose personal assistance
 
 This enables a workflow similar to *“dictation for developers”*.
 
@@ -85,7 +89,7 @@ This enables a workflow similar to *“dictation for developers”*.
 CTRL + Shift + Win
 ```
 
-When this mode is triggered, OpenWispr:
+When this mode is triggered, Ditossauro:
 
 1. Transcribes your speech using Whisper (Groq)
 2. Interprets intent (code vs command)

@@ -10,7 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ipcMain, app } from 'electron';
 
-export class OpenWisprApp extends EventEmitter {
+export class DitossauroApp extends EventEmitter {
   private transcriptionProvider: ITranscriptionProvider;
   private settingsManager: SettingsManager;
   private historyManager: HistoryManager;
@@ -204,7 +204,7 @@ export class OpenWisprApp extends EventEmitter {
         language = settings.transcription.groq.language;
       }
 
-      const transcriptionText = await this.transcriptionProvider.transcribeAudio(
+      const transcriptionResult = await this.transcriptionProvider.transcribeAudio(
         recordingData.audioFile,
         language
       );
@@ -213,10 +213,10 @@ export class OpenWisprApp extends EventEmitter {
       const session: TranscriptionSession = {
         id: uuidv4(),
         timestamp: new Date(),
-        transcription: transcriptionText,
-        duration: recordingData.duration,
-        language: settings.api.language,
-        confidence: 0.95 // Default confidence (may vary by provider)
+        transcription: transcriptionResult.text,
+        duration: transcriptionResult.duration || recordingData.duration,
+        language: transcriptionResult.language, // Use detected language from transcription
+        confidence: transcriptionResult.confidence || 0.95
       };
 
       // Add to history
@@ -231,12 +231,12 @@ export class OpenWisprApp extends EventEmitter {
       this.historyManager.saveHistory(this.transcriptionHistory);
 
       this.emit('transcription-completed', session);
-      console.log('✅ Transcription completed:', transcriptionText);
+      console.log('✅ Transcription completed:', transcriptionResult.text);
 
       // Insert text automatically if configured
       // But DO NOT insert if in code snippet mode (handled by main.ts)
-      if (settings.behavior.autoInsert && transcriptionText.trim() && !this.isCodeSnippetMode) {
-        await this.insertTranscriptionText(transcriptionText);
+      if (settings.behavior.autoInsert && transcriptionResult.text.trim() && !this.isCodeSnippetMode) {
+        await this.insertTranscriptionText(transcriptionResult.text);
       }
 
       // Reset code snippet mode after processing
@@ -403,14 +403,73 @@ export class OpenWisprApp extends EventEmitter {
     });
 
     ipcMain.handle('get-author', () => {
-      const packagePath = path.join(__dirname, '../package.json');
-      try {
-        const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
-        return packageJson.author || 'Unknown';
-      } catch (error) {
-        console.error('Error reading package.json:', error);
-        return 'Unknown';
+      // Use app.getAppPath() to get the correct base path
+      const appPath = app.getAppPath();
+      const possiblePaths = [
+        path.join(appPath, 'package.json'),           // Production (inside asar)
+        path.join(appPath, '..', 'package.json'),     // Development (from .vite/build)
+        path.join(appPath, '..', '..', 'package.json'), // Alternate dev structure
+      ];
+
+      for (const packagePath of possiblePaths) {
+        try {
+          if (fs.existsSync(packagePath)) {
+            const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf-8'));
+            // Handle both string and object author format
+            if (typeof packageJson.author === 'string') {
+              return packageJson.author;
+            } else if (packageJson.author && typeof packageJson.author === 'object') {
+              return packageJson.author.name || 'Unknown';
+            }
+          }
+        } catch (error) {
+          // Continue to next path
+          continue;
+        }
       }
+
+      console.error('Error reading package.json from any location');
+      return 'Unknown';
+    });
+
+    ipcMain.handle('get-app-icon-path', () => {
+      const iconName = 'app_icon.png';
+      const appPath = app.getAppPath();
+
+      const possiblePaths = [
+        // Development mode (from .vite/build)
+        path.join(appPath, '..', '..', 'src', 'assets', iconName),
+        path.join(appPath, '../src/assets', iconName),
+        // Production mode - extraResource copies to resources/assets/
+        path.join(process.resourcesPath || '', 'assets', iconName),
+        path.join(process.resourcesPath || '', 'src', 'assets', iconName),
+        // If packed in asar.unpacked
+        path.join(process.resourcesPath || '', 'app.asar.unpacked', 'assets', iconName),
+        // Alternate locations
+        path.join(appPath, 'assets', iconName),
+        path.join(__dirname, '..', '..', 'src', 'assets', iconName),
+      ];
+
+      for (const iconPath of possiblePaths) {
+        if (fs.existsSync(iconPath)) {
+          console.log(`Found app icon at: ${iconPath}`);
+          try {
+            // Read the file and convert to base64 data URL
+            const imageBuffer = fs.readFileSync(iconPath);
+            const base64Image = imageBuffer.toString('base64');
+            return `data:image/png;base64,${base64Image}`;
+          } catch (error) {
+            console.error('Error reading app icon:', error);
+            return '';
+          }
+        }
+      }
+
+      console.error('App icon not found in any expected location');
+      console.log('App path:', appPath);
+      console.log('__dirname:', __dirname);
+      console.log('Searched paths:', possiblePaths);
+      return '';
     });
   }
 

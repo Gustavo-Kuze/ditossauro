@@ -1,5 +1,7 @@
 # Ditossauro
 
+[![Inglês](https://img.shields.io/badge/Lang-Inglês-blue)](README.md) [![Português](https://img.shields.io/badge/Lang-Português-green)](README-pt-BR.md)
+
 <img src="src/assets/app_icon.png" alt="Ditossauro Logo" width="150" />
 
 Ditossauro is an open-source desktop voice productivity tool. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.

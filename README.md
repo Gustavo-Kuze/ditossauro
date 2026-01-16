@@ -71,6 +71,7 @@ This enables a workflow similar to *“dictation for developers”*.
 * "javascript create variable is active set to true" → `const isActive = true;`
 * "translate cat to german" → `Katze`
 * "hotkeys control shift f" → Presses `CTRL + Shift + F` on the focused window (global search on VSCode, for example) 
+* "dito, whats the height of the Eiffel Tower?" → `The Eiffel Tower is approximately 330 meters (1,083 feet) tall.`
 
 ---
 

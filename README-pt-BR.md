@@ -71,8 +71,9 @@ Isso permite um fluxo de trabalho semelhante a *"ditado para desenvolvedores"*.
 * "command mostrar uso do disco" → `df -h`
 * "javascript se id de usuário existe então escrever usuário conectado" → `if(user.id) { console.log('user logged in'); }`
 * "javascript criar variável is active definida como true" → `const isActive = true;`
-* "translate gato para alemão" → `Katze`
+* "traduzir gato para alemão" → `Katze`
 * "hotkeys control shift f" → Pressiona `CTRL + Shift + F` na janela focada (busca global no VSCode, por exemplo)
+* "dito qual é a capital da França?" → `A capital da França é Paris.`
 
 ---
 

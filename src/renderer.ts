@@ -359,6 +359,23 @@ class DitossauroUI {
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="behaviorTitleIcon"></span>
+                <span>${i18n.t('settings.behavior.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label class="toggle">
+                <input type="checkbox" id="notifyOnTranscription">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
+            </div>
+          </div>
+
           <div class="text-center">
             <button class="btn btn-primary" id="saveSettingsBtn">
               <span class="btn-icon" id="saveIcon"></span>
@@ -463,6 +480,9 @@ class DitossauroUI {
 
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const behaviorTitleIcon = document.getElementById('behaviorTitleIcon');
+    if (behaviorTitleIcon) behaviorTitleIcon.innerHTML = this.createIcon('sliders', 20);
 
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
@@ -693,6 +713,10 @@ class DitossauroUI {
     if (whisperComputeType) whisperComputeType.value = this.settings.transcription.fasterWhisper.computeType;
     if (whisperPythonPath) whisperPythonPath.value = this.settings.transcription.fasterWhisper.pythonPath;
 
+    // Behavior Settings
+    const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
+    if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
+
     this.updateHistoryUI();
     this.updateProviderStatus();
     this.updateHotkeyHint();
@@ -781,6 +805,13 @@ class DitossauroUI {
           computeType: whisperComputeType,
           pythonPath: whisperPythonPath
         }
+      });
+
+      // Behavior Settings
+      const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
+
+      await window.electronAPI.updateSettings('behavior', {
+        notifyOnTranscription: notifyOnTranscription
       });
 
       // Update local settings

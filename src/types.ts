@@ -49,6 +49,7 @@ export interface AppSettings {
     showConfirmation: boolean;
     useClipboard: boolean; // Use clipboard for quick insertion or traditional typing
     startMinimized: boolean;
+    notifyOnTranscription: boolean; // Show notifications when transcriptions are completed
   };
 }
 

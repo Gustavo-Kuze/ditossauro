@@ -381,6 +381,12 @@ class DitossauroUI {
                 <span>${i18n.t('settings.behavior.showFloatingWindow')}</span>
               </label>
               <small class="form-help">${i18n.t('settings.behavior.showFloatingWindowHelp')}</small>
+              <label class="toggle">
+                <input type="checkbox" id="notifyOnTranscription">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
             </div>
           </div>
 
@@ -492,6 +498,9 @@ class DitossauroUI {
 
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const behaviorTitleIcon = document.getElementById('behaviorTitleIcon');
+    if (behaviorTitleIcon) behaviorTitleIcon.innerHTML = this.createIcon('sliders', 20);
 
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
@@ -745,6 +754,8 @@ class DitossauroUI {
     if (showFloatingWindowCheckbox) {
       showFloatingWindowCheckbox.checked = this.settings.behavior?.showFloatingWindow ?? true;
     }
+    const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
+    if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -964,8 +975,12 @@ class DitossauroUI {
 
       // Behavior Settings
       const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
+      
+      const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
+      
       await window.electronAPI.updateSettings('behavior', {
-        showFloatingWindow: showFloatingWindow
+        showFloatingWindow: showFloatingWindow,
+        notifyOnTranscription: notifyOnTranscription
       });
 
       // Update local settings

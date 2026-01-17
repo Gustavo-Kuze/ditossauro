@@ -136,7 +136,9 @@
         "confirmClear": "Limpar histórico?",
         "cleared": "Histórico limpo!",
         "clearError": "Erro ao limpar histórico",
-        "noTranscriptions": "Nenhuma transcrição"
+        "noTranscriptions": "Nenhuma transcrição",
+        "copy": "Copiar",
+        "copied": "Copiado!"
     },
     "about": {
         "title": "Sobre",

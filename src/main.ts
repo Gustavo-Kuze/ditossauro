@@ -517,6 +517,17 @@ class DitossauroElectronApp {
       this.setupGlobalShortcuts();
     });
 
+    // Handle behavior settings changes (e.g., show/hide floating window)
+    ipcMain.on('behavior-updated', (_, setting: Record<string, unknown>) => {
+      if (typeof setting.showFloatingWindow === 'boolean') {
+        if (setting.showFloatingWindow) {
+          this.showFloatingWindow();
+        } else {
+          this.hideFloatingWindow();
+        }
+      }
+    });
+
     // Floating window commands
     ipcMain.on('floating-command', async (_, command: string) => {
       switch (command) {
@@ -955,9 +966,12 @@ app.whenReady().then(() => {
   ditossauroElectronApp.setupGlobalShortcuts();
   ditossauroElectronApp.setupIpcHandlers();
 
-  // Always show floating window on startup
+  // Create floating window and show it based on settings
   ditossauroElectronApp.createFloatingWindow();
-  ditossauroElectronApp.showFloatingWindow();
+  const settings = ditossauroElectronApp.ditossauroApp.getSettings();
+  if (settings.behavior?.showFloatingWindow !== false) {
+    ditossauroElectronApp.showFloatingWindow();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

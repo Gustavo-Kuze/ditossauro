@@ -128,6 +128,11 @@
                 "line2": "• Execute:",
                 "line3": "• Para GPU: CUDA Toolkit instalado"
             }
+        },
+        "behavior": {
+            "title": "Comportamento",
+            "showFloatingWindow": "Exibir Janela Flutuante",
+            "showFloatingWindowHelp": "Mostrar a interface da janela flutuante. Quando desabilitado, você ainda pode usar hotkeys para gravar, mas a janela flutuante não ficará visível."
         }
     },
     "history": {

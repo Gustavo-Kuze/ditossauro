@@ -141,7 +141,9 @@
         "confirmClear": "Clear history?",
         "cleared": "History cleared!",
         "clearError": "Error clearing history",
-        "noTranscriptions": "No transcriptions"
+        "noTranscriptions": "No transcriptions",
+        "copy": "Copy",
+        "copied": "Copied!"
     },
     "about": {
         "title": "About",

@@ -28,7 +28,9 @@ class DitossauroUI {
       'keyboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M7 16h10"/></svg>`,
       'globe': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
       'cpu': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`,
-      'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`
+      'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`,
+      'copy': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+      'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
     };
     return icons[name] || '';
   }
@@ -732,12 +734,67 @@ class DitossauroUI {
     historyList.innerHTML = this.transcriptionHistory.map(session => `
       <div class="history-item">
         <div class="history-meta">
-          <span>${new Date(session.timestamp).toLocaleString(i18n.getLocale())}</span>
-          <span>${session.duration?.toFixed(1)}s</span>
+          <div class="history-meta-info">
+            <span>${new Date(session.timestamp).toLocaleString(i18n.getLocale())}</span>
+            <span>${session.duration?.toFixed(1)}s</span>
+          </div>
+          <button class="history-copy-btn" data-transcription-id="${session.id}" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
+            <span class="copy-icon">${this.createIcon('copy', 16)}</span>
+          </button>
         </div>
         <div class="history-text">${session.transcription}</div>
       </div>
     `).join('');
+
+    // Attach click handlers to copy buttons
+    this.attachHistoryCopyListeners();
+  }
+
+  attachHistoryCopyListeners() {
+    const copyButtons = document.querySelectorAll('.history-copy-btn');
+    copyButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const transcriptionId = target.dataset.transcriptionId;
+
+        if (!transcriptionId) return;
+
+        // Find the transcription session
+        const session = this.transcriptionHistory.find(s => s.id === transcriptionId);
+        if (!session) return;
+
+        // Copy to clipboard
+        await this.copyTranscriptionToClipboard(session.transcription, target);
+      });
+    });
+  }
+
+  async copyTranscriptionToClipboard(text: string, buttonElement: HTMLElement) {
+    try {
+      // Use Electron's clipboard API through the window API
+      await navigator.clipboard.writeText(text);
+
+      // Visual feedback: change icon to checkmark
+      const iconSpan = buttonElement.querySelector('.copy-icon');
+      if (iconSpan) {
+        const originalIcon = iconSpan.innerHTML;
+        iconSpan.innerHTML = this.createIcon('check', 16);
+        buttonElement.classList.add('copied');
+        buttonElement.setAttribute('title', i18n.t('history.copied'));
+        buttonElement.setAttribute('aria-label', i18n.t('history.copied'));
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+          iconSpan.innerHTML = originalIcon;
+          buttonElement.classList.remove('copied');
+          buttonElement.setAttribute('title', i18n.t('history.copy'));
+          buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
+    }
   }
 
   async saveSettings() {

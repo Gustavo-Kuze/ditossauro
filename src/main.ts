@@ -519,7 +519,7 @@ class DitossauroElectronApp {
     // Handle behavior settings changes (e.g., show/hide floating window)
     ipcMain.on('behavior-updated', () => {
       const settings = this.ditossauroApp.getSettings();
-      if (settings.behavior?.showFloatingWindow) {
+      if (settings.behavior?.showFloatingWindow !== false) {
         this.showFloatingWindow();
       } else {
         this.hideFloatingWindow();
@@ -696,6 +696,10 @@ class DitossauroElectronApp {
       this.mainWindow.show();
       this.mainWindow.focus();
     }
+  }
+
+  getDitossauroApp(): DitossauroApp {
+    return this.ditossauroApp;
   }
 
   quit(): void {
@@ -972,7 +976,7 @@ app.whenReady().then(() => {
 
   // Create floating window and show it based on settings
   ditossauroElectronApp.createFloatingWindow();
-  const settings = ditossauroElectronApp.ditossauroApp.getSettings();
+  const settings = ditossauroElectronApp.getDitossauroApp().getSettings();
   if (settings.behavior?.showFloatingWindow !== false) {
     ditossauroElectronApp.showFloatingWindow();
   }

@@ -1,11 +1,6 @@
 name: PR Tests
 
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
-      - dev
   pull_request_target:
     branches:
       - main

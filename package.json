@@ -1,7 +1,7 @@
 {
   "name": "ditossauro",
   "productName": "Ditossauro",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "Ditossauro is an open-source desktop voice productivity tool. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.",
   "main": ".vite/build/main.js",
   "scripts": {

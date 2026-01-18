@@ -116,7 +116,7 @@ class DitossauroElectronApp {
 
   createFloatingWindow(): void {
     if (this.floatingWindow) {
-      this.floatingWindow.showInactive();
+      // Window already exists, do nothing
       return;
     }
 
@@ -166,8 +166,7 @@ class DitossauroElectronApp {
     // Debug: Log when the page finishes loading
     this.floatingWindow.webContents.on('did-finish-load', () => {
       console.log('✅ Floating window loaded successfully');
-      // Show the window without stealing focus
-      this.floatingWindow?.showInactive();
+      // Don't auto-show here - let the caller decide based on settings
     });
 
     this.floatingWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
@@ -517,6 +516,16 @@ class DitossauroElectronApp {
       this.setupGlobalShortcuts();
     });
 
+    // Handle behavior settings changes (e.g., show/hide floating window)
+    ipcMain.on('behavior-updated', () => {
+      const settings = this.ditossauroApp.getSettings();
+      if (settings.behavior?.showFloatingWindow !== false) {
+        this.showFloatingWindow();
+      } else {
+        this.hideFloatingWindow();
+      }
+    });
+
     // Floating window commands
     ipcMain.on('floating-command', async (_, command: string) => {
       switch (command) {
@@ -540,7 +549,13 @@ class DitossauroElectronApp {
     this.ditossauroApp.on('recording-started', () => {
       this.sendToRenderer('recording-started');
       this.sendToFloatingWindow('recording-started');
-      this.showFloatingWindow();
+
+      // Only show floating window if the setting allows it
+      const settings = this.ditossauroApp.getSettings();
+      if (settings.behavior?.showFloatingWindow !== false) {
+        this.showFloatingWindow();
+      }
+
       this.updateTrayIcon('recording');
       this.updateTrayMenu();
     });
@@ -681,6 +696,10 @@ class DitossauroElectronApp {
       this.mainWindow.show();
       this.mainWindow.focus();
     }
+  }
+
+  getDitossauroApp(): DitossauroApp {
+    return this.ditossauroApp;
   }
 
   quit(): void {
@@ -955,9 +974,12 @@ app.whenReady().then(() => {
   ditossauroElectronApp.setupGlobalShortcuts();
   ditossauroElectronApp.setupIpcHandlers();
 
-  // Always show floating window on startup
+  // Create floating window and show it based on settings
   ditossauroElectronApp.createFloatingWindow();
-  ditossauroElectronApp.showFloatingWindow();
+  const settings = ditossauroElectronApp.getDitossauroApp().getSettings();
+  if (settings.behavior?.showFloatingWindow !== false) {
+    ditossauroElectronApp.showFloatingWindow();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

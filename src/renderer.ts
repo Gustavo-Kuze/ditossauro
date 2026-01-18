@@ -359,6 +359,22 @@ class DitossauroUI {
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="behaviorTitleIcon"></span>
+                <span>${i18n.t('settings.behavior.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="showFloatingWindow" checked>
+                <span>${i18n.t('settings.behavior.showFloatingWindow')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.showFloatingWindowHelp')}</small>
+            </div>
+          </div>
+
           <div class="text-center">
             <button class="btn btn-primary" id="saveSettingsBtn">
               <span class="btn-icon" id="saveIcon"></span>
@@ -693,6 +709,12 @@ class DitossauroUI {
     if (whisperComputeType) whisperComputeType.value = this.settings.transcription.fasterWhisper.computeType;
     if (whisperPythonPath) whisperPythonPath.value = this.settings.transcription.fasterWhisper.pythonPath;
 
+    // Behavior Settings
+    const showFloatingWindowCheckbox = document.getElementById('showFloatingWindow') as HTMLInputElement;
+    if (showFloatingWindowCheckbox) {
+      showFloatingWindowCheckbox.checked = this.settings.behavior?.showFloatingWindow ?? true;
+    }
+
     this.updateHistoryUI();
     this.updateProviderStatus();
     this.updateHotkeyHint();
@@ -781,6 +803,12 @@ class DitossauroUI {
           computeType: whisperComputeType,
           pythonPath: whisperPythonPath
         }
+      });
+
+      // Behavior Settings
+      const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
+      await window.electronAPI.updateSettings('behavior', {
+        showFloatingWindow: showFloatingWindow
       });
 
       // Update local settings

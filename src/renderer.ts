@@ -10,6 +10,7 @@ class DitossauroUI {
   private appVersion = '1.0.0';
   private appAuthor = 'Unknown';
   private appIconPath = '';
+  private copyTimers = new WeakMap<HTMLElement, number>();
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -784,10 +785,12 @@ class DitossauroUI {
       timestampSpan.textContent = new Date(session.timestamp).toLocaleString(i18n.getLocale());
       historyMetaInfo.appendChild(timestampSpan);
 
-      // Create duration span
-      const durationSpan = document.createElement('span');
-      durationSpan.textContent = `${session.duration?.toFixed(1)}s`;
-      historyMetaInfo.appendChild(durationSpan);
+      // Create duration span (only if duration is a valid number)
+      if (typeof session.duration === 'number' && !isNaN(session.duration)) {
+        const durationSpan = document.createElement('span');
+        durationSpan.textContent = `${session.duration.toFixed(1)}s`;
+        historyMetaInfo.appendChild(durationSpan);
+      }
 
       // Create copy button
       const copyButton = document.createElement('button');
@@ -850,19 +853,33 @@ class DitossauroUI {
       // Visual feedback: change icon to checkmark
       const iconSpan = buttonElement.querySelector('.copy-icon');
       if (iconSpan) {
-        const originalIcon = iconSpan.innerHTML;
+        // Clear any existing timer for this button and reset to base state
+        const existingTimer = this.copyTimers.get(buttonElement);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+          iconSpan.innerHTML = this.createIcon('copy', 16);
+          buttonElement.classList.remove('copied');
+          buttonElement.setAttribute('title', i18n.t('history.copy'));
+          buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+        }
+
+        // Set the copied state
         iconSpan.innerHTML = this.createIcon('check', 16);
         buttonElement.classList.add('copied');
         buttonElement.setAttribute('title', i18n.t('history.copied'));
         buttonElement.setAttribute('aria-label', i18n.t('history.copied'));
 
-        // Reset after 2 seconds
-        setTimeout(() => {
-          iconSpan.innerHTML = originalIcon;
+        // Schedule reset after 2 seconds
+        const timerId = window.setTimeout(() => {
+          iconSpan.innerHTML = this.createIcon('copy', 16);
           buttonElement.classList.remove('copied');
           buttonElement.setAttribute('title', i18n.t('history.copy'));
           buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+          this.copyTimers.delete(buttonElement);
         }, 2000);
+
+        // Store the timer ID
+        this.copyTimers.set(buttonElement, timerId);
       }
     } catch (error) {
       console.error('Error copying to clipboard:', error);

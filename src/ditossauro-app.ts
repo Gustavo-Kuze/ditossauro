@@ -354,7 +354,7 @@ export class DitossauroApp extends EventEmitter {
       // Notify main process if behavior settings were updated
       if (category === 'behavior') {
         process.nextTick(() => {
-          ipcMain.emit('behavior-updated', setting);
+          ipcMain.emit('behavior-updated');
         });
       }
 

@@ -517,13 +517,12 @@ class DitossauroElectronApp {
     });
 
     // Handle behavior settings changes (e.g., show/hide floating window)
-    ipcMain.on('behavior-updated', (_, setting: Record<string, unknown>) => {
-      if (typeof setting.showFloatingWindow === 'boolean') {
-        if (setting.showFloatingWindow) {
-          this.showFloatingWindow();
-        } else {
-          this.hideFloatingWindow();
-        }
+    ipcMain.on('behavior-updated', () => {
+      const settings = this.ditossauroApp.getSettings();
+      if (settings.behavior?.showFloatingWindow) {
+        this.showFloatingWindow();
+      } else {
+        this.hideFloatingWindow();
       }
     });
 

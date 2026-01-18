@@ -10,6 +10,7 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 const config: ForgeConfig = {
   packagerConfig: {
+    executableName: 'ditossauro',
     asar: {
       unpack: '**/node_modules/{robotjs,uiohook-napi}/**/*',
     },

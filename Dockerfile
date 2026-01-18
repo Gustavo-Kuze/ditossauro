@@ -60,8 +60,9 @@ COPY . .
 # Rebuild native modules for the current platform
 RUN npm run postinstall
 
-# Build the application
-RUN npm run build
+# Package the application (without creating installers)
+# Using 'package' instead of 'build' to avoid needing platform-specific tools like rpmbuild
+RUN npm run package
 
 # Runtime stage (optional - for serving/running the built app)
 FROM node:20-bullseye-slim AS runtime

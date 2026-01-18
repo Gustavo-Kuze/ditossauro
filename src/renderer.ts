@@ -6,6 +6,7 @@ class DitossauroUI {
   private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
+  private lastTranscriptionText = '';
   private appVersion = '1.0.0';
   private appAuthor = 'Unknown';
   private appIconPath = '';
@@ -123,7 +124,13 @@ class DitossauroUI {
             </div>
 
             <div class="card">
-              <div class="card-header"><h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3></div>
+              <div class="card-header">
+                <h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3>
+                <button class="btn btn-secondary btn-sm hidden" id="copyLastTranscriptionBtn" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
+                  <span class="btn-icon" id="copyLastIcon"></span>
+                  <span>${i18n.t('history.copy')}</span>
+                </button>
+              </div>
               <div id="lastTranscription" class="text-muted">${i18n.t('recording.noTranscription')}</div>
             </div>
           </div>
@@ -457,6 +464,10 @@ class DitossauroUI {
     const clearIcon = document.getElementById('clearIcon');
     if (clearIcon) clearIcon.innerHTML = this.createIcon('trash', 16);
 
+    // Copy last transcription button
+    const copyLastIcon = document.getElementById('copyLastIcon');
+    if (copyLastIcon) copyLastIcon.innerHTML = this.createIcon('copy', 16);
+
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
     if (aboutLogo && this.appIconPath) {
@@ -563,6 +574,10 @@ class DitossauroUI {
       this.clearHistory();
     });
 
+    document.getElementById('copyLastTranscriptionBtn')?.addEventListener('click', async () => {
+      await this.copyLastTranscription();
+    });
+
     // Event listeners for transcription settings
     document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
       const provider = (e.target as HTMLSelectElement).value;
@@ -639,9 +654,23 @@ class DitossauroUI {
 
   updateLastTranscription(text: string) {
     const element = document.getElementById('lastTranscription');
+    const copyBtn = document.getElementById('copyLastTranscriptionBtn');
+
     if (element) {
       element.textContent = text;
       element.classList.remove('text-muted');
+    }
+
+    // Store the text for copying
+    this.lastTranscriptionText = text;
+
+    // Show the copy button if there's text, hide it otherwise
+    if (copyBtn) {
+      if (text && text !== i18n.t('recording.noTranscription')) {
+        copyBtn.classList.remove('hidden');
+      } else {
+        copyBtn.classList.add('hidden');
+      }
     }
   }
 
@@ -834,6 +863,43 @@ class DitossauroUI {
           buttonElement.classList.remove('copied');
           buttonElement.setAttribute('title', i18n.t('history.copy'));
           buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
+    }
+  }
+
+  async copyLastTranscription() {
+    if (!this.lastTranscriptionText) return;
+
+    try {
+      await navigator.clipboard.writeText(this.lastTranscriptionText);
+
+      // Visual feedback: change icon to checkmark
+      const copyBtn = document.getElementById('copyLastTranscriptionBtn');
+      const iconSpan = copyBtn?.querySelector('.btn-icon');
+      const textSpan = copyBtn?.querySelector('span:not(.btn-icon)');
+
+      if (iconSpan && textSpan) {
+        const originalIcon = iconSpan.innerHTML;
+        const originalText = textSpan.textContent;
+        iconSpan.innerHTML = this.createIcon('check', 16);
+        textSpan.textContent = i18n.t('history.copied');
+        copyBtn?.classList.add('btn-success');
+        copyBtn?.classList.remove('btn-secondary');
+        copyBtn?.setAttribute('title', i18n.t('history.copied'));
+        copyBtn?.setAttribute('aria-label', i18n.t('history.copied'));
+
+        // Reset after 2 seconds
+        setTimeout(() => {
+          iconSpan.innerHTML = originalIcon;
+          textSpan.textContent = originalText || i18n.t('history.copy');
+          copyBtn?.classList.remove('btn-success');
+          copyBtn?.classList.add('btn-secondary');
+          copyBtn?.setAttribute('title', i18n.t('history.copy'));
+          copyBtn?.setAttribute('aria-label', i18n.t('history.copy'));
         }, 2000);
       }
     } catch (error) {

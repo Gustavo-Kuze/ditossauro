@@ -10,6 +10,7 @@
     "make": "electron-forge make",
     "build": "npm run make",
     "publish": "electron-forge publish",
+    "publish:github": "node scripts/publish-release.js",
     "lint": "eslint --ext .ts,.tsx .",
     "postinstall": "electron-rebuild -f -w uiohook-napi",
     "test": "vitest",

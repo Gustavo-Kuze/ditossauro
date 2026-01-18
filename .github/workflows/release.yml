@@ -1,5 +1,7 @@
 name: Build and Release
 
+# DISABLED: Releases are now handled by NorthFlank
+# To re-enable, remove the "if: false" conditions from the jobs below
 on:
   push:
     branches:
@@ -10,6 +12,7 @@ permissions:
 
 jobs:
   release:
+    if: false  # Disabled - releases handled by NorthFlank
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -124,6 +127,7 @@ jobs:
       #       out/make/**/*.rpm
 
   create-release:
+    if: false  # Disabled - releases handled by NorthFlank
     needs: release
     runs-on: ubuntu-latest
 

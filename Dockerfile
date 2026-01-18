@@ -4,13 +4,16 @@
 # Build stage
 FROM node:20-bullseye AS builder
 
-# Install system dependencies required for building native modules
+# Install system dependencies required for building native modules and installers
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
     gcc \
     build-essential \
+    rpm \
+    fakeroot \
+    dpkg-dev \
     libx11-dev \
     libxtst-dev \
     libxkbfile-dev \
@@ -60,9 +63,27 @@ COPY . .
 # Rebuild native modules for the current platform
 RUN npm run postinstall
 
-# Package the application (without creating installers)
-# Using 'package' instead of 'build' to avoid needing platform-specific tools like rpmbuild
-RUN npm run package
+# Build the application with installers
+# Now includes rpm and dpkg-dev for creating Linux packages
+RUN npm run make
+
+# Optional: Publish to GitHub Releases
+# This step runs if GITHUB_TOKEN is provided as a build argument
+# Set GITHUB_TOKEN in NorthFlank environment variables to enable automatic releases
+ARG GITHUB_TOKEN
+ARG RELEASE_TAG
+ARG RELEASE_DRAFT=false
+ARG RELEASE_PRERELEASE=false
+RUN if [ -n "$GITHUB_TOKEN" ]; then \
+    echo "📦 Publishing release to GitHub..."; \
+    GITHUB_TOKEN=$GITHUB_TOKEN \
+    RELEASE_TAG=$RELEASE_TAG \
+    RELEASE_DRAFT=$RELEASE_DRAFT \
+    RELEASE_PRERELEASE=$RELEASE_PRERELEASE \
+    node scripts/publish-release.js; \
+    else \
+    echo "ℹ️  Skipping GitHub release (GITHUB_TOKEN not set)"; \
+    fi
 
 # Runtime stage (optional - for serving/running the built app)
 FROM node:20-bullseye-slim AS runtime
@@ -105,6 +126,7 @@ WORKDIR /app
 COPY --from=builder /app/out ./out
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/scripts ./scripts
 
 # Set environment variables
 ENV NODE_ENV=production

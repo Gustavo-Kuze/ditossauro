@@ -1,0 +1,92 @@
+# CodeRabbit Configuration
+# This file configures automatic AI code reviews for pull requests
+
+# Language configuration
+language: en-US
+
+# Early access features
+early_access: false
+
+# Reviews configuration
+reviews:
+  # Review settings
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+
+  # Review triggers - automatically review PRs to dev branch
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - dev
+
+  # Poem generation (disable for professional reviews)
+  poem: false
+
+  # Review scope
+  path_filters:
+    - "!**/node_modules/**"
+    - "!**/dist/**"
+    - "!**/build/**"
+    - "!**/*.lock"
+    - "!package-lock.json"
+
+  # File-specific instructions
+  path_instructions:
+    - path: "**/*.ts"
+      instructions: "Review TypeScript code for type safety, proper error handling, and adherence to best practices."
+    - path: "**/*.js"
+      instructions: "Review JavaScript code for potential bugs, performance issues, and code quality."
+    - path: "tests/**"
+      instructions: "Focus on test coverage, edge cases, and test quality."
+    - path: "**/*.md"
+      instructions: "Review documentation for clarity, accuracy, and completeness."
+
+  # Tools configuration
+  tools:
+    # AST-grep for pattern matching
+    ast-grep:
+      enabled: true
+      packages: []
+
+    # ShellCheck for shell scripts
+    shellcheck:
+      enabled: true
+
+    # Biome for JavaScript/TypeScript linting
+    biome:
+      enabled: true
+
+    # Ruff for Python (if any Python files exist)
+    ruff:
+      enabled: false
+
+    # Markdownlint for markdown files
+    markdownlint:
+      enabled: true
+
+    # GitHub Checks integration
+    github_checks:
+      enabled: true
+      timeout_ms: 90000
+
+  # Abort reviews on push to save resources
+  abort_on_close: true
+  collapse_walkthrough: false
+
+# Chat configuration
+chat:
+  auto_reply: true
+
+# Knowledge base configuration (optional)
+# knowledge_base:
+#   opt_out: false
+#   learnings:
+#     scope: auto
+#   issues:
+#     scope: auto
+#   jira:
+#     project_keys: []
+#   linear:
+#     team_keys: []

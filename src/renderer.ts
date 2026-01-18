@@ -126,9 +126,8 @@ class DitossauroUI {
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3>
-                <button class="btn btn-secondary btn-sm hidden" id="copyLastTranscriptionBtn" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
-                  <span class="btn-icon" id="copyLastIcon"></span>
-                  <span>${i18n.t('history.copy')}</span>
+                <button class="history-copy-btn hidden" id="copyLastTranscriptionBtn" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
+                  <span class="copy-icon" id="copyLastIcon"></span>
                 </button>
               </div>
               <div id="lastTranscription" class="text-muted">${i18n.t('recording.noTranscription')}</div>
@@ -874,38 +873,11 @@ class DitossauroUI {
   async copyLastTranscription() {
     if (!this.lastTranscriptionText) return;
 
-    try {
-      await navigator.clipboard.writeText(this.lastTranscriptionText);
+    const copyBtn = document.getElementById('copyLastTranscriptionBtn');
+    if (!copyBtn) return;
 
-      // Visual feedback: change icon to checkmark
-      const copyBtn = document.getElementById('copyLastTranscriptionBtn');
-      const iconSpan = copyBtn?.querySelector('.btn-icon');
-      const textSpan = copyBtn?.querySelector('span:not(.btn-icon)');
-
-      if (iconSpan && textSpan) {
-        const originalIcon = iconSpan.innerHTML;
-        const originalText = textSpan.textContent;
-        iconSpan.innerHTML = this.createIcon('check', 16);
-        textSpan.textContent = i18n.t('history.copied');
-        copyBtn?.classList.add('btn-success');
-        copyBtn?.classList.remove('btn-secondary');
-        copyBtn?.setAttribute('title', i18n.t('history.copied'));
-        copyBtn?.setAttribute('aria-label', i18n.t('history.copied'));
-
-        // Reset after 2 seconds
-        setTimeout(() => {
-          iconSpan.innerHTML = originalIcon;
-          textSpan.textContent = originalText || i18n.t('history.copy');
-          copyBtn?.classList.remove('btn-success');
-          copyBtn?.classList.add('btn-secondary');
-          copyBtn?.setAttribute('title', i18n.t('history.copy'));
-          copyBtn?.setAttribute('aria-label', i18n.t('history.copy'));
-        }, 2000);
-      }
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
-    }
+    // Use the same method as history copy buttons
+    await this.copyTranscriptionToClipboard(this.lastTranscriptionText, copyBtn);
   }
 
   async saveSettings() {

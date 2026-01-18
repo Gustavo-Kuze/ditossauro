@@ -726,25 +726,70 @@ class DitossauroUI {
     const historyList = document.getElementById('historyList');
     if (!historyList) return;
 
+    // Clear existing content
+    historyList.innerHTML = '';
+
     if (this.transcriptionHistory.length === 0) {
-      historyList.innerHTML = `<p class="text-muted text-center">${i18n.t('history.noTranscriptions')}</p>`;
+      const emptyMessage = document.createElement('p');
+      emptyMessage.className = 'text-muted text-center';
+      emptyMessage.textContent = i18n.t('history.noTranscriptions');
+      historyList.appendChild(emptyMessage);
       return;
     }
 
-    historyList.innerHTML = this.transcriptionHistory.map(session => `
-      <div class="history-item">
-        <div class="history-meta">
-          <div class="history-meta-info">
-            <span>${new Date(session.timestamp).toLocaleString(i18n.getLocale())}</span>
-            <span>${session.duration?.toFixed(1)}s</span>
-          </div>
-          <button class="history-copy-btn" data-transcription-id="${session.id}" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
-            <span class="copy-icon">${this.createIcon('copy', 16)}</span>
-          </button>
-        </div>
-        <div class="history-text">${session.transcription}</div>
-      </div>
-    `).join('');
+    // Create history items using DOM manipulation to prevent XSS
+    this.transcriptionHistory.forEach(session => {
+      // Create main history item container
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+
+      // Create history-meta container
+      const historyMeta = document.createElement('div');
+      historyMeta.className = 'history-meta';
+
+      // Create history-meta-info container
+      const historyMetaInfo = document.createElement('div');
+      historyMetaInfo.className = 'history-meta-info';
+
+      // Create timestamp span
+      const timestampSpan = document.createElement('span');
+      timestampSpan.textContent = new Date(session.timestamp).toLocaleString(i18n.getLocale());
+      historyMetaInfo.appendChild(timestampSpan);
+
+      // Create duration span
+      const durationSpan = document.createElement('span');
+      durationSpan.textContent = `${session.duration?.toFixed(1)}s`;
+      historyMetaInfo.appendChild(durationSpan);
+
+      // Create copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'history-copy-btn';
+      copyButton.dataset.transcriptionId = session.id;
+      copyButton.setAttribute('aria-label', i18n.t('history.copy'));
+      copyButton.setAttribute('title', i18n.t('history.copy'));
+
+      // Create copy icon span
+      const copyIconSpan = document.createElement('span');
+      copyIconSpan.className = 'copy-icon';
+      copyIconSpan.innerHTML = this.createIcon('copy', 16);
+      copyButton.appendChild(copyIconSpan);
+
+      // Append to history-meta
+      historyMeta.appendChild(historyMetaInfo);
+      historyMeta.appendChild(copyButton);
+
+      // Create history-text container (using textContent to prevent XSS)
+      const historyText = document.createElement('div');
+      historyText.className = 'history-text';
+      historyText.textContent = session.transcription;
+
+      // Assemble the history item
+      historyItem.appendChild(historyMeta);
+      historyItem.appendChild(historyText);
+
+      // Append to history list
+      historyList.appendChild(historyItem);
+    });
 
     // Attach click handlers to copy buttons
     this.attachHistoryCopyListeners();

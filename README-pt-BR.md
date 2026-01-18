@@ -126,6 +126,7 @@ Defina a chave de API nas configurações do aplicativo ao iniciá-lo.
 - [ ] Suporte para API OpenAI
 - [ ] Suporte para API Anthropic
 - [ ] Suporte para API Google
+- [ ] Suporte para API Z.ai
 
 ## Contribuindo
 

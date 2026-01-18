@@ -47,7 +47,6 @@ reviews:
   tools:
     # AST-grep for pattern matching
     ast-grep:
-      enabled: true
       packages: []
 
     # ShellCheck for shell scripts
@@ -67,7 +66,7 @@ reviews:
       enabled: true
 
     # GitHub Checks integration
-    github_checks:
+    github-checks:
       enabled: true
       timeout_ms: 90000
 

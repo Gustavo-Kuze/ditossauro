@@ -11,6 +11,7 @@ class DitossauroUI {
   private appAuthor = 'Unknown';
   private appIconPath = '';
   private copyTimers = new WeakMap<HTMLElement, number>();
+  private toastContainer: HTMLElement | null = null;
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -33,9 +34,191 @@ class DitossauroUI {
       'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`,
       'copy': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
       'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      'refresh': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`,
+      'download': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
       'sliders': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="-7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-6"/></svg>`,
     };
     return icons[name] || '';
+  }
+
+  // Toast notification icons
+  private getToastIcon(type: 'success' | 'error' | 'warning' | 'info'): SVGElement {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '20');
+    svg.setAttribute('height', '20');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+
+    switch (type) {
+      case 'success': {
+        const path1 = document.createElementNS(svgNS, 'path');
+        path1.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+        const polyline1 = document.createElementNS(svgNS, 'polyline');
+        polyline1.setAttribute('points', '22 4 12 14.01 9 11.01');
+        svg.appendChild(path1);
+        svg.appendChild(polyline1);
+        break;
+      }
+      case 'error': {
+        const circle1 = document.createElementNS(svgNS, 'circle');
+        circle1.setAttribute('cx', '12');
+        circle1.setAttribute('cy', '12');
+        circle1.setAttribute('r', '10');
+        const line1 = document.createElementNS(svgNS, 'line');
+        line1.setAttribute('x1', '15');
+        line1.setAttribute('y1', '9');
+        line1.setAttribute('x2', '9');
+        line1.setAttribute('y2', '15');
+        const line2 = document.createElementNS(svgNS, 'line');
+        line2.setAttribute('x1', '9');
+        line2.setAttribute('y1', '9');
+        line2.setAttribute('x2', '15');
+        line2.setAttribute('y2', '15');
+        svg.appendChild(circle1);
+        svg.appendChild(line1);
+        svg.appendChild(line2);
+        break;
+      }
+      case 'warning': {
+        const path2 = document.createElementNS(svgNS, 'path');
+        path2.setAttribute('d', 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z');
+        const line3 = document.createElementNS(svgNS, 'line');
+        line3.setAttribute('x1', '12');
+        line3.setAttribute('y1', '9');
+        line3.setAttribute('x2', '12');
+        line3.setAttribute('y2', '13');
+        const line4 = document.createElementNS(svgNS, 'line');
+        line4.setAttribute('x1', '12');
+        line4.setAttribute('y1', '17');
+        line4.setAttribute('x2', '12.01');
+        line4.setAttribute('y2', '17');
+        svg.appendChild(path2);
+        svg.appendChild(line3);
+        svg.appendChild(line4);
+        break;
+      }
+      case 'info': {
+        const circle2 = document.createElementNS(svgNS, 'circle');
+        circle2.setAttribute('cx', '12');
+        circle2.setAttribute('cy', '12');
+        circle2.setAttribute('r', '10');
+        const line5 = document.createElementNS(svgNS, 'line');
+        line5.setAttribute('x1', '12');
+        line5.setAttribute('y1', '16');
+        line5.setAttribute('x2', '12');
+        line5.setAttribute('y2', '12');
+        const line6 = document.createElementNS(svgNS, 'line');
+        line6.setAttribute('x1', '12');
+        line6.setAttribute('y1', '8');
+        line6.setAttribute('x2', '12.01');
+        line6.setAttribute('y2', '8');
+        svg.appendChild(circle2);
+        svg.appendChild(line5);
+        svg.appendChild(line6);
+        break;
+      }
+    }
+
+    return svg;
+  }
+
+  // Create toast container if it doesn't exist
+  private ensureToastContainer(): HTMLElement {
+    if (!this.toastContainer) {
+      this.toastContainer = document.createElement('div');
+      this.toastContainer.className = 'toast-container';
+      document.body.appendChild(this.toastContainer);
+    }
+    return this.toastContainer;
+  }
+
+  // Show a toast notification
+  private showToast(type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string, duration = 5000): void {
+    const container = this.ensureToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    // Create icon container
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'toast-icon';
+    iconContainer.appendChild(this.getToastIcon(type));
+
+    // Create content container
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'toast-content';
+
+    const titleElement = document.createElement('div');
+    titleElement.className = 'toast-title';
+    titleElement.textContent = title;
+    contentContainer.appendChild(titleElement);
+
+    if (message) {
+      const messageElement = document.createElement('div');
+      messageElement.className = 'toast-message';
+      messageElement.textContent = message;
+      contentContainer.appendChild(messageElement);
+    }
+
+    // Create close button with SVG
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    
+    const closeSvg = document.createElementNS(svgNS, 'svg');
+    closeSvg.setAttribute('width', '16');
+    closeSvg.setAttribute('height', '16');
+    closeSvg.setAttribute('viewBox', '0 0 24 24');
+    closeSvg.setAttribute('fill', 'none');
+    closeSvg.setAttribute('stroke', 'currentColor');
+    closeSvg.setAttribute('stroke-width', '2');
+    closeSvg.setAttribute('stroke-linecap', 'round');
+    closeSvg.setAttribute('stroke-linejoin', 'round');
+
+    const line1 = document.createElementNS(svgNS, 'line');
+    line1.setAttribute('x1', '18');
+    line1.setAttribute('y1', '6');
+    line1.setAttribute('x2', '6');
+    line1.setAttribute('y2', '18');
+    
+    const line2 = document.createElementNS(svgNS, 'line');
+    line2.setAttribute('x1', '6');
+    line2.setAttribute('y1', '6');
+    line2.setAttribute('x2', '18');
+    line2.setAttribute('y2', '18');
+    
+    closeSvg.appendChild(line1);
+    closeSvg.appendChild(line2);
+    closeBtn.appendChild(closeSvg);
+
+    // Append all children to toast
+    toast.appendChild(iconContainer);
+    toast.appendChild(contentContainer);
+    toast.appendChild(closeBtn);
+
+    // Handle close button click
+    closeBtn.addEventListener('click', () => this.dismissToast(toast));
+
+    container.appendChild(toast);
+
+    // Auto-dismiss after duration
+    setTimeout(() => this.dismissToast(toast), duration);
+  }
+
+  // Dismiss a toast with animation
+  private dismissToast(toast: HTMLElement): void {
+    if (toast.classList.contains('toast-exit')) return; // Already dismissing
+
+    toast.classList.add('toast-exit');
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    }, { once: true });
   }
 
   constructor() {
@@ -68,7 +251,7 @@ class DitossauroUI {
       console.log('✅ Ditossauro initialized');
     } catch (error) {
       console.error('❌ Error:', error);
-      alert(i18n.t('errors.initError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.initError'));
     }
   }
 
@@ -419,6 +602,13 @@ class DitossauroUI {
             <p>${i18n.t('about.description')}</p>
             <p><strong>${i18n.t('app.version')}:</strong> ${this.appVersion}</p>
             <p><strong>Author:</strong> ${this.appAuthor}</p>
+            <div style="margin-top: 24px;">
+              <button class="btn btn-primary" id="checkForUpdatesBtn">
+                <span class="btn-icon" id="updateIcon"></span>
+                <span>${i18n.t('about.checkForUpdates')}</span>
+              </button>
+              <div id="updateStatus" style="margin-top: 16px;"></div>
+            </div>
           </div>
         </div>
       </main>
@@ -475,6 +665,10 @@ class DitossauroUI {
     const copyLastIcon = document.getElementById('copyLastIcon');
     if (copyLastIcon) copyLastIcon.innerHTML = this.createIcon('copy', 16);
 
+    // Update button
+    const updateIcon = document.getElementById('updateIcon');
+    if (updateIcon) updateIcon.innerHTML = this.createIcon('refresh', 16);
+
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
     if (aboutLogo && this.appIconPath) {
@@ -529,7 +723,7 @@ class DitossauroUI {
     });
 
     window.electronAPI.onError((error: string) => {
-      alert('❌ ' + i18n.t('errors.error') + ': ' + error);
+      this.showToast('error', i18n.t('errors.error'), error);
     });
 
     // Listen for navigation requests from tray menu
@@ -588,6 +782,10 @@ class DitossauroUI {
       await this.copyLastTranscription();
     });
 
+    document.getElementById('checkForUpdatesBtn')?.addEventListener('click', async () => {
+      await this.checkForUpdates();
+    });
+
     // Event listeners for transcription settings
     document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
       const provider = (e.target as HTMLSelectElement).value;
@@ -634,7 +832,7 @@ class DitossauroUI {
     try {
       await window.electronAPI.startRecording();
     } catch (error) {
-      alert(i18n.t('errors.startRecordingError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.startRecordingError'));
     }
   }
 
@@ -642,7 +840,7 @@ class DitossauroUI {
     try {
       await window.electronAPI.stopRecording();
     } catch (error) {
-      alert(i18n.t('errors.stopRecordingError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.stopRecordingError'));
     }
   }
 
@@ -895,7 +1093,7 @@ class DitossauroUI {
       }
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.copyToClipboard'));
     }
   }
 
@@ -925,7 +1123,7 @@ class DitossauroUI {
       }
 
       if (selectedKeys.length === 0) {
-        alert('⚠️ ' + i18n.t('settings.hotkeys.selectAtLeastOne'));
+        this.showToast('warning', i18n.t('settings.hotkeys.selectAtLeastOne'));
         return;
       }
 
@@ -988,10 +1186,10 @@ class DitossauroUI {
       this.settings = await window.electronAPI.getSettings();
       this.updateProviderStatus();
 
-      alert('✅ ' + i18n.t('settings.saved'));
+      this.showToast('success', i18n.t('settings.saved'));
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert(i18n.t('settings.saveError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('settings.saveError'));
     }
   }
 
@@ -1001,9 +1199,9 @@ class DitossauroUI {
         await window.electronAPI.clearHistory();
         this.transcriptionHistory = [];
         this.updateHistoryUI();
-        alert('✅ ' + i18n.t('history.cleared'));
+        this.showToast('success', i18n.t('history.cleared'));
       } catch (error) {
-        alert(i18n.t('history.clearError'));
+        this.showToast('error', i18n.t('errors.error'), i18n.t('history.clearError'));
       }
     }
   }
@@ -1059,13 +1257,13 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.assemblyai.testSuccess'));
+        this.showToast('success', i18n.t('settings.assemblyai.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.assemblyai.testError'));
+        this.showToast('error', i18n.t('settings.assemblyai.testError'));
       }
     } catch (error) {
       console.error('Error testing AssemblyAI:', error);
-      alert('❌ ' + i18n.t('settings.assemblyai.testError'));
+      this.showToast('error', i18n.t('settings.assemblyai.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -1103,13 +1301,13 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.groq.testSuccess'));
+        this.showToast('success', i18n.t('settings.groq.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.groq.testError'));
+        this.showToast('error', i18n.t('settings.groq.testError'));
       }
     } catch (error) {
       console.error('Error testing Groq:', error);
-      alert('❌ ' + i18n.t('settings.groq.testError'));
+      this.showToast('error', i18n.t('settings.groq.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -1143,15 +1341,72 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.whisper.testSuccess'));
+        this.showToast('success', i18n.t('settings.whisper.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.whisper.testError'));
+        this.showToast('error', i18n.t('settings.whisper.testError'));
       }
     } catch (error) {
       console.error('Error testing Faster Whisper:', error);
-      alert('❌ ' + i18n.t('settings.whisper.testError'));
+      this.showToast('error', i18n.t('settings.whisper.testError'));
     } finally {
       button.textContent = originalText;
+      button.disabled = false;
+    }
+  }
+
+  async checkForUpdates() {
+    const button = document.getElementById('checkForUpdatesBtn') as HTMLButtonElement;
+    const statusDiv = document.getElementById('updateStatus');
+
+    if (!button || !statusDiv) return;
+
+    const originalText = button.textContent;
+    button.textContent = i18n.t('about.checking');
+    button.disabled = true;
+    statusDiv.innerHTML = '';
+
+    try {
+      const updateInfo = await window.electronAPI.checkForUpdates();
+
+      if (updateInfo.error) {
+        statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}: ${updateInfo.error}</p>`;
+      } else if (updateInfo.updateAvailable && updateInfo.latestVersion && updateInfo.downloadUrl) {
+        statusDiv.innerHTML = `
+          <div style="padding: 20px; background: #1C1F24; border: 1px solid rgba(139, 207, 62, 0.3); border-radius: 8px; margin-top: 16px;">
+            <p style="color: #8BCF3E; font-weight: bold; font-size: 16px; margin-bottom: 12px;">
+              ${i18n.t('about.updateAvailable')}
+            </p>
+            <p style="margin: 8px 0; color: #DADADA;">
+              <strong style="color: #ffffff;">${i18n.t('about.latestVersion')}:</strong> ${updateInfo.latestVersion}
+            </p>
+            <button
+              id="downloadUpdateBtn"
+              class="btn btn-info"
+              style="margin-top: 16px;"
+            >
+              <span class="btn-icon">${this.createIcon('download', 16)}</span>
+              <span>${i18n.t('about.downloadUpdate')}</span>
+            </button>
+          </div>
+        `;
+
+        document.getElementById('downloadUpdateBtn')?.addEventListener('click', async () => {
+          if (updateInfo.downloadUrl) {
+            await window.electronAPI.downloadUpdate(updateInfo.downloadUrl);
+          }
+        });
+      } else {
+        statusDiv.innerHTML = `
+          <p style="color: #10b981; margin-top: 16px; font-weight: 500;">
+            ${i18n.t('about.upToDate')} (${updateInfo.currentVersion})
+          </p>
+        `;
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}</p>`;
+    } finally {
+      button.textContent = originalText || i18n.t('about.checkForUpdates');
       button.disabled = false;
     }
   }

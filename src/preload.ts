@@ -32,6 +32,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAuthor: () => ipcRenderer.invoke('get-author'),
   getAppIconPath: () => ipcRenderer.invoke('get-app-icon-path'),
 
+  // Updates
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: (downloadUrl: string) => ipcRenderer.invoke('download-update', downloadUrl),
+
   // Audio processing
   processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> =>
     ipcRenderer.invoke('process-audio-data', audioData, duration),
@@ -104,6 +108,17 @@ export interface ElectronAPI {
   getVersion(): Promise<string>;
   getAuthor(): Promise<string>;
   getAppIconPath(): Promise<string>;
+  checkForUpdates(): Promise<{
+    updateAvailable: boolean;
+    currentVersion: string;
+    latestVersion?: string;
+    downloadUrl?: string;
+    releaseNotes?: string;
+    releaseName?: string;
+    releaseUrl?: string;
+    error?: string;
+  }>;
+  downloadUpdate(downloadUrl: string): Promise<{ success: boolean; error?: string }>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   notifyHotkeysUpdated(): void;

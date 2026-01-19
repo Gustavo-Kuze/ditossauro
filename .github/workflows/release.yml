@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   release:
-    if: false  # Disabled - releases handled by NorthFlank
+    if: true  # Disabled - releases handled by NorthFlank
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -127,7 +127,7 @@ jobs:
       #       out/make/**/*.rpm
 
   create-release:
-    if: false  # Disabled - releases handled by NorthFlank
+    if: true  # Disabled - releases handled by NorthFlank
     needs: release
     runs-on: ubuntu-latest
 

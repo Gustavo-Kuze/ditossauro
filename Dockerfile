@@ -1,10 +1,21 @@
 # Dockerfile for building Ditossauro Electron app on Northflank
 # Multi-stage build for optimized image size
+#
+# Cross-Platform Build Support:
+# - Linux: Native builds for .deb and .rpm packages
+# - Windows: Cross-compilation using Wine for .exe installers
+#
+# This Dockerfile installs Wine to enable building Windows executables
+# from a Linux environment, eliminating the need for separate Windows CI runners
 
 # Build stage
 FROM node:20-bullseye AS builder
 
+# Enable i386 architecture for Wine (32-bit support)
+RUN dpkg --add-architecture i386
+
 # Install system dependencies required for building native modules and installers
+# Including Wine for Windows cross-compilation
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
@@ -45,7 +56,20 @@ RUN apt-get update && apt-get install -y \
     libappindicator3-1 \
     libu2f-udev \
     xdg-utils \
+    wine \
+    wine32 \
+    wine64 \
+    mono-devel \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure Wine environment for cross-compilation
+ENV WINEARCH=win64
+ENV WINEPREFIX=/root/.wine
+ENV WINEDEBUG=-all
+
+# Initialize Wine (required for first-time setup)
+RUN wine64 wineboot --init && \
+    wineserver -w
 
 # Set working directory
 WORKDIR /app
@@ -63,9 +87,11 @@ COPY . .
 # Rebuild native modules for the current platform
 RUN npm run postinstall
 
-# Build the application with installers
-# Now includes rpm and dpkg-dev for creating Linux packages
-RUN npm run make
+# Build the application with installers for multiple platforms
+# Linux packages: .deb, .rpm
+# Windows packages: .exe (via Wine cross-compilation)
+# The --platform flag enables cross-platform builds
+RUN npx electron-forge make --platform=linux,win32
 
 # Optional: Publish to GitHub Releases
 # This step runs if GITHUB_TOKEN is provided as a build argument

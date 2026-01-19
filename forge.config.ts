@@ -28,7 +28,12 @@ const config: ForgeConfig = {
     onlyModules: ['robotjs', 'uiohook-napi'],
     force: true,
   },
-  makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerRpm({}), new MakerDeb({})],
+  makers: [
+    new MakerSquirrel({}, ['win32']),
+    new MakerZIP({}, ['darwin']),
+    new MakerRpm({}, ['linux']),
+    new MakerDeb({}, ['linux']),
+  ],
   plugins: [
     new AutoUnpackNativesPlugin({}),
     new VitePlugin({

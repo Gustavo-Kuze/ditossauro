@@ -90,8 +90,9 @@ RUN npm run postinstall
 # Build the application with installers for multiple platforms
 # Linux packages: .deb, .rpm
 # Windows packages: .exe (via Wine cross-compilation)
-# The --platform flag enables cross-platform builds
-RUN npx electron-forge make --platform=linux,win32
+# Run builds separately for each platform since --platform accepts only one value at a time
+RUN npx electron-forge make --platform=linux && \
+    npx electron-forge make --platform=win32
 
 # Optional: Publish to GitHub Releases
 # This step runs if GITHUB_TOKEN is provided as a build argument

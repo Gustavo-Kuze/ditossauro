@@ -214,6 +214,9 @@ async function publishRelease() {
         name: `Release ${TAG_NAME}`,
         body: `## Ditossauro ${TAG_NAME}
 
+### What's New
+- Bug fixes and performance improvements
+
 ### Downloads
 Download the appropriate installer for your operating system below.
 
@@ -223,10 +226,7 @@ Download the appropriate installer for your operating system below.
 3. Configure your Groq API key in settings
 4. Set up your hotkeys and start transcribing!
 
-For more information, see the [README](https://github.com/${GITHUB_REPOSITORY}/blob/main/README.md).
-
----
-*Built and published automatically from NorthFlank*`,
+For more information, see the [README](https://github.com/${GITHUB_REPOSITORY}/blob/main/README.md).`,
         draft: IS_DRAFT,
         prerelease: IS_PRERELEASE,
       });

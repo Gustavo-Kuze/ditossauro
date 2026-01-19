@@ -32,7 +32,8 @@ class DitossauroUI {
       'cpu': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`,
       'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`,
       'copy': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
-      'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
+      'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      'sliders': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="-7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-6"/></svg>`,
     };
     return icons[name] || '';
   }
@@ -381,6 +382,12 @@ class DitossauroUI {
                 <span>${i18n.t('settings.behavior.showFloatingWindow')}</span>
               </label>
               <small class="form-help">${i18n.t('settings.behavior.showFloatingWindowHelp')}</small>
+              <label class="toggle">
+                <input type="checkbox" id="notifyOnTranscription">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
             </div>
           </div>
 
@@ -492,6 +499,9 @@ class DitossauroUI {
 
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const behaviorTitleIcon = document.getElementById('behaviorTitleIcon');
+    if (behaviorTitleIcon) behaviorTitleIcon.innerHTML = this.createIcon('sliders', 20);
 
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
@@ -745,6 +755,8 @@ class DitossauroUI {
     if (showFloatingWindowCheckbox) {
       showFloatingWindowCheckbox.checked = this.settings.behavior?.showFloatingWindow ?? true;
     }
+    const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
+    if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -964,8 +976,12 @@ class DitossauroUI {
 
       // Behavior Settings
       const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
+      
+      const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
+      
       await window.electronAPI.updateSettings('behavior', {
-        showFloatingWindow: showFloatingWindow
+        showFloatingWindow: showFloatingWindow,
+        notifyOnTranscription: notifyOnTranscription
       });
 
       // Update local settings

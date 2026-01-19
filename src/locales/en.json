@@ -130,9 +130,11 @@
             }
         },
         "behavior": {
-            "title": "Behavior",
+            "title": "Behavior Settings",
             "showFloatingWindow": "Show Floating Window",
-            "showFloatingWindowHelp": "Display the floating window interface. When disabled, you can still use hotkeys to record, but the floating window won't be visible."
+            "showFloatingWindowHelp": "Display the floating window interface. When disabled, you can still use hotkeys to record, but the floating window won't be visible.",
+            "notifyOnTranscription": "Show notifications when transcription is completed",
+            "notifyOnTranscriptionHelp": "Display a system notification each time a transcription is completed"
         }
     },
     "history": {

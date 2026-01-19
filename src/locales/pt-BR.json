@@ -130,9 +130,11 @@
             }
         },
         "behavior": {
-            "title": "Comportamento",
+            "title": "Configurações de Comportamento",
             "showFloatingWindow": "Exibir Janela Flutuante",
-            "showFloatingWindowHelp": "Mostrar a interface da janela flutuante. Quando desabilitado, você ainda pode usar hotkeys para gravar, mas a janela flutuante não ficará visível."
+            "showFloatingWindowHelp": "Mostrar a interface da janela flutuante. Quando desabilitado, você ainda pode usar hotkeys para gravar, mas a janela flutuante não ficará visível.",
+            "notifyOnTranscription": "Mostrar notificações quando a transcrição for concluída",
+            "notifyOnTranscriptionHelp": "Exibir uma notificação do sistema cada vez que uma transcrição for concluída"
         }
     },
     "history": {

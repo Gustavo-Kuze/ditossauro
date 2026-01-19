@@ -577,7 +577,8 @@ class DitossauroElectronApp {
       this.sendToRenderer('transcription-completed', session);
       this.updateTrayIcon('idle');
 
-      if (Notification.isSupported()) {
+      const settings = this.ditossauroApp.getSettings();
+      if (Notification.isSupported() && settings.behavior.notifyOnTranscription) {
         new Notification({
           title: i18nMain.t('notifications.transcriptionCompleted'),
           body: session.transcription.substring(0, 100) + '...',

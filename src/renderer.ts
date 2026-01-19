@@ -1196,15 +1196,11 @@ class DitossauroUI {
               ${i18n.t('about.updateAvailable')}
             </p>
             <p style="margin: 8px 0; color: #DADADA;">
-              <strong style="color: #ffffff;">${i18n.t('about.currentVersion')}:</strong> ${updateInfo.currentVersion}
-            </p>
-            <p style="margin: 8px 0; color: #DADADA;">
               <strong style="color: #ffffff;">${i18n.t('about.latestVersion')}:</strong> ${updateInfo.latestVersion}
             </p>
-            ${updateInfo.releaseName ? `<p style="margin: 8px 0; color: #DADADA;"><strong style="color: #ffffff;">${i18n.t('about.releaseName')}:</strong> ${updateInfo.releaseName}</p>` : ''}
             <button
               id="downloadUpdateBtn"
-              class="btn btn-success"
+              class="btn btn-info"
               style="margin-top: 16px;"
             >
               <span class="btn-icon">${this.createIcon('download', 16)}</span>

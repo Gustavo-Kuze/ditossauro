@@ -1188,24 +1188,24 @@ class DitossauroUI {
       const updateInfo = await window.electronAPI.checkForUpdates();
 
       if (updateInfo.error) {
-        statusDiv.innerHTML = `<p style="color: #f44336;">${i18n.t('about.checkError')}: ${updateInfo.error}</p>`;
+        statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}: ${updateInfo.error}</p>`;
       } else if (updateInfo.updateAvailable && updateInfo.latestVersion && updateInfo.downloadUrl) {
         statusDiv.innerHTML = `
-          <div style="padding: 16px; background: #e8f5e9; border-radius: 8px; margin-top: 16px;">
-            <p style="color: #2e7d32; font-weight: bold; margin-bottom: 8px;">
+          <div style="padding: 20px; background: #1C1F24; border: 1px solid rgba(139, 207, 62, 0.3); border-radius: 8px; margin-top: 16px;">
+            <p style="color: #8BCF3E; font-weight: bold; font-size: 16px; margin-bottom: 12px;">
               ${i18n.t('about.updateAvailable')}
             </p>
-            <p style="margin: 4px 0;">
-              <strong>${i18n.t('about.currentVersion')}:</strong> ${updateInfo.currentVersion}
+            <p style="margin: 8px 0; color: #DADADA;">
+              <strong style="color: #ffffff;">${i18n.t('about.currentVersion')}:</strong> ${updateInfo.currentVersion}
             </p>
-            <p style="margin: 4px 0;">
-              <strong>${i18n.t('about.latestVersion')}:</strong> ${updateInfo.latestVersion}
+            <p style="margin: 8px 0; color: #DADADA;">
+              <strong style="color: #ffffff;">${i18n.t('about.latestVersion')}:</strong> ${updateInfo.latestVersion}
             </p>
-            ${updateInfo.releaseName ? `<p style="margin: 8px 0;"><strong>${i18n.t('about.releaseName')}:</strong> ${updateInfo.releaseName}</p>` : ''}
+            ${updateInfo.releaseName ? `<p style="margin: 8px 0; color: #DADADA;"><strong style="color: #ffffff;">${i18n.t('about.releaseName')}:</strong> ${updateInfo.releaseName}</p>` : ''}
             <button
               id="downloadUpdateBtn"
               class="btn btn-success"
-              style="margin-top: 12px;"
+              style="margin-top: 16px;"
             >
               <span class="btn-icon">${this.createIcon('download', 16)}</span>
               <span>${i18n.t('about.downloadUpdate')}</span>
@@ -1220,14 +1220,14 @@ class DitossauroUI {
         });
       } else {
         statusDiv.innerHTML = `
-          <p style="color: #4CAF50; margin-top: 16px;">
+          <p style="color: #10b981; margin-top: 16px; font-weight: 500;">
             ${i18n.t('about.upToDate')} (${updateInfo.currentVersion})
           </p>
         `;
       }
     } catch (error) {
       console.error('Error checking for updates:', error);
-      statusDiv.innerHTML = `<p style="color: #f44336;">${i18n.t('about.checkError')}</p>`;
+      statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}</p>`;
     } finally {
       button.textContent = originalText || i18n.t('about.checkForUpdates');
       button.disabled = false;

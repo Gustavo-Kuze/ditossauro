@@ -44,7 +44,9 @@ export class SettingsManager {
       autoInsert: true,
       showConfirmation: false,
       useClipboard: true,
-      startMinimized: false
+      startMinimized: false,
+      showFloatingWindow: true,
+      notifyOnTranscription: true,
     }
   };
 

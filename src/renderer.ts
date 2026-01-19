@@ -6,9 +6,11 @@ class DitossauroUI {
   private settings: AppSettings | null = null;
   private recordingState = { isRecording: false };
   private transcriptionHistory: TranscriptionSession[] = [];
+  private lastTranscriptionText = '';
   private appVersion = '1.0.0';
   private appAuthor = 'Unknown';
   private appIconPath = '';
+  private copyTimers = new WeakMap<HTMLElement, number>();
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -28,7 +30,10 @@ class DitossauroUI {
       'keyboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="M6 8h.01"/><path d="M10 8h.01"/><path d="M14 8h.01"/><path d="M18 8h.01"/><path d="M8 12h.01"/><path d="M12 12h.01"/><path d="M16 12h.01"/><path d="M7 16h10"/></svg>`,
       'globe': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
       'cpu': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="16" x="4" y="4" rx="2"/><rect width="6" height="6" x="9" y="9" rx="1"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/></svg>`,
-      'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`
+      'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`,
+      'copy': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
+      'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      'sliders': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="-7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-6"/></svg>`,
     };
     return icons[name] || '';
   }
@@ -121,7 +126,12 @@ class DitossauroUI {
             </div>
 
             <div class="card">
-              <div class="card-header"><h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3></div>
+              <div class="card-header">
+                <h3 class="card-title">${i18n.t('recording.lastTranscription')}</h3>
+                <button class="history-copy-btn hidden" id="copyLastTranscriptionBtn" aria-label="${i18n.t('history.copy')}" title="${i18n.t('history.copy')}">
+                  <span class="copy-icon" id="copyLastIcon"></span>
+                </button>
+              </div>
               <div id="lastTranscription" class="text-muted">${i18n.t('recording.noTranscription')}</div>
             </div>
           </div>
@@ -359,6 +369,28 @@ class DitossauroUI {
             </div>
           </div>
 
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">
+                <span class="title-icon" id="behaviorTitleIcon"></span>
+                <span>${i18n.t('settings.behavior.title')}</span>
+              </h3>
+            </div>
+            <div class="form-group">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="showFloatingWindow" checked>
+                <span>${i18n.t('settings.behavior.showFloatingWindow')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.showFloatingWindowHelp')}</small>
+              <label class="toggle">
+                <input type="checkbox" id="notifyOnTranscription">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
+            </div>
+          </div>
+
           <div class="text-center">
             <button class="btn btn-primary" id="saveSettingsBtn">
               <span class="btn-icon" id="saveIcon"></span>
@@ -439,6 +471,10 @@ class DitossauroUI {
     const clearIcon = document.getElementById('clearIcon');
     if (clearIcon) clearIcon.innerHTML = this.createIcon('trash', 16);
 
+    // Copy last transcription button
+    const copyLastIcon = document.getElementById('copyLastIcon');
+    if (copyLastIcon) copyLastIcon.innerHTML = this.createIcon('copy', 16);
+
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
     if (aboutLogo && this.appIconPath) {
@@ -463,6 +499,9 @@ class DitossauroUI {
 
     const whisperTitleIcon = document.getElementById('whisperTitleIcon');
     if (whisperTitleIcon) whisperTitleIcon.innerHTML = this.createIcon('cpu', 20);
+
+    const behaviorTitleIcon = document.getElementById('behaviorTitleIcon');
+    if (behaviorTitleIcon) behaviorTitleIcon.innerHTML = this.createIcon('sliders', 20);
 
     // Inline info icons
     const groqInfoIcon = document.getElementById('groqInfoIcon');
@@ -545,6 +584,10 @@ class DitossauroUI {
       this.clearHistory();
     });
 
+    document.getElementById('copyLastTranscriptionBtn')?.addEventListener('click', async () => {
+      await this.copyLastTranscription();
+    });
+
     // Event listeners for transcription settings
     document.getElementById('transcriptionProvider')?.addEventListener('change', (e) => {
       const provider = (e.target as HTMLSelectElement).value;
@@ -621,9 +664,23 @@ class DitossauroUI {
 
   updateLastTranscription(text: string) {
     const element = document.getElementById('lastTranscription');
+    const copyBtn = document.getElementById('copyLastTranscriptionBtn');
+
     if (element) {
       element.textContent = text;
       element.classList.remove('text-muted');
+    }
+
+    // Store the text for copying
+    this.lastTranscriptionText = text;
+
+    // Show the copy button if there's text, hide it otherwise
+    if (copyBtn) {
+      if (text && text !== i18n.t('recording.noTranscription')) {
+        copyBtn.classList.remove('hidden');
+      } else {
+        copyBtn.classList.add('hidden');
+      }
     }
   }
 
@@ -693,6 +750,14 @@ class DitossauroUI {
     if (whisperComputeType) whisperComputeType.value = this.settings.transcription.fasterWhisper.computeType;
     if (whisperPythonPath) whisperPythonPath.value = this.settings.transcription.fasterWhisper.pythonPath;
 
+    // Behavior Settings
+    const showFloatingWindowCheckbox = document.getElementById('showFloatingWindow') as HTMLInputElement;
+    if (showFloatingWindowCheckbox) {
+      showFloatingWindowCheckbox.checked = this.settings.behavior?.showFloatingWindow ?? true;
+    }
+    const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
+    if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
+
     this.updateHistoryUI();
     this.updateProviderStatus();
     this.updateHotkeyHint();
@@ -702,20 +767,146 @@ class DitossauroUI {
     const historyList = document.getElementById('historyList');
     if (!historyList) return;
 
+    // Clear existing content
+    historyList.innerHTML = '';
+
     if (this.transcriptionHistory.length === 0) {
-      historyList.innerHTML = `<p class="text-muted text-center">${i18n.t('history.noTranscriptions')}</p>`;
+      const emptyMessage = document.createElement('p');
+      emptyMessage.className = 'text-muted text-center';
+      emptyMessage.textContent = i18n.t('history.noTranscriptions');
+      historyList.appendChild(emptyMessage);
       return;
     }
 
-    historyList.innerHTML = this.transcriptionHistory.map(session => `
-      <div class="history-item">
-        <div class="history-meta">
-          <span>${new Date(session.timestamp).toLocaleString(i18n.getLocale())}</span>
-          <span>${session.duration?.toFixed(1)}s</span>
-        </div>
-        <div class="history-text">${session.transcription}</div>
-      </div>
-    `).join('');
+    // Create history items using DOM manipulation to prevent XSS
+    this.transcriptionHistory.forEach(session => {
+      // Create main history item container
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+
+      // Create history-meta container
+      const historyMeta = document.createElement('div');
+      historyMeta.className = 'history-meta';
+
+      // Create history-meta-info container
+      const historyMetaInfo = document.createElement('div');
+      historyMetaInfo.className = 'history-meta-info';
+
+      // Create timestamp span
+      const timestampSpan = document.createElement('span');
+      timestampSpan.textContent = new Date(session.timestamp).toLocaleString(i18n.getLocale());
+      historyMetaInfo.appendChild(timestampSpan);
+
+      // Create duration span (only if duration is a valid number)
+      if (typeof session.duration === 'number' && !isNaN(session.duration)) {
+        const durationSpan = document.createElement('span');
+        durationSpan.textContent = `${session.duration.toFixed(1)}s`;
+        historyMetaInfo.appendChild(durationSpan);
+      }
+
+      // Create copy button
+      const copyButton = document.createElement('button');
+      copyButton.className = 'history-copy-btn';
+      copyButton.dataset.transcriptionId = session.id;
+      copyButton.setAttribute('aria-label', i18n.t('history.copy'));
+      copyButton.setAttribute('title', i18n.t('history.copy'));
+
+      // Create copy icon span
+      const copyIconSpan = document.createElement('span');
+      copyIconSpan.className = 'copy-icon';
+      copyIconSpan.innerHTML = this.createIcon('copy', 16);
+      copyButton.appendChild(copyIconSpan);
+
+      // Append to history-meta
+      historyMeta.appendChild(historyMetaInfo);
+      historyMeta.appendChild(copyButton);
+
+      // Create history-text container (using textContent to prevent XSS)
+      const historyText = document.createElement('div');
+      historyText.className = 'history-text';
+      historyText.textContent = session.transcription;
+
+      // Assemble the history item
+      historyItem.appendChild(historyMeta);
+      historyItem.appendChild(historyText);
+
+      // Append to history list
+      historyList.appendChild(historyItem);
+    });
+
+    // Attach click handlers to copy buttons
+    this.attachHistoryCopyListeners();
+  }
+
+  attachHistoryCopyListeners() {
+    const copyButtons = document.querySelectorAll('.history-copy-btn');
+    copyButtons.forEach(button => {
+      button.addEventListener('click', async (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const transcriptionId = target.dataset.transcriptionId;
+
+        if (!transcriptionId) return;
+
+        // Find the transcription session
+        const session = this.transcriptionHistory.find(s => s.id === transcriptionId);
+        if (!session) return;
+
+        // Copy to clipboard
+        await this.copyTranscriptionToClipboard(session.transcription, target);
+      });
+    });
+  }
+
+  async copyTranscriptionToClipboard(text: string, buttonElement: HTMLElement) {
+    try {
+      // Use Electron's clipboard API through the window API
+      await navigator.clipboard.writeText(text);
+
+      // Visual feedback: change icon to checkmark
+      const iconSpan = buttonElement.querySelector('.copy-icon');
+      if (iconSpan) {
+        // Clear any existing timer for this button and reset to base state
+        const existingTimer = this.copyTimers.get(buttonElement);
+        if (existingTimer) {
+          clearTimeout(existingTimer);
+          iconSpan.innerHTML = this.createIcon('copy', 16);
+          buttonElement.classList.remove('copied');
+          buttonElement.setAttribute('title', i18n.t('history.copy'));
+          buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+        }
+
+        // Set the copied state
+        iconSpan.innerHTML = this.createIcon('check', 16);
+        buttonElement.classList.add('copied');
+        buttonElement.setAttribute('title', i18n.t('history.copied'));
+        buttonElement.setAttribute('aria-label', i18n.t('history.copied'));
+
+        // Schedule reset after 2 seconds
+        const timerId = window.setTimeout(() => {
+          iconSpan.innerHTML = this.createIcon('copy', 16);
+          buttonElement.classList.remove('copied');
+          buttonElement.setAttribute('title', i18n.t('history.copy'));
+          buttonElement.setAttribute('aria-label', i18n.t('history.copy'));
+          this.copyTimers.delete(buttonElement);
+        }, 2000);
+
+        // Store the timer ID
+        this.copyTimers.set(buttonElement, timerId);
+      }
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
+    }
+  }
+
+  async copyLastTranscription() {
+    if (!this.lastTranscriptionText) return;
+
+    const copyBtn = document.getElementById('copyLastTranscriptionBtn');
+    if (!copyBtn) return;
+
+    // Use the same method as history copy buttons
+    await this.copyTranscriptionToClipboard(this.lastTranscriptionText, copyBtn);
   }
 
   async saveSettings() {
@@ -781,6 +972,16 @@ class DitossauroUI {
           computeType: whisperComputeType,
           pythonPath: whisperPythonPath
         }
+      });
+
+      // Behavior Settings
+      const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
+      
+      const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
+      
+      await window.electronAPI.updateSettings('behavior', {
+        showFloatingWindow: showFloatingWindow,
+        notifyOnTranscription: notifyOnTranscription
       });
 
       // Update local settings

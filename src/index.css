@@ -302,6 +302,11 @@ body {
   gap: 8px;
 }
 
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
 .btn span {
   pointer-events: none;
 }
@@ -430,6 +435,52 @@ body {
   color: #DADADA;
 }
 
+.history-meta-info {
+  display: flex;
+  gap: 15px;
+}
+
+.history-copy-btn {
+  background: rgba(139, 207, 62, 0.1);
+  border: 1px solid rgba(139, 207, 62, 0.3);
+  border-radius: 4px;
+  padding: 6px 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8BCF3E;
+}
+
+.history-copy-btn:hover {
+  background: rgba(139, 207, 62, 0.2);
+  border-color: #8BCF3E;
+  transform: translateY(-1px);
+}
+
+.history-copy-btn:active {
+  transform: translateY(0);
+}
+
+.history-copy-btn.copied {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.copy-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.copy-icon svg {
+  color: currentColor;
+  pointer-events: none;
+}
+
 .history-text {
   font-size: 14px;
   line-height: 1.5;
@@ -475,6 +526,7 @@ body {
   font-size: 0.8rem;
   color: #9ca3af;
   margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 

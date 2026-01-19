@@ -34,6 +34,8 @@ class DitossauroUI {
       'clipboard': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>`,
       'copy': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>`,
       'check': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      'refresh': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>`,
+      'download': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>`,
       'sliders': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="-7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-6"/></svg>`,
     };
     return icons[name] || '';
@@ -600,6 +602,13 @@ class DitossauroUI {
             <p>${i18n.t('about.description')}</p>
             <p><strong>${i18n.t('app.version')}:</strong> ${this.appVersion}</p>
             <p><strong>Author:</strong> ${this.appAuthor}</p>
+            <div style="margin-top: 24px;">
+              <button class="btn btn-primary" id="checkForUpdatesBtn">
+                <span class="btn-icon" id="updateIcon"></span>
+                <span>${i18n.t('about.checkForUpdates')}</span>
+              </button>
+              <div id="updateStatus" style="margin-top: 16px;"></div>
+            </div>
           </div>
         </div>
       </main>
@@ -655,6 +664,10 @@ class DitossauroUI {
     // Copy last transcription button
     const copyLastIcon = document.getElementById('copyLastIcon');
     if (copyLastIcon) copyLastIcon.innerHTML = this.createIcon('copy', 16);
+
+    // Update button
+    const updateIcon = document.getElementById('updateIcon');
+    if (updateIcon) updateIcon.innerHTML = this.createIcon('refresh', 16);
 
     // About logo
     const aboutLogo = document.getElementById('aboutLogo');
@@ -767,6 +780,10 @@ class DitossauroUI {
 
     document.getElementById('copyLastTranscriptionBtn')?.addEventListener('click', async () => {
       await this.copyLastTranscription();
+    });
+
+    document.getElementById('checkForUpdatesBtn')?.addEventListener('click', async () => {
+      await this.checkForUpdates();
     });
 
     // Event listeners for transcription settings
@@ -1333,6 +1350,63 @@ class DitossauroUI {
       this.showToast('error', i18n.t('settings.whisper.testError'));
     } finally {
       button.textContent = originalText;
+      button.disabled = false;
+    }
+  }
+
+  async checkForUpdates() {
+    const button = document.getElementById('checkForUpdatesBtn') as HTMLButtonElement;
+    const statusDiv = document.getElementById('updateStatus');
+
+    if (!button || !statusDiv) return;
+
+    const originalText = button.textContent;
+    button.textContent = i18n.t('about.checking');
+    button.disabled = true;
+    statusDiv.innerHTML = '';
+
+    try {
+      const updateInfo = await window.electronAPI.checkForUpdates();
+
+      if (updateInfo.error) {
+        statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}: ${updateInfo.error}</p>`;
+      } else if (updateInfo.updateAvailable && updateInfo.latestVersion && updateInfo.downloadUrl) {
+        statusDiv.innerHTML = `
+          <div style="padding: 20px; background: #1C1F24; border: 1px solid rgba(139, 207, 62, 0.3); border-radius: 8px; margin-top: 16px;">
+            <p style="color: #8BCF3E; font-weight: bold; font-size: 16px; margin-bottom: 12px;">
+              ${i18n.t('about.updateAvailable')}
+            </p>
+            <p style="margin: 8px 0; color: #DADADA;">
+              <strong style="color: #ffffff;">${i18n.t('about.latestVersion')}:</strong> ${updateInfo.latestVersion}
+            </p>
+            <button
+              id="downloadUpdateBtn"
+              class="btn btn-info"
+              style="margin-top: 16px;"
+            >
+              <span class="btn-icon">${this.createIcon('download', 16)}</span>
+              <span>${i18n.t('about.downloadUpdate')}</span>
+            </button>
+          </div>
+        `;
+
+        document.getElementById('downloadUpdateBtn')?.addEventListener('click', async () => {
+          if (updateInfo.downloadUrl) {
+            await window.electronAPI.downloadUpdate(updateInfo.downloadUrl);
+          }
+        });
+      } else {
+        statusDiv.innerHTML = `
+          <p style="color: #10b981; margin-top: 16px; font-weight: 500;">
+            ${i18n.t('about.upToDate')} (${updateInfo.currentVersion})
+          </p>
+        `;
+      }
+    } catch (error) {
+      console.error('Error checking for updates:', error);
+      statusDiv.innerHTML = `<p style="color: #ef4444; margin-top: 16px;">${i18n.t('about.checkError')}</p>`;
+    } finally {
+      button.textContent = originalText || i18n.t('about.checkForUpdates');
       button.disabled = false;
     }
   }

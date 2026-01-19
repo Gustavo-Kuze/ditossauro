@@ -149,7 +149,16 @@
     },
     "about": {
         "title": "Sobre",
-        "description": "Alternativa open source para transcrição de voz"
+        "description": "Alternativa open source para transcrição de voz",
+        "checkForUpdates": "Verificar Atualizações",
+        "checking": "Verificando...",
+        "updateAvailable": "Nova versão disponível!",
+        "upToDate": "Você está atualizado!",
+        "currentVersion": "Versão Atual",
+        "latestVersion": "Última Versão",
+        "releaseName": "Lançamento",
+        "downloadUpdate": "Baixar Atualização",
+        "checkError": "Erro ao verificar atualizações"
     },
     "tray": {
         "openInterface": "Abrir Interface",

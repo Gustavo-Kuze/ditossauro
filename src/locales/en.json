@@ -149,7 +149,16 @@
     },
     "about": {
         "title": "About",
-        "description": "Open source alternative for voice transcription"
+        "description": "Open source alternative for voice transcription",
+        "checkForUpdates": "Check for Updates",
+        "checking": "Checking...",
+        "updateAvailable": "New version available!",
+        "upToDate": "You're up to date!",
+        "currentVersion": "Current Version",
+        "latestVersion": "Latest Version",
+        "releaseName": "Release",
+        "downloadUpdate": "Download Update",
+        "checkError": "Error checking for updates"
     },
     "tray": {
         "openInterface": "Open Interface",

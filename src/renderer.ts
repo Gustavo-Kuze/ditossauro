@@ -11,6 +11,7 @@ class DitossauroUI {
   private appAuthor = 'Unknown';
   private appIconPath = '';
   private copyTimers = new WeakMap<HTMLElement, number>();
+  private toastContainer: HTMLElement | null = null;
 
   // Helper method to create SVG icons
   private createIcon(name: string, size = 24): string {
@@ -36,6 +37,65 @@ class DitossauroUI {
       'sliders': `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="4" y1="21" y2="14"/><line x1="4" x2="4" y1="10" y2="3"/><line x1="12" x2="12" y1="21" y2="12"/><line x1="12" x2="12" y1="8" y2="3"/><line x1="20" x2="20" y1="21" y2="16"/><line x1="20" x2="20" y1="12" y2="3"/><line x1="1" x2="7" y1="14" y2="14"/><line x1="9" x2="15" y1="8" y2="8"/><line x1="-7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-5 7.5e-6"/></svg>`,
     };
     return icons[name] || '';
+  }
+
+  // Toast notification icons
+  private getToastIcon(type: 'success' | 'error' | 'warning' | 'info'): string {
+    const icons = {
+      success: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+      error: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+      warning: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+      info: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
+    };
+    return icons[type];
+  }
+
+  // Create toast container if it doesn't exist
+  private ensureToastContainer(): HTMLElement {
+    if (!this.toastContainer) {
+      this.toastContainer = document.createElement('div');
+      this.toastContainer.className = 'toast-container';
+      document.body.appendChild(this.toastContainer);
+    }
+    return this.toastContainer;
+  }
+
+  // Show a toast notification
+  private showToast(type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string, duration = 5000): void {
+    const container = this.ensureToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    toast.innerHTML = `
+      <div class="toast-icon">${this.getToastIcon(type)}</div>
+      <div class="toast-content">
+        <div class="toast-title">${title}</div>
+        ${message ? `<div class="toast-message">${message}</div>` : ''}
+      </div>
+      <button class="toast-close" aria-label="Close">${closeIcon}</button>
+    `;
+
+    // Handle close button click
+    const closeBtn = toast.querySelector('.toast-close');
+    closeBtn?.addEventListener('click', () => this.dismissToast(toast));
+
+    container.appendChild(toast);
+
+    // Auto-dismiss after duration
+    setTimeout(() => this.dismissToast(toast), duration);
+  }
+
+  // Dismiss a toast with animation
+  private dismissToast(toast: HTMLElement): void {
+    if (toast.classList.contains('toast-exit')) return; // Already dismissing
+
+    toast.classList.add('toast-exit');
+    toast.addEventListener('animationend', () => {
+      toast.remove();
+    }, { once: true });
   }
 
   constructor() {
@@ -68,7 +128,7 @@ class DitossauroUI {
       console.log('✅ Ditossauro initialized');
     } catch (error) {
       console.error('❌ Error:', error);
-      alert(i18n.t('errors.initError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.initError'));
     }
   }
 
@@ -529,7 +589,7 @@ class DitossauroUI {
     });
 
     window.electronAPI.onError((error: string) => {
-      alert('❌ ' + i18n.t('errors.error') + ': ' + error);
+      this.showToast('error', i18n.t('errors.error'), error);
     });
 
     // Listen for navigation requests from tray menu
@@ -634,7 +694,7 @@ class DitossauroUI {
     try {
       await window.electronAPI.startRecording();
     } catch (error) {
-      alert(i18n.t('errors.startRecordingError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.startRecordingError'));
     }
   }
 
@@ -642,7 +702,7 @@ class DitossauroUI {
     try {
       await window.electronAPI.stopRecording();
     } catch (error) {
-      alert(i18n.t('errors.stopRecordingError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.stopRecordingError'));
     }
   }
 
@@ -895,7 +955,7 @@ class DitossauroUI {
       }
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      alert('❌ ' + i18n.t('errors.error') + ': Failed to copy to clipboard');
+      this.showToast('error', i18n.t('errors.error'), 'Failed to copy to clipboard');
     }
   }
 
@@ -925,7 +985,7 @@ class DitossauroUI {
       }
 
       if (selectedKeys.length === 0) {
-        alert('⚠️ ' + i18n.t('settings.hotkeys.selectAtLeastOne'));
+        this.showToast('warning', i18n.t('settings.hotkeys.selectAtLeastOne'));
         return;
       }
 
@@ -988,10 +1048,10 @@ class DitossauroUI {
       this.settings = await window.electronAPI.getSettings();
       this.updateProviderStatus();
 
-      alert('✅ ' + i18n.t('settings.saved'));
+      this.showToast('success', i18n.t('settings.saved'));
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert(i18n.t('settings.saveError'));
+      this.showToast('error', i18n.t('errors.error'), i18n.t('settings.saveError'));
     }
   }
 
@@ -1001,9 +1061,9 @@ class DitossauroUI {
         await window.electronAPI.clearHistory();
         this.transcriptionHistory = [];
         this.updateHistoryUI();
-        alert('✅ ' + i18n.t('history.cleared'));
+        this.showToast('success', i18n.t('history.cleared'));
       } catch (error) {
-        alert(i18n.t('history.clearError'));
+        this.showToast('error', i18n.t('errors.error'), i18n.t('history.clearError'));
       }
     }
   }
@@ -1059,13 +1119,13 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.assemblyai.testSuccess'));
+        this.showToast('success', i18n.t('settings.assemblyai.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.assemblyai.testError'));
+        this.showToast('error', i18n.t('settings.assemblyai.testError'));
       }
     } catch (error) {
       console.error('Error testing AssemblyAI:', error);
-      alert('❌ ' + i18n.t('settings.assemblyai.testError'));
+      this.showToast('error', i18n.t('settings.assemblyai.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -1103,13 +1163,13 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.groq.testSuccess'));
+        this.showToast('success', i18n.t('settings.groq.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.groq.testError'));
+        this.showToast('error', i18n.t('settings.groq.testError'));
       }
     } catch (error) {
       console.error('Error testing Groq:', error);
-      alert('❌ ' + i18n.t('settings.groq.testError'));
+      this.showToast('error', i18n.t('settings.groq.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;
@@ -1143,13 +1203,13 @@ class DitossauroUI {
       const result = await window.electronAPI.testAPI();
 
       if (result) {
-        alert('✅ ' + i18n.t('settings.whisper.testSuccess'));
+        this.showToast('success', i18n.t('settings.whisper.testSuccess'));
       } else {
-        alert('❌ ' + i18n.t('settings.whisper.testError'));
+        this.showToast('error', i18n.t('settings.whisper.testError'));
       }
     } catch (error) {
       console.error('Error testing Faster Whisper:', error);
-      alert('❌ ' + i18n.t('settings.whisper.testError'));
+      this.showToast('error', i18n.t('settings.whisper.testError'));
     } finally {
       button.textContent = originalText;
       button.disabled = false;

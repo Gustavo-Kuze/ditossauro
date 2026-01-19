@@ -8,7 +8,8 @@ import { TranscriptionSession, AppSettings, RecordingState } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ipcMain, app } from 'electron';
+import { ipcMain, app, shell } from 'electron';
+import * as https from 'https';
 
 export class DitossauroApp extends EventEmitter {
   private transcriptionProvider: ITranscriptionProvider;
@@ -478,6 +479,132 @@ export class DitossauroApp extends EventEmitter {
       console.log('Searched paths:', possiblePaths);
       return '';
     });
+
+    // Check for updates
+    ipcMain.handle('check-for-updates', async () => {
+      try {
+        const currentVersion = app.getVersion();
+        const repoOwner = 'Gustavo-Kuze';
+        const repoName = 'ditossauro';
+
+        // Fetch latest release from GitHub
+        const latestRelease = await this.fetchLatestRelease(repoOwner, repoName);
+
+        if (!latestRelease) {
+          return {
+            updateAvailable: false,
+            currentVersion,
+            error: 'Failed to fetch release information'
+          };
+        }
+
+        const latestVersion = latestRelease.tag_name.replace(/^v/, '');
+        const updateAvailable = this.isNewerVersion(latestVersion, currentVersion);
+
+        return {
+          updateAvailable,
+          currentVersion,
+          latestVersion,
+          downloadUrl: latestRelease.assets.find((asset: { name: string }) =>
+            asset.name.endsWith('.exe') ||
+            asset.name.endsWith('.dmg') ||
+            asset.name.endsWith('.AppImage') ||
+            asset.name.endsWith('.deb') ||
+            asset.name.endsWith('.rpm')
+          )?.browser_download_url || latestRelease.html_url,
+          releaseNotes: latestRelease.body,
+          releaseName: latestRelease.name,
+          releaseUrl: latestRelease.html_url
+        };
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+        return {
+          updateAvailable: false,
+          currentVersion: app.getVersion(),
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+
+    // Download update
+    ipcMain.handle('download-update', async (_, downloadUrl: string) => {
+      try {
+        // Open the download URL in the default browser
+        await shell.openExternal(downloadUrl);
+        return { success: true };
+      } catch (error) {
+        console.error('Error opening download URL:', error);
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        };
+      }
+    });
+  }
+
+  private async fetchLatestRelease(owner: string, repo: string): Promise<{
+    tag_name: string;
+    name: string;
+    body: string;
+    html_url: string;
+    assets: Array<{ name: string; browser_download_url: string }>;
+  } | null> {
+    return new Promise((resolve) => {
+      const options = {
+        hostname: 'api.github.com',
+        path: `/repos/${owner}/${repo}/releases/latest`,
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Ditossauro-App',
+          'Accept': 'application/vnd.github.v3+json'
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        res.on('end', () => {
+          try {
+            if (res.statusCode === 200) {
+              const release = JSON.parse(data);
+              resolve(release);
+            } else {
+              console.error('GitHub API error:', res.statusCode, data);
+              resolve(null);
+            }
+          } catch (error) {
+            console.error('Error parsing GitHub response:', error);
+            resolve(null);
+          }
+        });
+      });
+
+      req.on('error', (error) => {
+        console.error('Error fetching release:', error);
+        resolve(null);
+      });
+
+      req.end();
+    });
+  }
+
+  private isNewerVersion(latest: string, current: string): boolean {
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = current.split('.').map(Number);
+
+    for (let i = 0; i < Math.max(latestParts.length, currentParts.length); i++) {
+      const latestPart = latestParts[i] || 0;
+      const currentPart = currentParts[i] || 0;
+
+      if (latestPart > currentPart) return true;
+      if (latestPart < currentPart) return false;
+    }
+
+    return false;
   }
 
   private cleanupTempFile(filePath: string): void {

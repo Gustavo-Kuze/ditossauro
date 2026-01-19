@@ -183,6 +183,7 @@
         "notRecording": "Não está gravando",
         "noAudioRecorded": "Nenhum áudio foi gravado",
         "emptyAudioFile": "Arquivo de áudio vazio",
+        "copyToClipboard": "Falha ao copiar para a área de transferência",
         "error": "Erro"
     },
     "common": {

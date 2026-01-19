@@ -183,6 +183,7 @@
         "notRecording": "Not recording",
         "noAudioRecorded": "No audio was recorded",
         "emptyAudioFile": "Empty audio file",
+        "copyToClipboard": "Failed to copy to clipboard",
         "error": "Error"
     },
     "common": {

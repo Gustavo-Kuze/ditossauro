@@ -40,14 +40,89 @@ class DitossauroUI {
   }
 
   // Toast notification icons
-  private getToastIcon(type: 'success' | 'error' | 'warning' | 'info'): string {
-    const icons = {
-      success: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
-      error: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-      warning: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
-      info: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
-    };
-    return icons[type];
+  private getToastIcon(type: 'success' | 'error' | 'warning' | 'info'): SVGElement {
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('width', '20');
+    svg.setAttribute('height', '20');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+
+    switch (type) {
+      case 'success': {
+        const path1 = document.createElementNS(svgNS, 'path');
+        path1.setAttribute('d', 'M22 11.08V12a10 10 0 1 1-5.93-9.14');
+        const polyline1 = document.createElementNS(svgNS, 'polyline');
+        polyline1.setAttribute('points', '22 4 12 14.01 9 11.01');
+        svg.appendChild(path1);
+        svg.appendChild(polyline1);
+        break;
+      }
+      case 'error': {
+        const circle1 = document.createElementNS(svgNS, 'circle');
+        circle1.setAttribute('cx', '12');
+        circle1.setAttribute('cy', '12');
+        circle1.setAttribute('r', '10');
+        const line1 = document.createElementNS(svgNS, 'line');
+        line1.setAttribute('x1', '15');
+        line1.setAttribute('y1', '9');
+        line1.setAttribute('x2', '9');
+        line1.setAttribute('y2', '15');
+        const line2 = document.createElementNS(svgNS, 'line');
+        line2.setAttribute('x1', '9');
+        line2.setAttribute('y1', '9');
+        line2.setAttribute('x2', '15');
+        line2.setAttribute('y2', '15');
+        svg.appendChild(circle1);
+        svg.appendChild(line1);
+        svg.appendChild(line2);
+        break;
+      }
+      case 'warning': {
+        const path2 = document.createElementNS(svgNS, 'path');
+        path2.setAttribute('d', 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z');
+        const line3 = document.createElementNS(svgNS, 'line');
+        line3.setAttribute('x1', '12');
+        line3.setAttribute('y1', '9');
+        line3.setAttribute('x2', '12');
+        line3.setAttribute('y2', '13');
+        const line4 = document.createElementNS(svgNS, 'line');
+        line4.setAttribute('x1', '12');
+        line4.setAttribute('y1', '17');
+        line4.setAttribute('x2', '12.01');
+        line4.setAttribute('y2', '17');
+        svg.appendChild(path2);
+        svg.appendChild(line3);
+        svg.appendChild(line4);
+        break;
+      }
+      case 'info': {
+        const circle2 = document.createElementNS(svgNS, 'circle');
+        circle2.setAttribute('cx', '12');
+        circle2.setAttribute('cy', '12');
+        circle2.setAttribute('r', '10');
+        const line5 = document.createElementNS(svgNS, 'line');
+        line5.setAttribute('x1', '12');
+        line5.setAttribute('y1', '16');
+        line5.setAttribute('x2', '12');
+        line5.setAttribute('y2', '12');
+        const line6 = document.createElementNS(svgNS, 'line');
+        line6.setAttribute('x1', '12');
+        line6.setAttribute('y1', '8');
+        line6.setAttribute('x2', '12.01');
+        line6.setAttribute('y2', '8');
+        svg.appendChild(circle2);
+        svg.appendChild(line5);
+        svg.appendChild(line6);
+        break;
+      }
+    }
+
+    return svg;
   }
 
   // Create toast container if it doesn't exist
@@ -67,20 +142,66 @@ class DitossauroUI {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
 
-    const closeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    // Create icon container
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'toast-icon';
+    iconContainer.appendChild(this.getToastIcon(type));
 
-    toast.innerHTML = `
-      <div class="toast-icon">${this.getToastIcon(type)}</div>
-      <div class="toast-content">
-        <div class="toast-title">${title}</div>
-        ${message ? `<div class="toast-message">${message}</div>` : ''}
-      </div>
-      <button class="toast-close" aria-label="Close">${closeIcon}</button>
-    `;
+    // Create content container
+    const contentContainer = document.createElement('div');
+    contentContainer.className = 'toast-content';
+
+    const titleElement = document.createElement('div');
+    titleElement.className = 'toast-title';
+    titleElement.textContent = title;
+    contentContainer.appendChild(titleElement);
+
+    if (message) {
+      const messageElement = document.createElement('div');
+      messageElement.className = 'toast-message';
+      messageElement.textContent = message;
+      contentContainer.appendChild(messageElement);
+    }
+
+    // Create close button with SVG
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'toast-close';
+    closeBtn.setAttribute('aria-label', 'Close');
+    
+    const closeSvg = document.createElementNS(svgNS, 'svg');
+    closeSvg.setAttribute('width', '16');
+    closeSvg.setAttribute('height', '16');
+    closeSvg.setAttribute('viewBox', '0 0 24 24');
+    closeSvg.setAttribute('fill', 'none');
+    closeSvg.setAttribute('stroke', 'currentColor');
+    closeSvg.setAttribute('stroke-width', '2');
+    closeSvg.setAttribute('stroke-linecap', 'round');
+    closeSvg.setAttribute('stroke-linejoin', 'round');
+
+    const line1 = document.createElementNS(svgNS, 'line');
+    line1.setAttribute('x1', '18');
+    line1.setAttribute('y1', '6');
+    line1.setAttribute('x2', '6');
+    line1.setAttribute('y2', '18');
+    
+    const line2 = document.createElementNS(svgNS, 'line');
+    line2.setAttribute('x1', '6');
+    line2.setAttribute('y1', '6');
+    line2.setAttribute('x2', '18');
+    line2.setAttribute('y2', '18');
+    
+    closeSvg.appendChild(line1);
+    closeSvg.appendChild(line2);
+    closeBtn.appendChild(closeSvg);
+
+    // Append all children to toast
+    toast.appendChild(iconContainer);
+    toast.appendChild(contentContainer);
+    toast.appendChild(closeBtn);
 
     // Handle close button click
-    const closeBtn = toast.querySelector('.toast-close');
-    closeBtn?.addEventListener('click', () => this.dismissToast(toast));
+    closeBtn.addEventListener('click', () => this.dismissToast(toast));
 
     container.appendChild(toast);
 
@@ -955,7 +1076,7 @@ class DitossauroUI {
       }
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      this.showToast('error', i18n.t('errors.error'), 'Failed to copy to clipboard');
+      this.showToast('error', i18n.t('errors.error'), i18n.t('errors.copyToClipboard'));
     }
   }
 

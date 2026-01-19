@@ -51,6 +51,7 @@ export interface AppSettings {
     startMinimized: boolean;
     showFloatingWindow: boolean; // Show or hide the floating window
     notifyOnTranscription: boolean; // Show notifications when transcriptions are completed
+    openOnStartup: boolean; // Start app automatically on system startup
   };
 }
 

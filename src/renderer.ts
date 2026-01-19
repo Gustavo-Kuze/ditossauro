@@ -388,6 +388,11 @@ class DitossauroUI {
                 <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
               </label>
               <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="openOnStartup">
+                <span>${i18n.t('settings.behavior.openOnStartup')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.openOnStartupHelp')}</small>
             </div>
           </div>
 
@@ -757,6 +762,8 @@ class DitossauroUI {
     }
     const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
     if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
+    const openOnStartup = document.getElementById('openOnStartup') as HTMLInputElement;
+    if (openOnStartup) openOnStartup.checked = this.settings.behavior?.openOnStartup ?? false;
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -976,12 +983,15 @@ class DitossauroUI {
 
       // Behavior Settings
       const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
-      
+
       const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
-      
+
+      const openOnStartup = (document.getElementById('openOnStartup') as HTMLInputElement)?.checked;
+
       await window.electronAPI.updateSettings('behavior', {
         showFloatingWindow: showFloatingWindow,
-        notifyOnTranscription: notifyOnTranscription
+        notifyOnTranscription: notifyOnTranscription,
+        openOnStartup: openOnStartup
       });
 
       // Update local settings

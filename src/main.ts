@@ -42,6 +42,9 @@ class DitossauroElectronApp {
     const settings = this.ditossauroApp.getSettings();
     i18nMain.init(settings.locale || 'pt-BR');
 
+    // Apply startup settings on initialization
+    this.applyStartupSettings(settings.behavior?.openOnStartup ?? false);
+
     // Create tray icons
     this.trayIcons = {
       idle: this.createTrayIcon('idle'),
@@ -524,6 +527,8 @@ class DitossauroElectronApp {
       } else {
         this.hideFloatingWindow();
       }
+      // Apply startup settings
+      this.applyStartupSettings(settings.behavior?.openOnStartup ?? false);
     });
 
     // Floating window commands
@@ -739,6 +744,26 @@ class DitossauroElectronApp {
 
     console.warn('⚠️ Could not load app icon, using default');
     return nativeImage.createEmpty();
+  }
+
+  private applyStartupSettings(openOnStartup: boolean): void {
+    // Only apply on Windows
+    if (process.platform !== 'win32') {
+      console.log('ℹ️ Startup settings only supported on Windows');
+      return;
+    }
+
+    try {
+      app.setLoginItemSettings({
+        openAtLogin: openOnStartup,
+        path: process.execPath,
+        args: []
+      });
+
+      console.log(`✅ Startup ${openOnStartup ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      console.error('❌ Error applying startup settings:', error);
+    }
   }
 
   private createTrayIcon(state: 'idle' | 'recording' | 'processing'): NativeImage {

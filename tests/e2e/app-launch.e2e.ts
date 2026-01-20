@@ -117,6 +117,7 @@ test.describe('App Launch and Basic Functionality', () => {
     // Verify initial state through window properties
     const initialState = await window.evaluate(() => {
       return {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         hasElectronAPI: typeof (window as any).electronAPI !== 'undefined',
         bodyClasses: document.body.className,
         hasContent: document.body.children.length > 0,

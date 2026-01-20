@@ -3,10 +3,6 @@ import { ElectronAppHelper } from './helpers/electron-app';
 import {
   waitForLoadState,
   selectTab,
-  selectOption,
-  toggleCheckbox,
-  clickButtonByText,
-  waitForToast,
 } from './helpers/test-utils';
 import { mockSettings } from './fixtures/mock-data';
 
@@ -217,6 +213,7 @@ test.describe('Settings Management', () => {
     // Note: This depends on the app reading from the test data directory
     const settingsData = await window.evaluate(() => {
       // Try to get settings from window or state
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (window as any).appSettings || null;
     });
 

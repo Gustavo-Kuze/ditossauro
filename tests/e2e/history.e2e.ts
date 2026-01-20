@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { ElectronAppHelper } from './helpers/electron-app';
-import { waitForLoadState, selectTab, getTableData, clickButtonByText } from './helpers/test-utils';
+import { waitForLoadState, selectTab } from './helpers/test-utils';
 import { mockHistory } from './fixtures/mock-data';
 
 test.describe('History Management', () => {

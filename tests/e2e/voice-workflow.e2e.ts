@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { ElectronAppHelper } from './helpers/electron-app';
-import { waitForLoadState, clickButtonByText } from './helpers/test-utils';
+import { waitForLoadState } from './helpers/test-utils';
 import { mockTranscriptions, mockCodeResults, mockSettings } from './fixtures/mock-data';
 
 test.describe('Voice Command Workflow', () => {
@@ -91,6 +91,8 @@ test.describe('Voice Command Workflow', () => {
     await app.evaluate(
       ({ transcription }) => {
         // Mock IPC handler for transcription
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { ipcMain } = require('electron');
 
         ipcMain.handle('transcribe-audio', async () => {
@@ -163,6 +165,7 @@ test.describe('Voice Command Workflow', () => {
     // Mock code generation
     await app.evaluate(
       ({ result }) => {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { ipcMain } = require('electron');
 
         ipcMain.handle('generate-code', async () => {
@@ -227,6 +230,7 @@ test.describe('Voice Command Workflow', () => {
 
     // Mock hotkey execution
     await app.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcMain } = require('electron');
 
       ipcMain.handle('execute-hotkey', async (_event, hotkey) => {
@@ -253,6 +257,7 @@ test.describe('Voice Command Workflow', () => {
     // Mock translation
     await app.evaluate(
       ({ result }) => {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
         const { ipcMain } = require('electron');
 
         ipcMain.handle('translate-text', async () => {
@@ -313,6 +318,7 @@ test.describe('Voice Command Workflow', () => {
 
     // Mock transcription error
     await app.evaluate(() => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { ipcMain } = require('electron');
 
       ipcMain.handle('transcribe-audio', async () => {

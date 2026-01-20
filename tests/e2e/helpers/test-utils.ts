@@ -166,7 +166,9 @@ export async function mockIPC(
 ): Promise<void> {
   await page.evaluate(
     ({ channel, response }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).electronAPI = (window as any).electronAPI || {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).electronAPI[channel] = () => Promise.resolve(response);
     },
     { channel, response }
@@ -188,12 +190,14 @@ export async function waitForIPCCall(
           reject(new Error(`Timeout waiting for IPC call: ${channel}`));
         }, timeout);
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const original = (window as any).electronAPI?.[channel];
         if (!original) {
           reject(new Error(`IPC channel not found: ${channel}`));
           return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (window as any).electronAPI[channel] = (...args: unknown[]) => {
           clearTimeout(timer);
           resolve(args);

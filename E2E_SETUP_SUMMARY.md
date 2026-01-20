@@ -144,7 +144,7 @@ Updated `.github/workflows/pr-tests.yml` to include e2e tests:
 ### 8. Git Ignore
 
 Added to `.gitignore`:
-```
+```text
 # Playwright
 test-results/
 playwright-report/

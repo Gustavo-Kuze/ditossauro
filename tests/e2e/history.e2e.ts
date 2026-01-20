@@ -64,8 +64,8 @@ test.describe('History Management', () => {
       '[data-testid="history-item"], .history-item, tr, .history-entry'
     ).count();
 
-    // Should have at least one history item or table row
-    expect(historyItems).toBeGreaterThanOrEqual(0);
+    // Should have multiple history items (mockHistory.multipleEntries has 3 entries)
+    expect(historyItems).toBeGreaterThan(0);
   });
 
   test('should display history item details', async () => {
@@ -108,8 +108,8 @@ test.describe('History Management', () => {
       '[data-testid="history-item"], .history-item, tbody tr'
     ).all();
 
-    // Should have multiple items
-    expect(historyItems.length).toBeGreaterThanOrEqual(0);
+    // Should have multiple items (mockHistory.multipleEntries has 3 entries)
+    expect(historyItems.length).toBeGreaterThan(0);
   });
 
   test('should filter history by language', async () => {

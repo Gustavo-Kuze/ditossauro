@@ -15,7 +15,7 @@ The e2e test suite validates the complete user workflows and feature integration
 
 ## Test Structure
 
-```
+```text
 tests/e2e/
 ├── README.md                    # This file
 ├── fixtures/

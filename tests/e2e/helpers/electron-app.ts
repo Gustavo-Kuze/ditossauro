@@ -84,6 +84,9 @@ export class ElectronAppHelper {
    * Create test settings file
    */
   createTestSettings(settings: Record<string, unknown>): void {
+    if (!fs.existsSync(this.testDataDir)) {
+      fs.mkdirSync(this.testDataDir, { recursive: true });
+    }
     const settingsPath = path.join(this.testDataDir, 'settings.json');
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   }
@@ -104,6 +107,9 @@ export class ElectronAppHelper {
    * Create test history file
    */
   createTestHistory(history: unknown[]): void {
+    if (!fs.existsSync(this.testDataDir)) {
+      fs.mkdirSync(this.testDataDir, { recursive: true });
+    }
     const historyPath = path.join(this.testDataDir, 'history.json');
     fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
   }
@@ -179,6 +185,9 @@ export class ElectronAppHelper {
       ).then((data) => {
         clearTimeout(timer);
         resolve(data);
+      }).catch((error) => {
+        clearTimeout(timer);
+        reject(error);
       });
     });
   }

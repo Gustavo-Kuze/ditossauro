@@ -105,6 +105,21 @@ This document summarizes the end-to-end testing infrastructure that has been add
 - ✅ Display recording duration
 - ✅ Auto-insert functionality
 
+#### Voice Command Integration Tests (voice-commands-integration.e2e.ts)
+- ✅ Complete JavaScript command pipeline (transcription → detection → generation)
+- ✅ Complete Python command pipeline
+- ✅ Complete TypeScript command pipeline
+- ✅ Complete Bash command pipeline
+- ✅ Complete hotkey command pipeline
+- ✅ Complete translation command pipeline
+- ✅ Complete Dito assistant pipeline
+- ✅ Voice command detection accuracy validation
+- ✅ Confidence score threshold validation (>0.85)
+- ✅ Code generation quality checks
+- ✅ Pipeline error handling (transcription, detection, generation stages)
+- ✅ Command history maintenance and tracking
+- ✅ Complete workflow timing validation
+
 ### 5. NPM Scripts
 
 New test commands added to package.json:
@@ -261,13 +276,14 @@ npm run test:e2e:debug
 
 ## Test Statistics
 
-- **Total Test Files**: 4
-- **Approximate Test Count**: 50+
+- **Total Test Files**: 5
+- **Approximate Test Count**: 63+
 - **Test Categories**:
   - App Launch: ~10 tests
   - Settings: ~13 tests
   - History: ~13 tests
   - Voice Workflow: ~15 tests
+  - Voice Command Integration: ~13 tests (comprehensive end-to-end validation)
 
 ## Maintenance
 
@@ -296,12 +312,14 @@ npm run test:e2e:debug
 
 ## Summary
 
-A comprehensive e2e testing infrastructure has been successfully set up for the Ditossauro project using Playwright. The tests cover all major features including app lifecycle, settings management, history management, and voice command workflows. While some features (like real audio input and API calls) are mocked, the tests provide good coverage of the user interface and application logic.
+A comprehensive e2e testing infrastructure has been successfully set up for the Ditossauro project using Playwright. The tests cover all major features including app lifecycle, settings management, history management, and voice command workflows. The suite includes **complete end-to-end integration tests** that validate the entire voice command pipeline from transcription through code generation for all supported languages (JavaScript, Python, TypeScript, Bash, Hotkeys, Translation, and Dito assistant).
+
+While some features (like real audio input and API calls) are mocked, the tests provide excellent coverage of the user interface, application logic, and the complete voice command processing workflow.
 
 The tests are integrated into the CI/CD pipeline but are currently non-blocking to allow for gradual improvement and platform-specific adjustments.
 
-**Total Files Added/Modified**: 15+
-- 4 test files
+**Total Files Added/Modified**: 16+
+- 5 test files (including comprehensive voice command integration tests)
 - 3 helper/fixture files
 - 1 config file
 - Package.json

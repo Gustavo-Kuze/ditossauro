@@ -92,7 +92,8 @@ Tests basic application functionality:
 test('should launch the app successfully', async () => {
   const { window } = await appHelper.launch();
   expect(window).toBeDefined();
-  expect(await window.isVisible()).toBe(true);
+  const body = await window.locator('body');
+  expect(await body.isVisible()).toBe(true);
 });
 ```
 

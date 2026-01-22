@@ -49,7 +49,22 @@ export async function fillInputByPlaceholder(
  * Select a tab by name
  */
 export async function selectTab(page: Page, tabName: string): Promise<void> {
-  await page.click(`[role="tab"]:has-text("${tabName}")`);
+  // Map display names to data-tab values (supports English and Portuguese)
+  const tabMapping: Record<string, string> = {
+    // English
+    'Home': 'home',
+    'Settings': 'settings',
+    'History': 'history',
+    'Info': 'about',
+    'About': 'about',
+    // Portuguese
+    'Início': 'home',
+    'Configurações': 'settings',
+    'Histórico': 'history',
+    'Sobre': 'about',
+  };
+  const tabValue = tabMapping[tabName] || tabName.toLowerCase();
+  await page.click(`.nav-tab[data-tab="${tabValue}"]`);
 }
 
 /**

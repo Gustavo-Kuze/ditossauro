@@ -26,7 +26,7 @@ test.describe('Settings Management', () => {
     await window.waitForTimeout(500);
 
     // Verify settings panel is visible
-    const settingsPanel = await window.locator('[data-testid="settings-panel"], .settings-panel, .settings');
+    const settingsPanel = await window.locator('#settingsTab:not(.hidden), [data-testid="settings-panel"], .settings-panel');
     const isVisible = await settingsPanel.count() > 0;
     expect(isVisible).toBe(true);
   });
@@ -324,8 +324,8 @@ test.describe('Settings Management', () => {
       await window.waitForTimeout(500);
 
       // Settings should be reset (verification depends on implementation)
-      const isVisible = await window.isVisible();
-      expect(isVisible).toBe(true);
+      const body = await window.locator('body');
+      expect(await body.isVisible()).toBe(true);
     }
   });
 });

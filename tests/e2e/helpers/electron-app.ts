@@ -2,6 +2,7 @@ import { _electron as electron, ElectronApplication, Page } from '@playwright/te
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
+import { execSync } from 'child_process';
 
 /**
  * Helper class for managing Electron app lifecycle during e2e tests
@@ -38,10 +39,45 @@ export class ElectronAppHelper {
       },
     });
 
-    // Wait for the main window
-    this.mainWindow = await this.app.firstWindow();
+    // Wait for the main window (not the floating window)
+    // The main window has the title "Ditossauro" and contains the nav-tabs
+    const windows = await this.app.windows();
 
-    // Wait for the app to be ready
+    // Find the main window by checking for nav-tabs content
+    let mainWindow: Page | null = null;
+    const maxAttempts = 20;
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      const allWindows = await this.app.windows();
+
+      for (const win of allWindows) {
+        try {
+          await win.waitForLoadState('domcontentloaded', { timeout: 2000 });
+          // Check if this window has the nav-tabs (main window indicator)
+          const hasNavTabs = await win.locator('.nav-tabs').count() > 0;
+          if (hasNavTabs) {
+            mainWindow = win;
+            break;
+          }
+        } catch {
+          // Window not ready yet, continue
+        }
+      }
+
+      if (mainWindow) break;
+
+      // Wait a bit before next attempt
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+
+    if (!mainWindow) {
+      // Fallback to first window if main window detection fails
+      mainWindow = await this.app.firstWindow();
+    }
+
+    this.mainWindow = mainWindow;
+
+    // Wait for the app to be fully ready
     await this.mainWindow.waitForLoadState('domcontentloaded');
 
     return {
@@ -131,7 +167,41 @@ export class ElectronAppHelper {
    */
   async close(): Promise<void> {
     if (this.app) {
-      await this.app.close();
+      let processId: number | null = null;
+
+      try {
+        // Get the process ID before closing
+        processId = await this.app.evaluate(() => process.pid).catch(() => null);
+      } catch {
+        // Ignore - app may already be closed
+      }
+
+      // Force kill immediately - don't wait for graceful close
+      // The uiohook module prevents graceful shutdown
+      if (processId && process.platform === 'win32') {
+        try {
+          execSync(`taskkill /F /PID ${processId} /T 2>nul`, { stdio: 'ignore' });
+        } catch {
+          // Process may already be killed, ignore
+        }
+      } else if (processId) {
+        try {
+          execSync(`kill -9 -${processId} 2>/dev/null || kill -9 ${processId} 2>/dev/null`, { stdio: 'ignore' });
+        } catch {
+          // Process may already be killed, ignore
+        }
+      }
+
+      // Small delay to allow OS to clean up process resources
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // Now try to close the Playwright connection
+      try {
+        await this.app.close().catch(() => {});
+      } catch {
+        // Ignore - connection may already be closed
+      }
+
       this.app = null;
       this.mainWindow = null;
     }

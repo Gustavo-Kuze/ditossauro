@@ -10,8 +10,25 @@ export default defineConfig({
   /* Maximum time one test can run for */
   timeout: 60 * 1000,
 
+  /* Global timeout for the entire test run (15 minutes) */
+  globalTimeout: 15 * 60 * 1000,
+
+  /* Timeout for assertions */
+  expect: {
+    timeout: 10 * 1000,
+  },
+
   /* Run tests in files in parallel */
   fullyParallel: false,
+
+  /* Single worker to avoid multiple Electron instances */
+  workers: 1,
+
+  /* Global teardown to clean up Electron processes */
+  globalTeardown: './tests/e2e/global-teardown.ts',
+
+  /* Suppress the worker teardown timeout error - this is expected with Electron + native modules */
+  reportSlowTests: null,
 
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
@@ -42,6 +59,8 @@ export default defineConfig({
     {
       name: 'electron',
       testMatch: '**/*.e2e.ts',
+      // Increase timeout for teardown to allow process cleanup
+      timeout: 60 * 1000,
     },
   ],
 

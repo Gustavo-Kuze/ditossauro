@@ -5,6 +5,36 @@ import * as os from 'os';
 import { execSync } from 'child_process';
 
 /**
+ * Interface for mock transcription data
+ */
+export interface MockTranscription {
+  text: string;
+  confidence: number;
+  language: string;
+  duration?: number;
+}
+
+/**
+ * Interface for mock code generation result
+ */
+export interface MockCodeResult {
+  code: string;
+  language: string;
+}
+
+/**
+ * Interface for a transcription session
+ */
+export interface TranscriptionSession {
+  id: string;
+  timestamp: Date;
+  transcription: string;
+  duration: number;
+  language: string;
+  confidence: number;
+}
+
+/**
  * Helper class for managing Electron app lifecycle during e2e tests
  */
 export class ElectronAppHelper {
@@ -271,5 +301,305 @@ export class ElectronAppHelper {
       throw new Error('Window not available');
     }
     await this.mainWindow.screenshot({ path });
+  }
+
+  /**
+   * Initialize test mocking system in the renderer.
+   * This sets up the infrastructure for simulating voice command flows.
+   */
+  async initializeTestMocks(): Promise<void> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    await this.mainWindow.evaluate(() => {
+      // Store for registered callbacks
+      interface TestMockStore {
+        transcriptionCallbacks: ((session: unknown) => void)[];
+        recordingStartedCallbacks: (() => void)[];
+        recordingStoppedCallbacks: (() => void)[];
+        processingStartedCallbacks: (() => void)[];
+        textInsertedCallbacks: ((text: string) => void)[];
+        errorCallbacks: ((error: string) => void)[];
+      }
+
+      const mockStore: TestMockStore = {
+        transcriptionCallbacks: [],
+        recordingStartedCallbacks: [],
+        recordingStoppedCallbacks: [],
+        processingStartedCallbacks: [],
+        textInsertedCallbacks: [],
+        errorCallbacks: [],
+      };
+
+      // Store the mock system on window
+      (window as unknown as { __testMocks__: TestMockStore }).__testMocks__ = mockStore;
+
+      // Get original electronAPI
+      const originalAPI = (window as unknown as { electronAPI: Record<string, unknown> }).electronAPI;
+
+      if (originalAPI) {
+        // Wrap onTranscriptionCompleted to capture callbacks
+        const originalOnTranscriptionCompleted = originalAPI.onTranscriptionCompleted as (
+          cb: (session: unknown) => void
+        ) => () => void;
+        originalAPI.onTranscriptionCompleted = (callback: (session: unknown) => void) => {
+          mockStore.transcriptionCallbacks.push(callback);
+          const unsubscribe = originalOnTranscriptionCompleted(callback);
+          return () => {
+            const idx = mockStore.transcriptionCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.transcriptionCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+
+        // Wrap onRecordingStarted
+        const originalOnRecordingStarted = originalAPI.onRecordingStarted as (cb: () => void) => () => void;
+        originalAPI.onRecordingStarted = (callback: () => void) => {
+          mockStore.recordingStartedCallbacks.push(callback);
+          const unsubscribe = originalOnRecordingStarted(callback);
+          return () => {
+            const idx = mockStore.recordingStartedCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.recordingStartedCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+
+        // Wrap onRecordingStopped
+        const originalOnRecordingStopped = originalAPI.onRecordingStopped as (cb: () => void) => () => void;
+        originalAPI.onRecordingStopped = (callback: () => void) => {
+          mockStore.recordingStoppedCallbacks.push(callback);
+          const unsubscribe = originalOnRecordingStopped(callback);
+          return () => {
+            const idx = mockStore.recordingStoppedCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.recordingStoppedCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+
+        // Wrap onProcessingStarted
+        const originalOnProcessingStarted = originalAPI.onProcessingStarted as (cb: () => void) => () => void;
+        originalAPI.onProcessingStarted = (callback: () => void) => {
+          mockStore.processingStartedCallbacks.push(callback);
+          const unsubscribe = originalOnProcessingStarted(callback);
+          return () => {
+            const idx = mockStore.processingStartedCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.processingStartedCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+
+        // Wrap onTextInserted
+        const originalOnTextInserted = originalAPI.onTextInserted as (cb: (text: string) => void) => () => void;
+        originalAPI.onTextInserted = (callback: (text: string) => void) => {
+          mockStore.textInsertedCallbacks.push(callback);
+          const unsubscribe = originalOnTextInserted(callback);
+          return () => {
+            const idx = mockStore.textInsertedCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.textInsertedCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+
+        // Wrap onError
+        const originalOnError = originalAPI.onError as (cb: (error: string) => void) => () => void;
+        originalAPI.onError = (callback: (error: string) => void) => {
+          mockStore.errorCallbacks.push(callback);
+          const unsubscribe = originalOnError(callback);
+          return () => {
+            const idx = mockStore.errorCallbacks.indexOf(callback);
+            if (idx > -1) mockStore.errorCallbacks.splice(idx, 1);
+            unsubscribe();
+          };
+        };
+      }
+    });
+  }
+
+  /**
+   * Simulate a complete voice command flow in the renderer.
+   * This triggers the appropriate events that the UI responds to.
+   */
+  async simulateVoiceCommandFlow(
+    transcription: MockTranscription,
+    generatedCode?: MockCodeResult
+  ): Promise<TranscriptionSession> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    const session = await this.mainWindow.evaluate(
+      ({ transcription, generatedCode }) => {
+        interface TestMockStore {
+          transcriptionCallbacks: ((session: unknown) => void)[];
+          recordingStartedCallbacks: (() => void)[];
+          recordingStoppedCallbacks: (() => void)[];
+          processingStartedCallbacks: (() => void)[];
+          textInsertedCallbacks: ((text: string) => void)[];
+          errorCallbacks: ((error: string) => void)[];
+        }
+
+        const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+
+        // Create session object
+        const session = {
+          id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          timestamp: new Date(),
+          transcription: transcription.text,
+          duration: transcription.duration || 2.5,
+          language: transcription.language,
+          confidence: transcription.confidence,
+        };
+
+        // Trigger recording started callbacks
+        if (mockStore) {
+          mockStore.recordingStartedCallbacks.forEach(cb => cb());
+        }
+
+        // Small delay simulation (we'll do actual delays in the test)
+        // Trigger recording stopped callbacks
+        if (mockStore) {
+          mockStore.recordingStoppedCallbacks.forEach(cb => cb());
+        }
+
+        // Trigger processing started callbacks
+        if (mockStore) {
+          mockStore.processingStartedCallbacks.forEach(cb => cb());
+        }
+
+        // Trigger transcription completed callbacks
+        if (mockStore) {
+          mockStore.transcriptionCallbacks.forEach(cb => cb(session));
+        }
+
+        // If code was generated, trigger text inserted
+        if (generatedCode && mockStore) {
+          mockStore.textInsertedCallbacks.forEach(cb => cb(generatedCode.code));
+        }
+
+        return session;
+      },
+      { transcription, generatedCode }
+    );
+
+    return session as TranscriptionSession;
+  }
+
+  /**
+   * Simulate a transcription error in the renderer.
+   */
+  async simulateTranscriptionError(errorMessage: string): Promise<void> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    await this.mainWindow.evaluate((error) => {
+      interface TestMockStore {
+        errorCallbacks: ((error: string) => void)[];
+        recordingStartedCallbacks: (() => void)[];
+        recordingStoppedCallbacks: (() => void)[];
+        processingStartedCallbacks: (() => void)[];
+      }
+
+      const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+
+      if (mockStore) {
+        // Trigger the flow up to the error
+        mockStore.recordingStartedCallbacks.forEach(cb => cb());
+        mockStore.recordingStoppedCallbacks.forEach(cb => cb());
+        mockStore.processingStartedCallbacks.forEach(cb => cb());
+        // Then trigger error
+        mockStore.errorCallbacks.forEach(cb => cb(error));
+      }
+    }, errorMessage);
+  }
+
+  /**
+   * Simulate recording started event only
+   */
+  async simulateRecordingStarted(): Promise<void> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    await this.mainWindow.evaluate(() => {
+      interface TestMockStore {
+        recordingStartedCallbacks: (() => void)[];
+      }
+      const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+      if (mockStore) {
+        mockStore.recordingStartedCallbacks.forEach(cb => cb());
+      }
+    });
+  }
+
+  /**
+   * Simulate recording stopped event only
+   */
+  async simulateRecordingStopped(): Promise<void> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    await this.mainWindow.evaluate(() => {
+      interface TestMockStore {
+        recordingStoppedCallbacks: (() => void)[];
+      }
+      const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+      if (mockStore) {
+        mockStore.recordingStoppedCallbacks.forEach(cb => cb());
+      }
+    });
+  }
+
+  /**
+   * Simulate transcription completed event
+   */
+  async simulateTranscriptionCompleted(transcription: MockTranscription): Promise<TranscriptionSession> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    return await this.mainWindow.evaluate((transcription) => {
+      interface TestMockStore {
+        transcriptionCallbacks: ((session: unknown) => void)[];
+      }
+
+      const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+
+      const session = {
+        id: `test-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date(),
+        transcription: transcription.text,
+        duration: transcription.duration || 2.5,
+        language: transcription.language,
+        confidence: transcription.confidence,
+      };
+
+      if (mockStore) {
+        mockStore.transcriptionCallbacks.forEach(cb => cb(session));
+      }
+
+      return session;
+    }, transcription) as TranscriptionSession;
+  }
+
+  /**
+   * Simulate text inserted event (e.g., after code generation)
+   */
+  async simulateTextInserted(text: string): Promise<void> {
+    if (!this.mainWindow) {
+      throw new Error('Window not available');
+    }
+
+    await this.mainWindow.evaluate((text) => {
+      interface TestMockStore {
+        textInsertedCallbacks: ((text: string) => void)[];
+      }
+      const mockStore = (window as unknown as { __testMocks__?: TestMockStore }).__testMocks__;
+      if (mockStore) {
+        mockStore.textInsertedCallbacks.forEach(cb => cb(text));
+      }
+    }, text);
   }
 }

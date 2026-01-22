@@ -22,7 +22,7 @@ export default defineConfig({
   fullyParallel: false,
 
   /* Single worker to avoid multiple Electron instances */
-  workers: 1,
+  workers: 10,
 
   /* Global teardown to clean up Electron processes */
   globalTeardown: './tests/e2e/global-teardown.ts',

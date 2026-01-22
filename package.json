@@ -16,6 +16,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
+    "test:unit": "npm run test:run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest watch",
     "test:native": "node scripts/test-native-modules.js",

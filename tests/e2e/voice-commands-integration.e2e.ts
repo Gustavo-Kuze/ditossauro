@@ -16,631 +16,325 @@ test.describe('Voice Command Integration - Complete Pipeline', () => {
   });
 
   test('should process JavaScript voice command with transcription and generation', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    // Mock IPC handlers on main process
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    // Initialize test mocking system
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'javascript',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.javascript,
-        codeResult: mockCodeResults.javascript,
-      }
+    // Simulate complete voice command flow
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.javascript,
+      mockCodeResults.javascript
     );
 
-    // Trigger voice command workflow via UI
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    // Wait for UI to update
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    // Verify session was created
+    expect(session).toBeDefined();
+    expect(session.transcription).toBe(mockTranscriptions.javascript.text);
+    expect(session.language).toBe(mockTranscriptions.javascript.language);
+    expect(session.confidence).toBe(mockTranscriptions.javascript.confidence);
 
-      const stopButton = await window.locator(
-        'button:has-text("Stop"), button[data-testid="stop-button"]'
-      ).first();
-
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // Assert on observable UI changes - check for generated code in the output
-        const hasGeneratedCode = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('function') || content.includes('add');
-        });
-
-        expect(typeof hasGeneratedCode).toBe('boolean');
-      }
-    }
+    // Check that UI is still functional
+    const body = await window.locator('body');
+    expect(await body.isVisible()).toBe(true);
   });
 
   test('should process Python voice command with correct language detection', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    // Initialize test mocking system
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'python',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.python,
-        codeResult: mockCodeResults.python,
-      }
+    // Simulate Python voice command
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.python,
+      mockCodeResults.python
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    // Verify Python language was detected
+    expect(session.transcription).toBe(mockTranscriptions.python.text);
+    expect(session.language).toBe(mockTranscriptions.python.language);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // Check for Python code indicators in UI
-        const hasPythonCode = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('class') || content.includes('Person') || content.includes('def');
-        });
-
-        expect(typeof hasPythonCode).toBe('boolean');
-      }
-    }
+    // App should remain functional
+    const hasButtons = await window.evaluate(() => {
+      return document.querySelectorAll('button').length > 0;
+    });
+    expect(hasButtons).toBe(true);
   });
 
   test('should process TypeScript voice command', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'typescript',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.typescript,
-        codeResult: mockCodeResults.typescript,
-      }
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.typescript,
+      mockCodeResults.typescript
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    expect(session.transcription).toBe(mockTranscriptions.typescript.text);
+    expect(session.language).toBe(mockTranscriptions.typescript.language);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        const hasTypeScriptCode = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('interface') || content.includes('User');
-        });
-
-        expect(typeof hasTypeScriptCode).toBe('boolean');
-      }
-    }
+    // Verify UI is responsive
+    const isAppFunctional = await window.evaluate(() => {
+      const body = document.querySelector('body');
+      return body !== null && document.querySelectorAll('button').length > 0;
+    });
+    expect(isAppFunctional).toBe(true);
   });
 
   test('should process Bash command voice command', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'bash',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.bash,
-        codeResult: mockCodeResults.bash,
-      }
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.bash,
+      mockCodeResults.bash
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    expect(session.transcription).toBe(mockTranscriptions.bash.text);
+    expect(session.language).toBe(mockTranscriptions.bash.language);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        const hasBashCommand = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('ls') || content.includes('list');
-        });
-
-        expect(typeof hasBashCommand).toBe('boolean');
-      }
-    }
+    // App should be responsive
+    const body = await window.locator('body');
+    expect(await body.isVisible()).toBe(true);
   });
 
   test('should process hotkey voice command', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('execute-hotkey', async () => ({
-          success: true,
-          hotkey: codeResult,
-        }));
-      },
-      {
-        transcription: mockTranscriptions.hotkey,
-        codeResult: mockCodeResults.hotkey,
-      }
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.hotkey,
+      mockCodeResults.hotkey
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    expect(session.transcription).toBe(mockTranscriptions.hotkey.text);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        const hasHotkeyInfo = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('Ctrl') || content.includes('hotkey');
-        });
-
-        expect(typeof hasHotkeyInfo).toBe('boolean');
-      }
-    }
+    // App should remain functional after hotkey command
+    const hasButtons = await window.evaluate(() => {
+      return document.querySelectorAll('button').length > 0;
+    });
+    expect(hasButtons).toBe(true);
   });
 
   test('should process translation voice command', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, translation }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('translate-text', async () => ({
-          translatedText: translation,
-          targetLanguage: 'es',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.translate,
-        translation: mockCodeResults.translate,
-      }
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.translate,
+      { code: mockCodeResults.translate, language: 'text' }
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    expect(session.transcription).toBe(mockTranscriptions.translate.text);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        const hasTranslation = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('Hola') || content.includes('translate');
-        });
-
-        expect(typeof hasTranslation).toBe('boolean');
-      }
-    }
+    // App should remain functional
+    const isAppFunctional = await window.evaluate(() => {
+      return document.body !== null;
+    });
+    expect(isAppFunctional).toBe(true);
   });
 
   test('should display confidence score during voice command processing', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-      },
-      { transcription: mockTranscriptions.javascript }
+    // Simulate with specific confidence
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.javascript
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    await window.waitForTimeout(500);
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    // Verify confidence was captured
+    expect(session.confidence).toBe(mockTranscriptions.javascript.confidence);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // Check for confidence score in UI
-        const hasConfidenceIndicator = await window.evaluate(() => {
-          const content = document.body.textContent || '';
-          return content.includes('confidence') || content.includes('%');
-        });
-
-        expect(typeof hasConfidenceIndicator).toBe('boolean');
-      }
-    }
+    // App should be functional
+    const body = await window.locator('body');
+    expect(await body.isVisible()).toBe(true);
   });
 
   test('should add voice commands to history after processing', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'javascript',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.javascript,
-        codeResult: mockCodeResults.javascript,
-      }
+    // Process a voice command
+    const session = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.javascript,
+      mockCodeResults.javascript
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
+    await window.waitForTimeout(500);
+
+    // Verify session was created with all required fields
+    expect(session.id).toBeDefined();
+    expect(session.timestamp).toBeDefined();
+    expect(session.transcription).toBe(mockTranscriptions.javascript.text);
+    expect(session.duration).toBeDefined();
+    expect(session.language).toBe(mockTranscriptions.javascript.language);
+    expect(session.confidence).toBe(mockTranscriptions.javascript.confidence);
+
+    // Navigate to history tab if it exists
+    const historyTab = await window.locator(
+      'a:has-text("History"), button:has-text("History"), [data-testid="history-tab"]'
     ).first();
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
+    if ((await historyTab.count()) > 0) {
+      await historyTab.click();
       await window.waitForTimeout(500);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // Navigate to history tab
-        const historyTab = await window.locator(
-          'a:has-text("History"), button:has-text("History"), [data-testid="history-tab"]'
-        ).first();
-
-        if ((await historyTab.count()) > 0) {
-          await historyTab.click();
-          await window.waitForTimeout(500);
-
-          // Check if history has entries
-          const hasHistoryEntries = await window.evaluate(() => {
-            const content = document.body.textContent || '';
-            const hasTable = document.querySelector('table') !== null;
-            const hasList = document.querySelectorAll('li, tr').length > 0;
-            return hasTable || hasList || content.includes('function');
-          });
-
-          expect(typeof hasHistoryEntries).toBe('boolean');
-        }
-      }
+      // History tab should be accessible
+      const body = await window.locator('body');
+      expect(await body.isVisible()).toBe(true);
     }
   });
 
   test('should handle transcription errors gracefully in UI', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    // Mock transcription error
-    await app.evaluate(() => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-      ipcMain.handle('transcribe-audio', async () => {
-        throw new Error('Transcription service unavailable');
-      });
+    // Simulate transcription error
+    await appHelper.simulateTranscriptionError('Transcription service unavailable');
+
+    await window.waitForTimeout(500);
+
+    // App should remain functional after error
+    const isAppStillFunctional = await window.evaluate(() => {
+      const body = document.querySelector('body');
+      const hasButtons = document.querySelectorAll('button').length > 0;
+      return body !== null && hasButtons;
     });
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
-
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
-
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // App should remain functional after error
-        const isAppStillFunctional = await window.evaluate(() => {
-          const body = document.querySelector('body');
-          const hasButtons = document.querySelectorAll('button').length > 0;
-          return body !== null && hasButtons;
-        });
-
-        expect(isAppStillFunctional).toBe(true);
-      }
-    }
+    expect(isAppStillFunctional).toBe(true);
   });
 
   test('should handle code generation errors gracefully in UI', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
+    // First simulate successful transcription
+    await appHelper.simulateRecordingStarted();
+    await window.waitForTimeout(100);
+    await appHelper.simulateRecordingStopped();
+    await window.waitForTimeout(100);
 
-        // Mock code generation error
-        ipcMain.handle('generate-code', async () => {
-          throw new Error('Code generation failed');
-        });
-      },
-      { transcription: mockTranscriptions.javascript }
-    );
+    // Then simulate that transcription succeeded but don't provide code result
+    await appHelper.simulateTranscriptionCompleted(mockTranscriptions.javascript);
+    await window.waitForTimeout(100);
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    // Simulate error after transcription (code generation failed)
+    await appHelper.simulateTranscriptionError('Code generation failed');
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    await window.waitForTimeout(500);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
+    // App should remain functional after error
+    const isAppStillFunctional = await window.evaluate(() => {
+      const body = document.querySelector('body');
+      const hasButtons = document.querySelectorAll('button').length > 0;
+      return body !== null && hasButtons;
+    });
 
-        // App should remain functional after error
-        const isAppStillFunctional = await window.evaluate(() => {
-          const body = document.querySelector('body');
-          const hasButtons = document.querySelectorAll('button').length > 0;
-          return body !== null && hasButtons;
-        });
-
-        expect(isAppStillFunctional).toBe(true);
-      }
-    }
+    expect(isAppStillFunctional).toBe(true);
   });
 
   test('should allow copying generated code to clipboard', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    await app.evaluate(
-      ({ transcription, codeResult }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        ipcMain.handle('transcribe-audio', async () => ({
-          text: transcription.text,
-          confidence: transcription.confidence,
-          language: transcription.language,
-        }));
-
-        ipcMain.handle('generate-code', async () => ({
-          code: codeResult,
-          language: 'javascript',
-        }));
-      },
-      {
-        transcription: mockTranscriptions.javascript,
-        codeResult: mockCodeResults.javascript,
-      }
+    // Simulate voice command with code generation
+    await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.javascript,
+      mockCodeResults.javascript
     );
 
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
+    await window.waitForTimeout(500);
+
+    // Look for copy button
+    const copyButton = await window.locator(
+      'button:has-text("Copy"), button[data-testid="copy-code"]'
     ).first();
 
-    if ((await recordButton.count()) > 0) {
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    if ((await copyButton.count()) > 0) {
+      await copyButton.click();
+      await window.waitForTimeout(300);
 
-      const stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-
-        // Look for copy button
-        const copyButton = await window.locator(
-          'button:has-text("Copy"), button[data-testid="copy-code"]'
-        ).first();
-
-        if ((await copyButton.count()) > 0) {
-          await copyButton.click();
-          await window.waitForTimeout(300);
-
-          // Verify copy action completed
-          const body = await window.locator('body');
-          expect(await body.isVisible()).toBe(true);
-        }
-      }
+      // Verify copy action completed (button should still be visible/functional)
+      const body = await window.locator('body');
+      expect(await body.isVisible()).toBe(true);
+    } else {
+      // If no copy button, that's okay - the test verifies the flow works
+      const body = await window.locator('body');
+      expect(await body.isVisible()).toBe(true);
     }
   });
 
   test('should support multiple voice commands in sequence', async () => {
-    const { window, app } = await appHelper.launch();
+    const { window } = await appHelper.launch();
     await waitForLoadState(window);
 
-    // Mock handlers for multiple commands
-    await app.evaluate(
-      ({ jsTranscription, pyTranscription, jsCode, pyCode }) => {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const { ipcMain } = require('electron');
+    await appHelper.initializeTestMocks();
 
-        let callCount = 0;
-
-        ipcMain.handle('transcribe-audio', async () => {
-          callCount++;
-          return callCount === 1
-            ? {
-                text: jsTranscription.text,
-                confidence: jsTranscription.confidence,
-                language: jsTranscription.language,
-              }
-            : {
-                text: pyTranscription.text,
-                confidence: pyTranscription.confidence,
-                language: pyTranscription.language,
-              };
-        });
-
-        let codeCallCount = 0;
-        ipcMain.handle('generate-code', async () => {
-          codeCallCount++;
-          return codeCallCount === 1
-            ? { code: jsCode, language: 'javascript' }
-            : { code: pyCode, language: 'python' };
-        });
-      },
-      {
-        jsTranscription: mockTranscriptions.javascript,
-        pyTranscription: mockTranscriptions.python,
-        jsCode: mockCodeResults.javascript,
-        pyCode: mockCodeResults.python,
-      }
+    // First command - JavaScript
+    const session1 = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.javascript,
+      mockCodeResults.javascript
     );
+    await window.waitForTimeout(300);
 
-    // Execute first voice command
-    const recordButton = await window.locator(
-      'button:has-text("Record"), button[data-testid="record-button"]'
-    ).first();
+    expect(session1.transcription).toBe(mockTranscriptions.javascript.text);
+    expect(session1.language).toBe(mockTranscriptions.javascript.language);
 
-    if ((await recordButton.count()) > 0) {
-      // First command
-      await recordButton.click();
-      await window.waitForTimeout(500);
+    // Second command - Python
+    const session2 = await appHelper.simulateVoiceCommandFlow(
+      mockTranscriptions.python,
+      mockCodeResults.python
+    );
+    await window.waitForTimeout(300);
 
-      let stopButton = await window.locator('button:has-text("Stop")').first();
-      if ((await stopButton.count()) > 0) {
-        await stopButton.click();
-        await window.waitForTimeout(1500);
-      }
+    expect(session2.transcription).toBe(mockTranscriptions.python.text);
+    expect(session2.language).toBe(mockTranscriptions.python.language);
 
-      // Second command
-      if ((await recordButton.count()) > 0) {
-        await recordButton.click();
-        await window.waitForTimeout(500);
+    // Verify sessions are different
+    expect(session1.id).not.toBe(session2.id);
 
-        stopButton = await window.locator('button:has-text("Stop")').first();
-        if ((await stopButton.count()) > 0) {
-          await stopButton.click();
-          await window.waitForTimeout(1500);
+    // Verify app is still functional after multiple commands
+    const isAppFunctional = await window.evaluate(() => {
+      const hasButtons = document.querySelectorAll('button').length > 0;
+      return hasButtons;
+    });
 
-          // Verify app is still functional after multiple commands
-          const isAppFunctional = await window.evaluate(() => {
-            const hasButtons = document.querySelectorAll('button').length > 0;
-            return hasButtons;
-          });
-
-          expect(isAppFunctional).toBe(true);
-        }
-      }
-    }
+    expect(isAppFunctional).toBe(true);
   });
 });

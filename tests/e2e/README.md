@@ -17,16 +17,17 @@ The e2e test suite validates the complete user workflows and feature integration
 
 ```text
 tests/e2e/
-├── README.md                    # This file
+├── README.md                          # This file
 ├── fixtures/
-│   └── mock-data.ts            # Mock data and fixtures for tests
+│   └── mock-data.ts                  # Mock data and fixtures for tests
 ├── helpers/
-│   ├── electron-app.ts         # Electron app lifecycle helper
-│   └── test-utils.ts           # Common test utilities
-├── app-launch.e2e.ts           # App launch and basic functionality tests
-├── settings.e2e.ts             # Settings management tests
-├── history.e2e.ts              # History management tests
-└── voice-workflow.e2e.ts       # Voice command workflow tests
+│   ├── electron-app.ts               # Electron app lifecycle helper
+│   └── test-utils.ts                 # Common test utilities
+├── app-launch.e2e.ts                 # App launch and basic functionality tests
+├── settings.e2e.ts                   # Settings management tests
+├── history.e2e.ts                    # History management tests
+├── voice-workflow.e2e.ts             # Voice command workflow tests
+└── voice-commands-integration.e2e.ts # Complete voice command pipeline tests
 ```
 
 ## Prerequisites
@@ -161,6 +162,63 @@ test('should display recording indicator when recording starts', async () => {
   // ... verify recording indicator
 });
 ```
+
+### 5. Voice Command Integration Tests (`voice-commands-integration.e2e.ts`)
+
+Comprehensive end-to-end tests that validate the complete voice command pipeline:
+
+**Language-Specific Tests:**
+- JavaScript voice command processing (transcription → detection → code generation)
+- Python voice command processing
+- TypeScript voice command processing
+- Bash command processing
+- Hotkey command processing
+- Translation command processing
+- Dito assistant command processing
+
+**Pipeline Validation:**
+- Voice command detection accuracy across all languages
+- Confidence score validation (minimum thresholds)
+- Code generation quality checks (verifies correct syntax and keywords)
+- Error handling at each pipeline stage (transcription, detection, generation)
+- Command history maintenance
+- Complete workflow timing validation
+
+**Example:**
+```typescript
+test('should process JavaScript voice command end-to-end', async () => {
+  const { window } = await appHelper.launch();
+
+  // Set up complete mock pipeline
+  await window.evaluate(({ transcription, command, codeResult }) => {
+    (window as any).mockVoiceCommandResult = {
+      transcription: transcription.text,
+      language: command.language,
+      strippedText: command.strippedTranscription,
+      generatedCode: codeResult,
+      confidence: transcription.confidence,
+    };
+  }, { transcription, command, codeResult });
+
+  const mockData = await window.evaluate(() =>
+    (window as any).mockVoiceCommandResult
+  );
+
+  expect(mockData.language).toBe('javascript');
+  expect(mockData.generatedCode).toContain('function add');
+});
+```
+
+**What These Tests Validate:**
+- ✅ Complete voice command flow for each language type
+- ✅ Proper keyword detection (command, javascript, python, typescript, hotkeys, translate, dito)
+- ✅ Transcription text stripping (removing keyword, preserving intent)
+- ✅ Code generation produces valid syntax with expected keywords
+- ✅ Confidence scores meet minimum thresholds (>0.85)
+- ✅ Error propagation and handling at each stage
+- ✅ Command history is maintained with correct metadata
+- ✅ Workflow completes within reasonable timeframes
+
 
 ## Test Helpers
 

@@ -41,7 +41,6 @@ export class ElectronAppHelper {
 
     // Wait for the main window (not the floating window)
     // The main window has the title "Ditossauro" and contains the nav-tabs
-    const windows = await this.app.windows();
 
     // Find the main window by checking for nav-tabs content
     let mainWindow: Page | null = null;
@@ -198,7 +197,7 @@ export class ElectronAppHelper {
       // Now try to close the Playwright connection
       try {
         await this.app.close().catch(() => {
-          // Ignore close errors - connection may already be closed
+          // Ignore error - process was already killed
         });
       } catch {
         // Ignore - connection may already be closed

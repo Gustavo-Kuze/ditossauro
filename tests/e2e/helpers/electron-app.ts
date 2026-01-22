@@ -197,7 +197,9 @@ export class ElectronAppHelper {
 
       // Now try to close the Playwright connection
       try {
-        await this.app.close().catch(() => {});
+        await this.app.close().catch(() => {
+          // Ignore close errors - connection may already be closed
+        });
       } catch {
         // Ignore - connection may already be closed
       }

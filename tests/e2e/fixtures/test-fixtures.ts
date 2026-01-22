@@ -5,7 +5,7 @@ import { ElectronAppHelper } from '../helpers/electron-app';
  * Custom test fixture that provides automatic Electron app lifecycle management
  */
 export const test = base.extend<{ appHelper: ElectronAppHelper }>({
-  appHelper: async ({}, use) => {
+  appHelper: async (_useless, use) => {
     const helper = new ElectronAppHelper();
     await use(helper);
     // Cleanup is handled in the helper's close method

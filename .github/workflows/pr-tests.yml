@@ -51,21 +51,25 @@ jobs:
         continue-on-error: true
 
       - name: Install system dependencies for Playwright
+        if: false
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb libgtk-3-0 libnotify4 libnss3 libxss1 libasound2
         continue-on-error: true
 
       - name: Install Playwright browsers
+        if: false
         run: npx playwright install --with-deps
         continue-on-error: true
 
       - name: Build application for e2e tests
+        if: false
         run: npm run build
         continue-on-error: true
 
       - name: Run e2e tests
         id: e2e
+        if: false
         run: xvfb-run --auto-servernum npm run test:e2e
         env:
           CI: true

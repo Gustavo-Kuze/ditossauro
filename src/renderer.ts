@@ -1140,7 +1140,7 @@ class DitossauroUI {
           keys: selectedKeys,
           mode: hotkeyMode
         },
-        cancel: 'Escape'
+        cancel: 'Space'
       });
 
       // Notify that hotkeys have been updated

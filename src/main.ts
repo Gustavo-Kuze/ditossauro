@@ -321,10 +321,14 @@ class DitossauroElectronApp {
     });
 
     // Listener for cancellation
-    this.hotkeyManager.on('cancel-pressed', () => {
+    this.hotkeyManager.on('cancel-pressed', async () => {
       if (this.ditossauroApp.getRecordingState().isRecording) {
-        console.log('⏹️ Recording canceled by user');
-        // Implement cancellation logic if needed
+        console.log('⏹️ Recording canceled by user (Space pressed)');
+        try {
+          await this.ditossauroApp.cancelRecording();
+        } catch (error) {
+          console.error('Error canceling recording:', error);
+        }
       }
     });
 
@@ -571,6 +575,14 @@ class DitossauroElectronApp {
       this.sendToRenderer('recording-stopped');
       this.sendToFloatingWindow('recording-stopped');
       // Keep floating window visible - don't hide it
+      this.updateTrayIcon('idle');
+      this.updateTrayMenu();
+    });
+
+    this.ditossauroApp.on('recording-canceled', () => {
+      this.sendToRenderer('recording-canceled');
+      this.sendToFloatingWindow('recording-canceled');
+      this.hideFloatingWindow();
       this.updateTrayIcon('idle');
       this.updateTrayMenu();
     });
@@ -901,7 +913,7 @@ class DitossauroElectronApp {
 
           return new Promise((resolve, reject) => {
             const duration = this.startTime ? (Date.now() - this.startTime) / 1000 : 0;
-            
+
             this.mediaRecorder.onstop = async () => {
               try {
                 if (this.audioChunks.length === 0) {
@@ -911,23 +923,23 @@ class DitossauroElectronApp {
                 // Get the MIME type of the first chunk
                 const mimeType = this.audioChunks[0]?.type || 'audio/webm';
                 console.log(\`🎵 Detected MIME type: \${mimeType}\`);
-                
+
                 const audioBlob = new Blob(this.audioChunks, { type: mimeType });
-                
+
                 // Verificar se o blob tem conteúdo
                 if (audioBlob.size === 0) {
                   throw new Error('Audio file empty');
                 }
-                
+
                 const arrayBuffer = await audioBlob.arrayBuffer();
                 const uint8Array = new Uint8Array(arrayBuffer);
-                
+
                 console.log(\`📦 Audio captured: \${uint8Array.length} bytes, \${duration.toFixed(1)}s, type: \${mimeType}\`);
-                
+
                 // Log the first bytes for debug
                 const firstBytes = Array.from(uint8Array.slice(0, 8)).map(b => b.toString(16).padStart(2, '0')).join(' ');
                 console.log(\`🔍 First bytes: \${firstBytes}\`);
-                
+
                 // Send data to the main process
                 const result = await window.electronAPI.processAudioData(Array.from(uint8Array), duration);
                 resolve(result);
@@ -939,14 +951,37 @@ class DitossauroElectronApp {
 
             this.mediaRecorder.stop();
             this.isRecording = false;
-            
+
             if (this.stream) {
               this.stream.getTracks().forEach(track => track.stop());
               this.stream = null;
             }
-            
+
             window.electronAPI.sendAudioEvent('recording-stopped', { duration });
           });
+        }
+
+        cancelRecording() {
+          if (!this.isRecording || !this.mediaRecorder) {
+            console.log('Not recording, nothing to cancel');
+            return;
+          }
+
+          console.log('❌ Canceling recording (no transcription will be performed)');
+
+          // Stop the media recorder without processing the audio
+          this.mediaRecorder.stop();
+          this.isRecording = false;
+
+          if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+          }
+
+          // Clear audio chunks to prevent processing
+          this.audioChunks = [];
+
+          console.log('✅ Recording canceled');
         }
 
         getRecordingState() {

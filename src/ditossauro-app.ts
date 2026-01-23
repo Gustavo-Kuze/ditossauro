@@ -192,6 +192,31 @@ export class DitossauroApp extends EventEmitter {
     }
   }
 
+  async cancelRecording(): Promise<void> {
+    if (!this.recordingState.isRecording) {
+      console.log('⚠️ Not recording, nothing to cancel');
+      return;
+    }
+
+    console.log('❌ Canceling recording...');
+
+    try {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        await this.mainWindow.webContents.executeJavaScript(`
+          window.audioRecorder.cancelRecording()
+        `);
+      }
+
+      this.recordingState.isRecording = false;
+      this.recordingState.startTime = undefined;
+      this.emit('recording-canceled');
+      console.log('✅ Recording canceled successfully');
+    } catch (error) {
+      console.error('Error canceling recording:', error);
+      this.emit('error', error);
+    }
+  }
+
   private async processRecording(recordingData: { audioFile: string; duration: number }): Promise<void> {
     try {
       this.emit('processing-started');

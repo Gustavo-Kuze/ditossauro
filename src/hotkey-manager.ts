@@ -195,12 +195,21 @@ export class HotkeyManager extends EventEmitter {
    * Checks if any key combination is pressed
    */
   private checkHotkeys(skipStartStop = false): void {
-    // Check cancel key first
-    if (this.cancelKey) {
+    // Check cancel key first - but only if startStop hotkey keys are also pressed
+    if (this.cancelKey && this.startStopConfig) {
       const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];
       if (cancelKeyCode && this.pressedKeys.has(cancelKeyCode)) {
-        this.emit('cancel-pressed');
-        return;
+        // Check if all startStop hotkey keys are also pressed
+        const startStopKeyCodes = this.startStopConfig.keys
+          .map(key => KEY_CODE_MAP[key])
+          .filter(code => code !== undefined);
+
+        const allStartStopKeysPressed = startStopKeyCodes.every(code => this.pressedKeys.has(code));
+
+        if (allStartStopKeysPressed) {
+          this.emit('cancel-pressed');
+          return;
+        }
       }
     }
 

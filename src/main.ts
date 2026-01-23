@@ -335,18 +335,8 @@ class DitossauroElectronApp {
           this.tray.setToolTip(i18nMain.t('tray.idle'));
         }
 
-        // Update floating window if active
-        if (this.floatingWindow && !this.floatingWindow.isDestroyed()) {
-          this.floatingWindow.webContents.send('recording-canceled');
-        }
-
         // Reset code snippet processing state
         this.isProcessingCodeSnippet = false;
-
-        // Notificar usuário via UI principal
-        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-          this.mainWindow.webContents.send('recording-canceled');
-        }
       }
     });
 

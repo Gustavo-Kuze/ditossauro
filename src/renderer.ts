@@ -1144,8 +1144,7 @@ class DitossauroUI {
         startStop: {
           keys: selectedKeys,
           mode: hotkeyMode
-        },
-        cancel: 'Escape'
+        }
       });
 
       // Notify that hotkeys have been updated

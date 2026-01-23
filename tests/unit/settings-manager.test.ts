@@ -73,8 +73,7 @@ describe('SettingsManager', () => {
           codeSnippet: {
             keys: ['Alt', 'Shift', 'C'],
             mode: 'toggle'
-          },
-          cancel: 'Escape'
+          }
         },
         api: {
           assemblyAiKey: '',

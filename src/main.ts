@@ -279,8 +279,7 @@ class DitossauroElectronApp {
     // Register hotkeys using the new HotkeyManager
     this.hotkeyManager.register(
       settings.hotkeys.startStop,
-      settings.hotkeys.codeSnippet,
-      settings.hotkeys.cancel
+      settings.hotkeys.codeSnippet
     );
   }
 
@@ -321,10 +320,33 @@ class DitossauroElectronApp {
     });
 
     // Listener for cancellation
-    this.hotkeyManager.on('cancel-pressed', () => {
-      if (this.ditossauroApp.getRecordingState().isRecording) {
-        console.log('⏹️ Recording canceled by user');
-        // Implement cancellation logic if needed
+    this.hotkeyManager.on('cancel-pressed', async () => {
+      const recordingState = this.ditossauroApp.getRecordingState();
+
+      if (recordingState.isRecording) {
+        console.log('🚫 Cancel combination pressed (hotkeys + C) during recording');
+
+        // Call cancellation method
+        await this.ditossauroApp.cancelRecording();
+
+        // Update tray icon to idle
+        if (this.tray) {
+          this.tray.setImage(this.trayIcons.idle);
+          this.tray.setToolTip(i18nMain.t('tray.idle'));
+        }
+
+        // Update floating window if active
+        if (this.floatingWindow && !this.floatingWindow.isDestroyed()) {
+          this.floatingWindow.webContents.send('recording-canceled');
+        }
+
+        // Reset code snippet processing state
+        this.isProcessingCodeSnippet = false;
+
+        // Notificar usuário via UI principal
+        if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+          this.mainWindow.webContents.send('recording-canceled');
+        }
       }
     });
 
@@ -343,7 +365,7 @@ class DitossauroElectronApp {
           await this.ditossauroApp.startRecording();
         }
       } else {
-        // Modo push-to-talk: iniciar gravação
+        // Push-to-talk mode: start recording
         if (!isRecording) {
           // Enable code snippet mode before starting recording
           this.ditossauroApp.setCodeSnippetMode(true);
@@ -571,6 +593,13 @@ class DitossauroElectronApp {
       this.sendToRenderer('recording-stopped');
       this.sendToFloatingWindow('recording-stopped');
       // Keep floating window visible - don't hide it
+      this.updateTrayIcon('idle');
+      this.updateTrayMenu();
+    });
+
+    this.ditossauroApp.on('recording-canceled', () => {
+      this.sendToRenderer('recording-canceled');
+      this.sendToFloatingWindow('recording-canceled');
       this.updateTrayIcon('idle');
       this.updateTrayMenu();
     });
@@ -914,7 +943,7 @@ class DitossauroElectronApp {
                 
                 const audioBlob = new Blob(this.audioChunks, { type: mimeType });
                 
-                // Verificar se o blob tem conteúdo
+                // Check if blob has content
                 if (audioBlob.size === 0) {
                   throw new Error('Audio file empty');
                 }
@@ -949,6 +978,40 @@ class DitossauroElectronApp {
           });
         }
 
+        async cancelRecording() {
+          if (!this.isRecording) {
+            console.log('⚠️ Not recording, cannot cancel');
+            return;
+          }
+
+          console.log('🚫 Canceling recording in renderer...');
+
+          // Stop recording
+          this.isRecording = false;
+
+          // Stop MediaRecorder
+          if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+            this.mediaRecorder.stop();
+          }
+
+          // **IMPORTANT:** Discard accumulated audio chunks
+          this.audioChunks = [];
+
+          // Stop audio tracks
+          if (this.stream) {
+            this.stream.getTracks().forEach(track => {
+              track.stop();
+            });
+            this.stream = null;
+          }
+
+          // NOTIFY via IPC that recording was canceled
+          // This prevents calling processAudioData()
+          window.electronAPI.sendAudioEvent('recording-canceled');
+
+          console.log('✅ Recording canceled in renderer, audio discarded');
+        }
+
         getRecordingState() {
           return { isRecording: this.isRecording };
         }
@@ -971,7 +1034,7 @@ class DitossauroElectronApp {
   }
 }
 
-// Inicializar aplicação
+// Initialize application
 const ditossauroElectronApp = new DitossauroElectronApp();
 
 // This method will be called when Electron has finished

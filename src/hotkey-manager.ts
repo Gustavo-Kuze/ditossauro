@@ -86,7 +86,6 @@ export declare interface HotkeyManager {
 export class HotkeyManager extends EventEmitter {
   private startStopConfig: HotkeyConfig | null = null;
   private codeSnippetConfig: HotkeyConfig | null = null;
-  private cancelKey: string | null = null;
   private pressedKeys = new Set<number>();
   private isStartStopHotkeyActive = false;
   private isCodeSnippetHotkeyActive = false;
@@ -102,10 +101,9 @@ export class HotkeyManager extends EventEmitter {
   /**
    * Registers the hotkeys
    */
-  register(startStopConfig: HotkeyConfig, codeSnippetConfig: HotkeyConfig, cancelKey?: string): void {
+  register(startStopConfig: HotkeyConfig, codeSnippetConfig: HotkeyConfig): void {
     this.startStopConfig = startStopConfig;
     this.codeSnippetConfig = codeSnippetConfig;
-    this.cancelKey = cancelKey || null;
 
     if (!this.isListening) {
       this.startListening();
@@ -115,9 +113,7 @@ export class HotkeyManager extends EventEmitter {
     const codeSnippetKeysStr = codeSnippetConfig.keys.join('+');
     console.log(`✅ Hotkey registered (start/stop): ${startStopKeysStr} (mode: ${startStopConfig.mode})`);
     console.log(`✅ Hotkey registered (code snippet): ${codeSnippetKeysStr} (mode: ${codeSnippetConfig.mode})`);
-    if (cancelKey) {
-      console.log(`✅ Cancel key: ${cancelKey}`);
-    }
+    console.log(`✅ Cancel combination: hotkeys + C`);
   }
 
   /**
@@ -127,7 +123,6 @@ export class HotkeyManager extends EventEmitter {
     this.stopListening();
     this.startStopConfig = null;
     this.codeSnippetConfig = null;
-    this.cancelKey = null;
     this.pressedKeys.clear();
     this.isStartStopHotkeyActive = false;
     this.isCodeSnippetHotkeyActive = false;
@@ -195,13 +190,42 @@ export class HotkeyManager extends EventEmitter {
    * Checks if any key combination is pressed
    */
   private checkHotkeys(skipStartStop = false): void {
-    // Check cancel key first
-    if (this.cancelKey) {
-      const cancelKeyCode = KEY_CODE_MAP[this.cancelKey];
-      if (cancelKeyCode && this.pressedKeys.has(cancelKeyCode)) {
-        this.emit('cancel-pressed');
-        return;
+    // First, check if C key is pressed for cancellation
+    const cKeyCode = KEY_CODE_MAP['C'];
+    const isCPressed = cKeyCode && this.pressedKeys.has(cKeyCode);
+
+    if (isCPressed) {
+      // Check if start/stop hotkey is active + C
+      if (this.startStopConfig) {
+        const startStopKeys = this.startStopConfig.keys
+          .map(key => KEY_CODE_MAP[key])
+          .filter(code => code !== undefined);
+
+        // If all hotkey keys + C are pressed
+        if (startStopKeys.every(code => this.pressedKeys.has(code))) {
+          console.log('🚫 Cancel combination detected: start/stop hotkeys + C');
+          this.emit('cancel-pressed');
+          return; // Cancel detected, don't check other hotkeys
+        }
       }
+
+      // Check if code snippet hotkey is active + C
+      if (this.codeSnippetConfig) {
+        const codeSnippetKeys = this.codeSnippetConfig.keys
+          .map(key => KEY_CODE_MAP[key])
+          .filter(code => code !== undefined);
+
+        // If all hotkey keys + C are pressed
+        if (codeSnippetKeys.every(code => this.pressedKeys.has(code))) {
+          console.log('🚫 Cancel combination detected: code snippet hotkeys + C');
+          this.emit('cancel-pressed');
+          return; // Cancel detected, don't check other hotkeys
+        }
+      }
+
+      // C was pressed but no hotkey active, ignore it
+      // (C alone does nothing)
+      return;
     }
 
     // Check code snippet hotkey (more specific - 3 keys)

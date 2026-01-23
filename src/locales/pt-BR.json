@@ -181,7 +181,9 @@
     "notifications": {
         "minimizedToTray": "Aplicativo minimizado para a bandeja do sistema",
         "transcriptionCompleted": "Transcrição Concluída",
-        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings.",
+        "recordingCanceled": "Gravação cancelada",
+        "recordingCanceledMessage": "Pressione as teclas de ativação novamente para gravar."
     },
     "errors": {
         "initError": "Erro ao inicializar aplicativo",

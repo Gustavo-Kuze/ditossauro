@@ -51,9 +51,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     const wrappedCallback = (_: Electron.IpcRendererEvent, event: string, data?: unknown) => callback(event, data);
     ipcRenderer.on('recording-started', () => callback('recording-started'));
     ipcRenderer.on('recording-stopped', () => callback('recording-stopped'));
+    ipcRenderer.on('recording-canceled', () => callback('recording-canceled'));
     return () => {
       ipcRenderer.removeListener('recording-started', wrappedCallback);
       ipcRenderer.removeListener('recording-stopped', wrappedCallback);
+      ipcRenderer.removeListener('recording-canceled', wrappedCallback);
     };
   },
 
@@ -65,6 +67,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onRecordingStopped: (callback: () => void) => {
     ipcRenderer.on('recording-stopped', callback);
     return () => ipcRenderer.removeListener('recording-stopped', callback);
+  },
+  onRecordingCanceled: (callback: () => void) => {
+    ipcRenderer.on('recording-canceled', callback);
+    return () => ipcRenderer.removeListener('recording-canceled', callback);
   },
   onProcessingStarted: (callback: () => void) => {
     ipcRenderer.on('processing-started', callback);
@@ -126,6 +132,7 @@ export interface ElectronAPI {
   onFloatingEvent(callback: (event: string, data?: unknown) => void): () => void;
   onRecordingStarted(callback: () => void): () => void;
   onRecordingStopped(callback: () => void): () => void;
+  onRecordingCanceled(callback: () => void): () => void;
   onProcessingStarted(callback: () => void): () => void;
   onTranscriptionCompleted(callback: (session: TranscriptionSession) => void): () => void;
   onTextInserted(callback: (text: string) => void): () => void;

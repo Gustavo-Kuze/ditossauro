@@ -47,6 +47,7 @@ export class SettingsManager {
       startMinimized: false,
       showFloatingWindow: true,
       notifyOnTranscription: true,
+      launchAtStartup: false,
     }
   };
 

@@ -524,6 +524,13 @@ class DitossauroElectronApp {
       } else {
         this.hideFloatingWindow();
       }
+      // Handle launch at startup setting
+      if (settings.behavior?.launchAtStartup !== undefined) {
+        app.setLoginItemSettings({
+          openAtLogin: settings.behavior.launchAtStartup,
+          openAsHidden: settings.behavior.startMinimized
+        });
+      }
     });
 
     // Floating window commands
@@ -980,6 +987,14 @@ app.whenReady().then(() => {
   const settings = ditossauroElectronApp.getDitossauroApp().getSettings();
   if (settings.behavior?.showFloatingWindow !== false) {
     ditossauroElectronApp.showFloatingWindow();
+  }
+
+  // Apply launch at startup setting
+  if (settings.behavior?.launchAtStartup !== undefined) {
+    app.setLoginItemSettings({
+      openAtLogin: settings.behavior.launchAtStartup,
+      openAsHidden: settings.behavior.startMinimized
+    });
   }
 
   app.on('activate', () => {

@@ -134,7 +134,9 @@
             "showFloatingWindow": "Show Floating Window",
             "showFloatingWindowHelp": "Display the floating window interface. When disabled, you can still use hotkeys to record, but the floating window won't be visible.",
             "notifyOnTranscription": "Show notifications when transcription is completed",
-            "notifyOnTranscriptionHelp": "Display a system notification each time a transcription is completed"
+            "notifyOnTranscriptionHelp": "Display a system notification each time a transcription is completed",
+            "launchAtStartup": "Launch at startup",
+            "launchAtStartupHelp": "Automatically launch Ditossauro when your system starts"
         }
     },
     "history": {

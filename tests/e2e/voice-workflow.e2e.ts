@@ -229,7 +229,7 @@ test.describe('Voice Command Workflow', () => {
     // Simulate translation voice command
     const session = await appHelper.simulateVoiceCommandFlow(
       mockTranscriptions.translate,
-      { code: mockCodeResults.translate, language: 'text' }
+      mockCodeResults.translate
     );
 
     await window.waitForTimeout(500);

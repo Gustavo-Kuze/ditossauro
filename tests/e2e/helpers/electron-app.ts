@@ -200,7 +200,7 @@ export class ElectronAppHelper {
 
       try {
         // Get the process ID before closing
-        processId = await this.app.evaluate(() => process.pid).catch(() => null);
+        processId = await this.app.evaluate(() => process.pid).catch((): number | null => null);
       } catch {
         // Ignore - app may already be closed
       }
@@ -226,7 +226,7 @@ export class ElectronAppHelper {
 
       // Now try to close the Playwright connection
       try {
-        await this.app.close().catch(() => {
+        await this.app.close().catch((): void => {
           // Ignore error - process was already killed
         });
       } catch {
@@ -273,7 +273,7 @@ export class ElectronAppHelper {
       }, timeout);
 
       this.app?.evaluate(
-        ({ eventName }) => {
+        (_: unknown, { eventName }: { eventName: string }) => {
           return new Promise((resolve) => {
             // eslint-disable-next-line @typescript-eslint/no-var-requires
             const { ipcMain } = require('electron');

@@ -39,7 +39,7 @@ export const mockSettings = {
  * Mock history data
  */
 export const mockHistory = {
-  empty: [],
+  empty: [] as any[],
   singleEntry: [
     {
       id: '1',
@@ -127,13 +127,13 @@ export const mockTranscriptions = {
  * Mock code generation results
  */
 export const mockCodeResults = {
-  javascript: 'function add(a, b) {\n  return a + b;\n}',
-  python: 'class Person:\n    def __init__(self, name):\n        self.name = name',
-  bash: 'ls -la',
-  typescript: 'interface User {\n  id: number;\n  name: string;\n}',
-  hotkey: 'Ctrl+C',
-  translate: 'Hola Mundo',
-  dito: 'I don\'t have access to real-time weather data.',
+  javascript: { code: 'function add(a, b) {\n  return a + b;\n}', language: 'javascript' },
+  python: { code: 'class Person:\n    def __init__(self, name):\n        self.name = name', language: 'python' },
+  bash: { code: 'ls -la', language: 'bash' },
+  typescript: { code: 'interface User {\n  id: number;\n  name: string;\n}', language: 'typescript' },
+  hotkey: { code: 'Ctrl+C', language: 'hotkey' },
+  translate: { code: 'Hola Mundo', language: 'text' },
+  dito: { code: 'I don\'t have access to real-time weather data.', language: 'text' },
 };
 
 /**

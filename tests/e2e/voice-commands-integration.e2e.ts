@@ -143,7 +143,7 @@ test.describe('Voice Command Integration - Complete Pipeline', () => {
 
     const session = await appHelper.simulateVoiceCommandFlow(
       mockTranscriptions.translate,
-      { code: mockCodeResults.translate, language: 'text' }
+      mockCodeResults.translate
     );
 
     await window.waitForTimeout(500);

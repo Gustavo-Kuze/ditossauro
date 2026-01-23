@@ -554,6 +554,11 @@ private static matchesKeyword(transcription: string, keyword: string): boolean {
 
 ## Testing Patterns
 
+### Test Types
+The project uses both unit and E2E tests:
+- **Unit tests**: Vitest-based tests in `tests/unit/`
+- **E2E tests**: Playwright-based integration tests for Electron app
+
 ### Test Structure
 ```typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -626,6 +631,14 @@ coverage: {
   }
 }
 ```
+
+### E2E Test Results
+E2E test results are stored in `test-results/` directory:
+- `app-launch.e2e.ts-*` - App startup and window management tests
+- `voice-workflow.e2e.ts-*` - Voice recording and transcription workflow tests
+- `voice-commands-integration-*` - Voice command detection and execution tests
+- `history.e2e.ts-*` - History management and interaction tests
+- `settings.e2e.ts-*` - Settings configuration and persistence tests
 
 ## i18n Patterns
 
@@ -860,6 +873,34 @@ Security fuses applied at package time:
 - Package formats: .deb, .rpm
 - Different key codes for some keys
 - AppImage alternative possible
+
+## CI/CD Workflows
+
+### Pull Request Tests
+PRs to `main`, `develop`, and `dev` branches automatically run tests:
+```yaml
+# .github/workflows/pr-tests.yml
+- Runs ESLint
+- Runs unit tests
+- Runs tests with coverage
+- Comments PR with test results
+- Blocks merge if tests fail
+```
+
+### NorthFlank Deployment
+Releases are built and published via NorthFlank (not GitHub Actions):
+- Uses Docker environment for building
+- Creates platform-specific installers (DEB, RPM for Linux)
+- Auto-publishes to GitHub releases
+- See `NORTHFLANK.md` for detailed setup
+
+### CodeRabbit Integration
+Automatic AI code reviews via CodeRabbit:
+- Reviews TypeScript for type safety and error handling
+- Reviews JavaScript for bugs and performance
+- Reviews tests for coverage and quality
+- Configured in `.coderabbit.yaml`
+- Auto-reviews enabled for `dev` branch
 
 ## Common Tasks & Solutions
 

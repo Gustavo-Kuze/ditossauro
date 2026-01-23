@@ -93,6 +93,7 @@ export class HotkeyManager extends EventEmitter {
   private lastStartStopToggleTime = 0;
   private lastCodeSnippetToggleTime = 0;
   private readonly DEBOUNCE_MS = 100; // Debounce to avoid multiple toggles
+  private cancelDetected = false; // Flag to prevent hotkeys when canceling
 
   constructor() {
     super();
@@ -146,6 +147,13 @@ export class HotkeyManager extends EventEmitter {
 
       this.pressedKeys.delete(event.keycode);
 
+      // Reset cancel detection only when ALL keys are released
+      // This prevents the hotkey from reactivating when C is released
+      // while Ctrl+Meta are still held down
+      if (this.pressedKeys.size === 0) {
+        this.cancelDetected = false;
+      }
+
       // If code snippet was active, skip checking start/stop during release
       // to prevent overlapping hotkey activation
       const skipStartStop = wasCodeSnippetActive;
@@ -190,6 +198,12 @@ export class HotkeyManager extends EventEmitter {
    * Checks if any key combination is pressed
    */
   private checkHotkeys(skipStartStop = false): void {
+    // If cancel was detected, don't check hotkeys until all keys are released
+    // This prevents the hotkey from reactivating after canceling
+    if (this.cancelDetected) {
+      return;
+    }
+
     // First, check if C key is pressed for cancellation
     const cKeyCode = KEY_CODE_MAP['C'];
     const isCPressed = cKeyCode && this.pressedKeys.has(cKeyCode);
@@ -204,6 +218,8 @@ export class HotkeyManager extends EventEmitter {
         // If all hotkey keys + C are pressed
         if (startStopKeys.every(code => this.pressedKeys.has(code))) {
           console.log('🚫 Cancel combination detected: start/stop hotkeys + C');
+          this.isStartStopHotkeyActive = false; // Deactivate hotkey
+          this.cancelDetected = true; // Set flag to prevent hotkey activation
           this.emit('cancel-pressed');
           return; // Cancel detected, don't check other hotkeys
         }
@@ -218,6 +234,8 @@ export class HotkeyManager extends EventEmitter {
         // If all hotkey keys + C are pressed
         if (codeSnippetKeys.every(code => this.pressedKeys.has(code))) {
           console.log('🚫 Cancel combination detected: code snippet hotkeys + C');
+          this.isCodeSnippetHotkeyActive = false; // Deactivate hotkey
+          this.cancelDetected = true; // Set flag to prevent hotkey activation
           this.emit('cancel-pressed');
           return; // Cancel detected, don't check other hotkeys
         }

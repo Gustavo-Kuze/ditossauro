@@ -59,22 +59,6 @@ describe('HotkeyManager', () => {
       expect(uIOhook.on).toHaveBeenCalledWith('keyup', expect.any(Function));
     });
 
-    it('should register cancel key', () => {
-      const startStopConfig = {
-        keys: ['Control', 'Meta'],
-        mode: 'toggle' as const
-      };
-
-      const codeSnippetConfig = {
-        keys: ['Control', 'Shift', 'Meta'],
-        mode: 'toggle' as const
-      };
-
-      hotkeyManager.register(startStopConfig, codeSnippetConfig, 'Escape');
-
-      expect(uIOhook.start).toHaveBeenCalled();
-    });
-
     it('should only call start once if registered multiple times', () => {
       const startStopConfig = {
         keys: ['Control', 'Meta'],
@@ -284,7 +268,7 @@ describe('HotkeyManager', () => {
   });
 
   describe('cancel key detection', () => {
-    it('should emit cancel-pressed when cancel key is pressed', () => {
+    it('should emit cancel-pressed when C is pressed with start/stop hotkeys', () => {
       const startStopConfig = {
         keys: ['Control', 'Meta'],
         mode: 'toggle' as const
@@ -295,18 +279,20 @@ describe('HotkeyManager', () => {
         mode: 'toggle' as const
       };
 
-      hotkeyManager.register(startStopConfig, codeSnippetConfig, 'Escape');
+      hotkeyManager.register(startStopConfig, codeSnippetConfig);
 
       const cancelHandler = vi.fn();
       hotkeyManager.on('cancel-pressed', cancelHandler);
 
-      // Press Escape
-      keydownListener({ keycode: UiohookKey.Escape });
+      // Press Control, Meta, and C
+      keydownListener({ keycode: UiohookKey.Ctrl });
+      keydownListener({ keycode: UiohookKey.Meta });
+      keydownListener({ keycode: UiohookKey.C });
 
       expect(cancelHandler).toHaveBeenCalled();
     });
 
-    it('should check cancel key before other hotkeys', () => {
+    it('should emit cancel-pressed when C is pressed with code snippet hotkeys', () => {
       const startStopConfig = {
         keys: ['Control', 'Meta'],
         mode: 'toggle' as const
@@ -317,22 +303,80 @@ describe('HotkeyManager', () => {
         mode: 'toggle' as const
       };
 
-      hotkeyManager.register(startStopConfig, codeSnippetConfig, 'Escape');
+      hotkeyManager.register(startStopConfig, codeSnippetConfig);
 
       const cancelHandler = vi.fn();
-      const hotkeyHandler = vi.fn();
-
       hotkeyManager.on('cancel-pressed', cancelHandler);
-      hotkeyManager.on('hotkey-pressed', hotkeyHandler);
 
-      // Press Escape (cancel key)
-      keydownListener({ keycode: UiohookKey.Escape });
+      // Press Control, Shift, Meta, and C
+      keydownListener({ keycode: UiohookKey.Ctrl });
+      keydownListener({ keycode: UiohookKey.Shift });
+      keydownListener({ keycode: UiohookKey.Meta });
+      keydownListener({ keycode: UiohookKey.C });
+
+      expect(cancelHandler).toHaveBeenCalled();
+    });
+
+    it('should NOT emit cancel-pressed when C is pressed alone', () => {
+      const startStopConfig = {
+        keys: ['Control', 'Meta'],
+        mode: 'toggle' as const
+      };
+
+      const codeSnippetConfig = {
+        keys: ['Control', 'Shift', 'Meta'],
+        mode: 'toggle' as const
+      };
+
+      hotkeyManager.register(startStopConfig, codeSnippetConfig);
+
+      const cancelHandler = vi.fn();
+      hotkeyManager.on('cancel-pressed', cancelHandler);
+
+      // Press only C
+      keydownListener({ keycode: UiohookKey.C });
+
+      expect(cancelHandler).not.toHaveBeenCalled();
+    });
+
+    it('should deactivate hotkey when cancel is pressed', () => {
+      const startStopConfig = {
+        keys: ['Control', 'Meta'],
+        mode: 'toggle' as const
+      };
+
+      const codeSnippetConfig = {
+        keys: ['Control', 'Shift', 'Meta'],
+        mode: 'toggle' as const
+      };
+
+      hotkeyManager.register(startStopConfig, codeSnippetConfig);
+
+      const cancelHandler = vi.fn();
+      hotkeyManager.on('cancel-pressed', cancelHandler);
+
+      // Press Control, Meta (hotkey becomes active)
+      keydownListener({ keycode: UiohookKey.Ctrl });
+      keydownListener({ keycode: UiohookKey.Meta });
+
+      // Press C to cancel
+      keydownListener({ keycode: UiohookKey.C });
 
       // Cancel should be called
       expect(cancelHandler).toHaveBeenCalled();
 
-      // Hotkey should NOT be called
-      expect(hotkeyHandler).not.toHaveBeenCalled();
+      // Reset handler for next check
+      cancelHandler.mockClear();
+
+      // Release C while Control and Meta are still pressed
+      keyupListener({ keycode: UiohookKey.C });
+
+      // Cancel should NOT be called again (hotkey should NOT be reactivated)
+      expect(cancelHandler).not.toHaveBeenCalled();
+
+      // Release all keys
+      keyupListener({ keycode: UiohookKey.Ctrl });
+      keyupListener({ keycode: UiohookKey.Meta });
     });
   });
 

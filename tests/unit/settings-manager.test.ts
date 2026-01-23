@@ -141,6 +141,11 @@ describe('SettingsManager', () => {
     });
 
     it('should merge partial settings with defaults', () => {
+      // Mock environment variables to ensure defaults are used
+      const originalEnv = { ...process.env };
+      delete process.env.ASSEMBLYAI_API_KEY;
+      delete process.env.GROQ_API_KEY;
+
       const partialSettings = {
         locale: 'en',
         api: {
@@ -162,6 +167,9 @@ describe('SettingsManager', () => {
       expect(settings.api.assemblyAiKey).toBe('');
       expect(settings.api.language).toBe('pt');
       expect(settings.hotkeys.startStop.keys).toEqual(['Control', 'Meta']);
+
+      // Restore environment variables
+      process.env = originalEnv;
     });
   });
 

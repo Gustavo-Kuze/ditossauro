@@ -116,6 +116,13 @@ class FloatingWindow {
       this.stopVisualizer();
     });
 
+    window.electronAPI.onRecordingCanceled(() => {
+      this.state.isRecording = false;
+      this.updateState(this.state);
+      this.stopTimer();
+      this.stopVisualizer();
+    });
+
     window.electronAPI.onProcessingStarted(() => {
       this.state.isProcessing = true;
       this.state.isRecording = false;

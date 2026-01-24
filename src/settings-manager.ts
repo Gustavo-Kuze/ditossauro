@@ -15,8 +15,7 @@ export class SettingsManager {
       codeSnippet: {
         keys: ['Control', 'Shift', 'Meta'], // Control + Shift + Windows (Meta)
         mode: 'push-to-talk'
-      },
-      cancel: 'Escape'
+      }
     },
     audio: {
       deviceId: 'default',

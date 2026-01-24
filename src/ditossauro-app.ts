@@ -12,6 +12,20 @@ import { ipcMain, app, shell } from 'electron';
 import * as https from 'https';
 
 export class DitossauroApp extends EventEmitter {
+  /*
+  Emitted events:
+  - 'recording-started': Recording started
+  - 'recording-stopped': Recording stopped (normal)
+  - 'recording-canceled': Recording canceled
+  - 'processing-started': Processing started
+  - 'processing-completed': Processing completed
+  - 'transcription-completed': Transcription completed
+  - 'text-inserted': Text inserted
+  - 'settings-updated': Settings updated
+  - 'history-cleared': History cleared
+  - 'error': Error occurred
+  */
+
   private transcriptionProvider: ITranscriptionProvider;
   private settingsManager: SettingsManager;
   private historyManager: HistoryManager;
@@ -75,6 +89,12 @@ export class DitossauroApp extends EventEmitter {
   private setupAudioHandlers(): void {
     // Handler to process audio data from renderer
     ipcMain.handle('process-audio-data', async (_, audioData: number[], duration: number) => {
+      // CHECK if it was canceled
+      if (this.recordingState.isCanceled) {
+        console.log('⚠️ Recording was canceled, ignoring audio data');
+        return { audioFile: null, duration: 0 };
+      }
+
       try {
         return await this.processAudioData(audioData, duration);
       } catch (error) {
@@ -91,11 +111,26 @@ export class DitossauroApp extends EventEmitter {
           this.emit('recording-started');
           console.log('🎤 Recording started (Web Audio API)');
           break;
+
+        // NEW: Handle cancellation
+        case 'recording-canceled':
+          this.recordingState = { isRecording: false, isCanceled: true };
+          this.emit('recording-canceled');
+          console.log('🚫 Recording canceled');
+          break;
+
         case 'recording-stopped':
+          // If canceled, ignore
+          if (this.recordingState.isCanceled) {
+            console.log('⚠️ Recording was canceled, ignoring stop event');
+            break;
+          }
+
           this.recordingState = { isRecording: false };
           this.emit('recording-stopped', data);
           console.log('⏹️ Recording stopped');
           break;
+
         case 'error':
           this.emit('error', new Error(data as string));
           console.error('❌ Audio error:', data);
@@ -159,6 +194,13 @@ export class DitossauroApp extends EventEmitter {
       throw new Error(`${providerName} is not configured correctly`);
     }
 
+    // Reset cancellation flag when starting new recording
+    this.recordingState = {
+      isRecording: true,
+      isCanceled: false,
+      startTime: new Date()
+    };
+
     // Delegate to renderer process via Web Audio API
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       try {
@@ -188,6 +230,41 @@ export class DitossauroApp extends EventEmitter {
       }
     } catch (error) {
       console.error('Error stopping recording:', error);
+      this.emit('error', error);
+    }
+  }
+
+  async cancelRecording(): Promise<void> {
+    if (!this.recordingState.isRecording) {
+      console.log('⚠️ Not recording, cannot cancel');
+      return;
+    }
+
+    try {
+      console.log('🚫 Canceling recording...');
+
+      // Update state to indicate cancellation
+      this.recordingState = {
+        isRecording: false,
+        isCanceled: true
+      };
+
+      // Stop recording in renderer WITHOUT processing audio
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        await this.mainWindow.webContents.executeJavaScript(`
+          window.audioRecorder.cancelRecording()
+        `);
+      }
+
+      // Emit cancellation event for UI
+      this.emit('recording-canceled');
+
+      // Update tray icon
+      this.emit('tray-icon-update', 'idle');
+
+      console.log('✅ Recording canceled successfully');
+    } catch (error) {
+      console.error('❌ Error canceling recording:', error);
       this.emit('error', error);
     }
   }
@@ -611,10 +688,10 @@ export class DitossauroApp extends EventEmitter {
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
-        console.log('Arquivo temporário removido:', filePath);
+        console.log('Temporary file removed:', filePath);
       }
     } catch (err) {
-      console.error('Erro ao remover arquivo temporário:', err);
+      console.error('Error removing temporary file:', err);
     }
   }
 }

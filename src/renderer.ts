@@ -722,6 +722,11 @@ class DitossauroUI {
       this.updateRecordingStatus();
     });
 
+    window.electronAPI.onRecordingCanceled(() => {
+      this.recordingState.isRecording = false;
+      this.updateRecordingStatus();
+    });
+
     window.electronAPI.onTranscriptionCompleted((session: TranscriptionSession) => {
       this.transcriptionHistory.unshift(session);
       this.updateLastTranscription(session.transcription);
@@ -1139,8 +1144,7 @@ class DitossauroUI {
         startStop: {
           keys: selectedKeys,
           mode: hotkeyMode
-        },
-        cancel: 'Escape'
+        }
       });
 
       // Notify that hotkeys have been updated

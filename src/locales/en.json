@@ -181,7 +181,9 @@
     "notifications": {
         "minimizedToTray": "Application minimized to system tray",
         "transcriptionCompleted": "Transcription Completed",
-        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings."
+        "groqNotConfigured": "Groq API key not configured. Please set your API key in settings.",
+        "recordingCanceled": "Recording canceled",
+        "recordingCanceledMessage": "Press the activation keys again to record."
     },
     "errors": {
         "initError": "Error initializing application",

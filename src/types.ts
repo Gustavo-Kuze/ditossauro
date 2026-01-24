@@ -20,7 +20,6 @@ export interface AppSettings {
   hotkeys: {
     startStop: HotkeyConfig;
     codeSnippet: HotkeyConfig;
-    cancel: string; // Kept as string for compatibility
   };
   audio: {
     deviceId: string;
@@ -59,6 +58,7 @@ export interface RecordingState {
   isRecording: boolean;
   startTime?: Date;
   audioBuffer?: Buffer[];
+  isCanceled?: boolean; // Flag para indicar cancelamento
 }
 
 export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys' | 'translate' | 'dito';

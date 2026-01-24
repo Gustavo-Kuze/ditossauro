@@ -10,6 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { ipcMain, app, shell, clipboard } from 'electron';
 import * as https from 'https';
+import * as robot from 'robotjs';
 
 export class DitossauroApp extends EventEmitter {
   /*
@@ -184,6 +185,41 @@ export class DitossauroApp extends EventEmitter {
     return { audioFile: tempFilePath, duration };
   }
 
+  /**
+   * Capture clipboard context by triggering a fresh copy operation
+   * Only captures if the user has actively selected something new
+   */
+  private async captureClipboardContext(): Promise<string> {
+    try {
+      // Step 1: Read current clipboard content
+      const oldClipboard = clipboard.readText();
+      console.log('📋 Old clipboard content:', oldClipboard.substring(0, 50) + '...');
+
+      // Step 2: Send Ctrl+C to copy currently selected text
+      console.log('⌨️ Sending Ctrl+C to copy selection...');
+      robot.keyTap('c', ['control']);
+
+      // Step 3: Wait for the system to process the copy operation
+      await new Promise(resolve => setTimeout(resolve, 150));
+
+      // Step 4: Read clipboard again
+      const newClipboard = clipboard.readText();
+      console.log('📋 New clipboard content:', newClipboard.substring(0, 50) + '...');
+
+      // Step 5: Only use new content if it's different from old content
+      if (newClipboard && newClipboard !== oldClipboard) {
+        console.log('✅ Captured fresh clipboard context (different from previous)');
+        return newClipboard;
+      } else {
+        console.log('ℹ️ No new content copied (clipboard unchanged)');
+        return '';
+      }
+    } catch (error) {
+      console.error('❌ Error capturing clipboard context:', error);
+      return '';
+    }
+  }
+
   async startRecording(): Promise<void> {
     if (this.recordingState.isRecording) {
       console.log('⚠️ Already recording');
@@ -205,12 +241,9 @@ export class DitossauroApp extends EventEmitter {
     // Capture clipboard content if the setting is enabled
     const settings = this.settingsManager.loadSettings();
     if (settings.behavior?.includeClipboardContext) {
-      try {
-        this.clipboardContext = clipboard.readText();
-        console.log('📋 Captured clipboard context:', this.clipboardContext.substring(0, 100) + '...');
-      } catch (error) {
-        console.error('Error reading clipboard:', error);
-        this.clipboardContext = '';
+      this.clipboardContext = await this.captureClipboardContext();
+      if (this.clipboardContext) {
+        console.log('📋 Will include clipboard context with transcription');
       }
     } else {
       this.clipboardContext = '';

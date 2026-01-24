@@ -137,8 +137,8 @@
             "notifyOnTranscriptionHelp": "Display a system notification each time a transcription is completed",
             "launchAtStartup": "Launch at startup",
             "launchAtStartupHelp": "Automatically launch Ditossauro when your system starts",
-            "includeClipboardContext": "Include clipboard content as context",
-            "includeClipboardContextHelp": "When enabled, the clipboard content will be captured when recording starts and included with the transcription as context"
+            "includeClipboardContext": "Include selected text as context",
+            "includeClipboardContextHelp": "When enabled, pressing the recording hotkey will trigger Ctrl+C to copy your current selection and include it as context with the transcription. Only newly copied content is sent (not stale clipboard data)."
         }
     },
     "history": {
@@ -150,7 +150,7 @@
         "noTranscriptions": "No transcriptions",
         "copy": "Copy",
         "copied": "Copied!",
-        "clipboardContext": "Clipboard Context"
+        "clipboardContext": "Context"
     },
     "about": {
         "title": "About",

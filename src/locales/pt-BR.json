@@ -137,8 +137,8 @@
             "notifyOnTranscriptionHelp": "Exibir uma notificação do sistema cada vez que uma transcrição for concluída",
             "launchAtStartup": "Iniciar com o sistema",
             "launchAtStartupHelp": "Iniciar o Ditossauro automaticamente quando o sistema inicializar",
-            "includeClipboardContext": "Incluir conteúdo da área de transferência como contexto",
-            "includeClipboardContextHelp": "Quando ativado, o conteúdo da área de transferência será capturado ao iniciar a gravação e incluído com a transcrição como contexto"
+            "includeClipboardContext": "Incluir texto selecionado como contexto",
+            "includeClipboardContextHelp": "Quando ativado, pressionar o atalho de gravação acionará Ctrl+C para copiar sua seleção atual e incluí-la como contexto na transcrição. Apenas conteúdo recém-copiado é enviado (não dados antigos da área de transferência)."
         }
     },
     "history": {
@@ -150,7 +150,7 @@
         "noTranscriptions": "Nenhuma transcrição",
         "copy": "Copiar",
         "copied": "Copiado!",
-        "clipboardContext": "Contexto da Área de Transferência"
+        "clipboardContext": "Contexto"
     },
     "about": {
         "title": "Sobre",

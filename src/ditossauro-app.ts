@@ -324,6 +324,17 @@ export class DitossauroApp extends EventEmitter {
 
       const settings = this.settingsManager.loadSettings();
 
+      // Capture clipboard content AFTER recording stops (user has released hotkeys)
+      // This prevents interference with push-to-talk hotkey combinations
+      if (settings.behavior?.includeClipboardContext) {
+        this.clipboardContext = await this.captureClipboardContext();
+        if (this.clipboardContext) {
+          console.log('📋 Will include clipboard context with transcription');
+        }
+      } else {
+        this.clipboardContext = '';
+      }
+
       // Get language based on provider
       let language = settings.api.language; // Default fallback
       if (settings.transcription.provider === 'groq') {

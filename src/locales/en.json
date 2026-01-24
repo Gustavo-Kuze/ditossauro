@@ -138,7 +138,7 @@
             "launchAtStartup": "Launch at startup",
             "launchAtStartupHelp": "Automatically launch Ditossauro when your system starts",
             "includeClipboardContext": "Include selected text as context",
-            "includeClipboardContextHelp": "When enabled, pressing the recording hotkey will trigger Ctrl+C to copy your current selection and include it as context with the transcription. Only newly copied content is sent (not stale clipboard data)."
+            "includeClipboardContextHelp": "When enabled, Ctrl+C will be triggered automatically after you finish recording to copy your current selection and include it as context with the transcription. Only newly copied content is sent (not stale clipboard data)."
         }
     },
     "history": {

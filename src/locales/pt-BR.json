@@ -138,7 +138,7 @@
             "launchAtStartup": "Iniciar com o sistema",
             "launchAtStartupHelp": "Iniciar o Ditossauro automaticamente quando o sistema inicializar",
             "includeClipboardContext": "Incluir texto selecionado como contexto",
-            "includeClipboardContextHelp": "Quando ativado, pressionar o atalho de gravação acionará Ctrl+C para copiar sua seleção atual e incluí-la como contexto na transcrição. Apenas conteúdo recém-copiado é enviado (não dados antigos da área de transferência)."
+            "includeClipboardContextHelp": "Quando ativado, Ctrl+C será acionado automaticamente após finalizar a gravação para copiar sua seleção atual e incluí-la como contexto na transcrição. Apenas conteúdo recém-copiado é enviado (não dados antigos da área de transferência)."
         }
     },
     "history": {

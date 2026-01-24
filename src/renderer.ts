@@ -571,6 +571,12 @@ class DitossauroUI {
                 <span class="toggle-label">${i18n.t('settings.behavior.notifyOnTranscription')}</span>
               </label>
               <small class="form-help">${i18n.t('settings.behavior.notifyOnTranscriptionHelp')}</small>
+              <label class="toggle">
+                <input type="checkbox" id="launchAtStartup">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.launchAtStartup')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.launchAtStartupHelp')}</small>
             </div>
           </div>
 
@@ -712,6 +718,11 @@ class DitossauroUI {
     });
 
     window.electronAPI.onRecordingStopped(() => {
+      this.recordingState.isRecording = false;
+      this.updateRecordingStatus();
+    });
+
+    window.electronAPI.onRecordingCanceled(() => {
       this.recordingState.isRecording = false;
       this.updateRecordingStatus();
     });
@@ -955,6 +966,8 @@ class DitossauroUI {
     }
     const notifyOnTranscription = document.getElementById('notifyOnTranscription') as HTMLInputElement;
     if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
+    const launchAtStartup = document.getElementById('launchAtStartup') as HTMLInputElement;
+    if (launchAtStartup) launchAtStartup.checked = this.settings.behavior.launchAtStartup;
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -1131,8 +1144,7 @@ class DitossauroUI {
         startStop: {
           keys: selectedKeys,
           mode: hotkeyMode
-        },
-        cancel: 'Escape'
+        }
       });
 
       // Notify that hotkeys have been updated
@@ -1174,12 +1186,15 @@ class DitossauroUI {
 
       // Behavior Settings
       const showFloatingWindow = (document.getElementById('showFloatingWindow') as HTMLInputElement)?.checked;
-      
+
       const notifyOnTranscription = (document.getElementById('notifyOnTranscription') as HTMLInputElement)?.checked;
-      
+
+      const launchAtStartup = (document.getElementById('launchAtStartup') as HTMLInputElement)?.checked;
+
       await window.electronAPI.updateSettings('behavior', {
         showFloatingWindow: showFloatingWindow,
-        notifyOnTranscription: notifyOnTranscription
+        notifyOnTranscription: notifyOnTranscription,
+        launchAtStartup: launchAtStartup
       });
 
       // Update local settings

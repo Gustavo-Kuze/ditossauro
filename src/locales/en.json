@@ -136,7 +136,9 @@
             "notifyOnTranscription": "Show notifications when transcription is completed",
             "notifyOnTranscriptionHelp": "Display a system notification each time a transcription is completed",
             "launchAtStartup": "Launch at startup",
-            "launchAtStartupHelp": "Automatically launch Ditossauro when your system starts"
+            "launchAtStartupHelp": "Automatically launch Ditossauro when your system starts",
+            "includeClipboardContext": "Include clipboard content as context",
+            "includeClipboardContextHelp": "When enabled, the clipboard content will be captured when recording starts and included with the transcription as context"
         }
     },
     "history": {
@@ -147,7 +149,8 @@
         "clearError": "Error clearing history",
         "noTranscriptions": "No transcriptions",
         "copy": "Copy",
-        "copied": "Copied!"
+        "copied": "Copied!",
+        "clipboardContext": "Clipboard Context"
     },
     "about": {
         "title": "About",

@@ -6,6 +6,7 @@ export interface TranscriptionSession {
   duration: number;
   language: string;
   confidence: number;
+  clipboardContext?: string;
 }
 
 export type HotkeyMode = 'toggle' | 'push-to-talk';
@@ -51,6 +52,7 @@ export interface AppSettings {
     showFloatingWindow: boolean; // Show or hide the floating window
     notifyOnTranscription: boolean; // Show notifications when transcriptions are completed
     launchAtStartup: boolean; // Launch application on OS startup
+    includeClipboardContext: boolean; // Include clipboard content as context for transcription
   };
 }
 

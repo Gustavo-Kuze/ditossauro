@@ -136,7 +136,9 @@
             "notifyOnTranscription": "Mostrar notificações quando a transcrição for concluída",
             "notifyOnTranscriptionHelp": "Exibir uma notificação do sistema cada vez que uma transcrição for concluída",
             "launchAtStartup": "Iniciar com o sistema",
-            "launchAtStartupHelp": "Iniciar o Ditossauro automaticamente quando o sistema inicializar"
+            "launchAtStartupHelp": "Iniciar o Ditossauro automaticamente quando o sistema inicializar",
+            "includeClipboardContext": "Incluir conteúdo da área de transferência como contexto",
+            "includeClipboardContextHelp": "Quando ativado, o conteúdo da área de transferência será capturado ao iniciar a gravação e incluído com a transcrição como contexto"
         }
     },
     "history": {
@@ -147,7 +149,8 @@
         "clearError": "Erro ao limpar histórico",
         "noTranscriptions": "Nenhuma transcrição",
         "copy": "Copiar",
-        "copied": "Copiado!"
+        "copied": "Copiado!",
+        "clipboardContext": "Contexto da Área de Transferência"
     },
     "about": {
         "title": "Sobre",

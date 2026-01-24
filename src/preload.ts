@@ -36,6 +36,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
   downloadUpdate: (downloadUrl: string) => ipcRenderer.invoke('download-update', downloadUrl),
 
+  // Clipboard
+  readClipboard: (): Promise<string> => ipcRenderer.invoke('read-clipboard'),
+
   // Audio processing
   processAudioData: (audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }> =>
     ipcRenderer.invoke('process-audio-data', audioData, duration),
@@ -125,6 +128,7 @@ export interface ElectronAPI {
     error?: string;
   }>;
   downloadUpdate(downloadUrl: string): Promise<{ success: boolean; error?: string }>;
+  readClipboard(): Promise<string>;
   processAudioData(audioData: number[], duration: number): Promise<{ audioFile: string; duration: number }>;
   sendAudioEvent(eventType: string, data?: unknown): void;
   notifyHotkeysUpdated(): void;

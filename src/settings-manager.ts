@@ -47,6 +47,7 @@ export class SettingsManager {
       showFloatingWindow: true,
       notifyOnTranscription: true,
       launchAtStartup: false,
+      includeClipboardContext: false,
     }
   };
 

@@ -245,7 +245,10 @@ class DitossauroUI {
 
       // Show last transcription if history exists
       if (this.transcriptionHistory.length > 0) {
-        this.updateLastTranscription(this.transcriptionHistory[0].transcription);
+        this.updateLastTranscription(
+          this.transcriptionHistory[0].transcription,
+          this.transcriptionHistory[0].clipboardContext
+        );
       }
 
       console.log('✅ Ditossauro initialized');
@@ -577,6 +580,12 @@ class DitossauroUI {
                 <span class="toggle-label">${i18n.t('settings.behavior.launchAtStartup')}</span>
               </label>
               <small class="form-help">${i18n.t('settings.behavior.launchAtStartupHelp')}</small>
+              <label class="toggle">
+                <input type="checkbox" id="includeClipboardContext">
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">${i18n.t('settings.behavior.includeClipboardContext')}</span>
+              </label>
+              <small class="form-help">${i18n.t('settings.behavior.includeClipboardContextHelp')}</small>
             </div>
           </div>
 
@@ -729,7 +738,7 @@ class DitossauroUI {
 
     window.electronAPI.onTranscriptionCompleted((session: TranscriptionSession) => {
       this.transcriptionHistory.unshift(session);
-      this.updateLastTranscription(session.transcription);
+      this.updateLastTranscription(session.transcription, session.clipboardContext);
       this.updateHistoryUI();
     });
 
@@ -871,13 +880,32 @@ class DitossauroUI {
     }
   }
 
-  updateLastTranscription(text: string) {
+  updateLastTranscription(text: string, clipboardContext?: string) {
     const element = document.getElementById('lastTranscription');
     const copyBtn = document.getElementById('copyLastTranscriptionBtn');
 
     if (element) {
       element.textContent = text;
       element.classList.remove('text-muted');
+
+      // Add clipboard context if it exists
+      if (clipboardContext && clipboardContext.trim()) {
+        const clipboardContextDiv = document.createElement('div');
+        clipboardContextDiv.className = 'clipboard-context';
+        clipboardContextDiv.style.cssText = 'margin-top: 8px; padding: 8px; background: rgba(139, 207, 62, 0.1); border-left: 3px solid #8BCF3E; border-radius: 4px;';
+
+        const clipboardLabel = document.createElement('strong');
+        clipboardLabel.textContent = i18n.t('history.clipboardContext') + ': ';
+        clipboardLabel.style.color = '#8BCF3E';
+
+        const clipboardText = document.createElement('span');
+        clipboardText.textContent = clipboardContext;
+        clipboardText.style.color = '#DADADA';
+
+        clipboardContextDiv.appendChild(clipboardLabel);
+        clipboardContextDiv.appendChild(clipboardText);
+        element.appendChild(clipboardContextDiv);
+      }
     }
 
     // Store the text for copying
@@ -968,6 +996,8 @@ class DitossauroUI {
     if (notifyOnTranscription) notifyOnTranscription.checked = this.settings.behavior.notifyOnTranscription;
     const launchAtStartup = document.getElementById('launchAtStartup') as HTMLInputElement;
     if (launchAtStartup) launchAtStartup.checked = this.settings.behavior.launchAtStartup;
+    const includeClipboardContext = document.getElementById('includeClipboardContext') as HTMLInputElement;
+    if (includeClipboardContext) includeClipboardContext.checked = this.settings.behavior.includeClipboardContext ?? false;
 
     this.updateHistoryUI();
     this.updateProviderStatus();
@@ -1036,6 +1066,25 @@ class DitossauroUI {
       const historyText = document.createElement('div');
       historyText.className = 'history-text';
       historyText.textContent = session.transcription;
+
+      // Add clipboard context if it exists
+      if (session.clipboardContext && session.clipboardContext.trim()) {
+        const clipboardContextDiv = document.createElement('div');
+        clipboardContextDiv.className = 'clipboard-context';
+        clipboardContextDiv.style.cssText = 'margin-top: 8px; padding: 8px; background: rgba(139, 207, 62, 0.1); border-left: 3px solid #8BCF3E; border-radius: 4px;';
+
+        const clipboardLabel = document.createElement('strong');
+        clipboardLabel.textContent = i18n.t('history.clipboardContext') + ': ';
+        clipboardLabel.style.color = '#8BCF3E';
+
+        const clipboardText = document.createElement('span');
+        clipboardText.textContent = session.clipboardContext;
+        clipboardText.style.color = '#DADADA';
+
+        clipboardContextDiv.appendChild(clipboardLabel);
+        clipboardContextDiv.appendChild(clipboardText);
+        historyText.appendChild(clipboardContextDiv);
+      }
 
       // Assemble the history item
       historyItem.appendChild(historyMeta);
@@ -1191,10 +1240,13 @@ class DitossauroUI {
 
       const launchAtStartup = (document.getElementById('launchAtStartup') as HTMLInputElement)?.checked;
 
+      const includeClipboardContext = (document.getElementById('includeClipboardContext') as HTMLInputElement)?.checked;
+
       await window.electronAPI.updateSettings('behavior', {
         showFloatingWindow: showFloatingWindow,
         notifyOnTranscription: notifyOnTranscription,
-        launchAtStartup: launchAtStartup
+        launchAtStartup: launchAtStartup,
+        includeClipboardContext: includeClipboardContext
       });
 
       // Update local settings

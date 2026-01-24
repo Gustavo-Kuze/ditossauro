@@ -8,7 +8,7 @@ import { TranscriptionSession, AppSettings, RecordingState } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
-import { ipcMain, app, shell } from 'electron';
+import { ipcMain, app, shell, clipboard } from 'electron';
 import * as https from 'https';
 
 export class DitossauroApp extends EventEmitter {
@@ -33,6 +33,7 @@ export class DitossauroApp extends EventEmitter {
   private transcriptionHistory: TranscriptionSession[] = [];
   private mainWindow: Electron.BrowserWindow | null = null;
   private isCodeSnippetMode = false;
+  private clipboardContext = '';
 
   constructor(mainWindow?: Electron.BrowserWindow) {
     super();
@@ -201,6 +202,20 @@ export class DitossauroApp extends EventEmitter {
       startTime: new Date()
     };
 
+    // Capture clipboard content if the setting is enabled
+    const settings = this.settingsManager.loadSettings();
+    if (settings.behavior?.includeClipboardContext) {
+      try {
+        this.clipboardContext = clipboard.readText();
+        console.log('📋 Captured clipboard context:', this.clipboardContext.substring(0, 100) + '...');
+      } catch (error) {
+        console.error('Error reading clipboard:', error);
+        this.clipboardContext = '';
+      }
+    } else {
+      this.clipboardContext = '';
+    }
+
     // Delegate to renderer process via Web Audio API
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
       try {
@@ -294,7 +309,8 @@ export class DitossauroApp extends EventEmitter {
         transcription: transcriptionResult.text,
         duration: transcriptionResult.duration || recordingData.duration,
         language: transcriptionResult.language, // Use detected language from transcription
-        confidence: transcriptionResult.confidence || 0.95
+        confidence: transcriptionResult.confidence || 0.95,
+        clipboardContext: this.clipboardContext || undefined
       };
 
       // Add to history
@@ -615,6 +631,16 @@ export class DitossauroApp extends EventEmitter {
           success: false,
           error: error instanceof Error ? error.message : 'Unknown error'
         };
+      }
+    });
+
+    // Read clipboard
+    ipcMain.handle('read-clipboard', () => {
+      try {
+        return clipboard.readText();
+      } catch (error) {
+        console.error('Error reading clipboard:', error);
+        return '';
       }
     });
   }

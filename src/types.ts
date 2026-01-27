@@ -6,6 +6,7 @@ export interface TranscriptionSession {
   duration: number;
   language: string;
   confidence: number;
+  context?: string; // Selected text captured from focused application
 }
 
 export type HotkeyMode = 'toggle' | 'push-to-talk';
@@ -51,6 +52,16 @@ export interface AppSettings {
     showFloatingWindow: boolean; // Show or hide the floating window
     notifyOnTranscription: boolean; // Show notifications when transcriptions are completed
     launchAtStartup: boolean; // Launch application on OS startup
+  };
+  contextCapture: {
+    enabled: boolean; // Global toggle for context capture feature
+    bash: boolean; // Enable context for bash commands
+    javascript: boolean; // Enable context for JavaScript code
+    typescript: boolean; // Enable context for TypeScript code
+    python: boolean; // Enable context for Python code
+    translate: boolean; // Enable context for translations
+    dito: boolean; // Enable context for dito assistant
+    // hotkeys is always false - not configurable
   };
 }
 

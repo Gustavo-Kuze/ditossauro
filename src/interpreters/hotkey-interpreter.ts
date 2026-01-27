@@ -14,18 +14,21 @@ export class HotkeyInterpreter extends BaseCodeInterpreter {
   /**
    * Get system prompt (not used for hotkeys, but required by base class)
    */
-  protected getSystemPrompt(): string {
+  protected getSystemPrompt(context?: string): string {
     return 'Hotkey interpreter for sending keyboard shortcuts to the focused window.';
   }
 
   /**
    * Interpret a hotkey string and send it to the focused window
    * @param hotkeyString - String like "control shift f" or "alt tab"
+   * @param context - Optional context (ignored for hotkeys)
    * @returns Confirmation message
    */
-  async interpretCode(hotkeyString: string): Promise<string> {
+  async interpretCode(hotkeyString: string, context?: string): Promise<string> {
     try {
       console.log(`🎹 Interpreting hotkeys: "${hotkeyString}"`);
+
+      // We explicitly ignore context for hotkeys as per design
 
       const result = await HotkeySender.send(hotkeyString);
 

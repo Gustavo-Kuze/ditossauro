@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { DitossauroApp } from './ditossauro-app';
 import { HotkeyManager } from './hotkey-manager';
 import { i18nMain } from './i18n-main';
+import { ContextManager } from './context-manager';
 
 dotenv.config();
 
@@ -428,6 +429,32 @@ class DitossauroElectronApp {
       const session = await transcriptionPromise;
       console.log('✅ Transcription promise resolved');
 
+      // CAPTURE CONTEXT after recording stops but before processing
+      console.log('📋 Capturing context from selected text...');
+      let capturedContext = '';
+      try {
+        const settings = this.ditossauroApp.getSettings();
+
+        // Capture selection if context capture is enabled
+        capturedContext = await ContextManager.captureSelection(settings);
+
+        // Restore clipboard after a delay
+        setTimeout(() => {
+          ContextManager.restoreClipboard();
+        }, 200);
+
+        if (capturedContext) {
+          console.log(`✅ Context captured (${capturedContext.length} chars)`);
+          // Store context in session for later use
+          session.context = capturedContext;
+        } else {
+          console.log('ℹ️ No context captured (disabled or empty selection)');
+        }
+      } catch (contextError) {
+        console.warn('⚠️ Failed to capture context, continuing without it:', contextError);
+        // Continue processing without context
+      }
+
       const transcription = session.transcription;
       console.log(`📝 Transcription for code snippet: "${transcription}"`);
 
@@ -456,13 +483,25 @@ class DitossauroElectronApp {
       const commandResult = VoiceCommandDetector.detectCommand(transcription, locale);
       console.log(`🎯 Detected language: ${commandResult.language}, stripped: "${commandResult.strippedTranscription}"`);
 
-      // Handle hotkeys command separately (no API key needed, no text insertion)
+      // Filter context based on command type and settings
+      const shouldUseContext = ContextManager.shouldUseContextForCommand(
+        commandResult.language,
+        settings
+      );
+      const contextToUse = shouldUseContext ? capturedContext : undefined;
+
+      if (!shouldUseContext && capturedContext) {
+        console.log(`ℹ️ Context disabled for command type: ${commandResult.language}`);
+      }
+
+      // Handle hotkeys command separately (no API key needed, no text insertion, no context)
       if (commandResult.language === 'hotkeys') {
         try {
           const hotkeyInterpreter = CodeInterpreterFactory.createInterpreter(
             'hotkeys',
             settings.api.groqApiKey
           );
+          // Hotkeys never receive context
           const result = await hotkeyInterpreter.interpretCode(
             commandResult.strippedTranscription
           );
@@ -493,9 +532,10 @@ class DitossauroElectronApp {
       }
 
       try {
-        // Use stripped transcription (without command prefix)
+        // Use stripped transcription (without command prefix) and context if available
         const interpretedCode = await codeInterpreter.interpretCode(
-          commandResult.strippedTranscription
+          commandResult.strippedTranscription,
+          contextToUse
         );
         console.log(`💻 Interpreted ${commandResult.language} code: "${interpretedCode}"`);
 

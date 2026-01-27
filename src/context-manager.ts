@@ -7,8 +7,8 @@ import { AppSettings } from './types';
  * by simulating CTRL+C and reading the clipboard.
  */
 export class ContextManager {
-    private static originalClipboard: string = '';
-    private static capturedContext: string = '';
+    private static originalClipboard = '';
+    private static capturedContext = '';
     private static readonly CLIPBOARD_DELAY = 150; // ms to wait for clipboard operations
 
     /**

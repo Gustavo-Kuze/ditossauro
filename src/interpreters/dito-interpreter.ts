@@ -1,15 +1,22 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 
 export class DitoInterpreter extends BaseCodeInterpreter {
-  protected getSystemPrompt(): string {
-    return `## LLM Prompt – Conversational Assistant (Dito Mode)
+  protected getSystemPrompt(context?: string): string {
+    let prompt = `## LLM Prompt – Conversational Assistant (Dito Mode)
 
 ### Model Role
 
 You are a **casual, friendly conversational assistant**.
 Your job is to answer questions, provide information, and help users with whatever they need in a friendly, approachable way.
 
----
+---`;
+
+    // Add context if provided
+    if (context && context.trim()) {
+      prompt += `\n\n### Selected Text Context\n\nThe user has selected the following text:\n\n\`\`\`\n${context}\n\`\`\`\n\nUse this context to inform your response. If the user asks "what is this" or "explain this", they are referring to the selected text.\n\n---`;
+    }
+
+    prompt += `
 
 ### Core Rules
 
@@ -89,5 +96,6 @@ Quantum computing uses quantum mechanics principles to process information diffe
 * Always aim to be helpful, accurate, and friendly
 * Keep responses natural and conversational
 * Focus on giving practical, useful information`;
+    return prompt;
   }
 }

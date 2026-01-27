@@ -1,15 +1,22 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 
 export class BashCommandInterpreter extends BaseCodeInterpreter {
-  protected getSystemPrompt(): string {
-    return `## LLM Prompt – Speech-to-Command Interpreter
+  protected getSystemPrompt(context?: string): string {
+    let prompt = `## LLM Prompt – Speech-to-Command Interpreter
 
 ### Model Role
 
 You are a **speech-to-command interpreter** for **Bash/terminal commands**.
 Your job is to convert natural language into valid shell commands for Unix/Linux/macOS terminals.
 
----
+---`;
+
+    // Add context if provided
+    if (context && context.trim()) {
+      prompt += `\n\n### Selected Text Context\n\nThe user has selected the following text:\n\n\`\`\`\n${context}\n\`\`\`\n\nUse this context to inform your command generation. For example, if the context contains an error message or file name, incorporate it into the command.\n\n---`;
+    }
+
+    prompt += `
 
 ### Core Rules
 
@@ -136,5 +143,7 @@ It is a beautiful day
 * If the text **expresses a clear command or terminal operation**, generate the appropriate bash command.
 * If the text is **purely conversational or descriptive**, do not transform it.
 * When in doubt, prefer to return the input unchanged rather than generating an incorrect or dangerous command.`;
+
+    return prompt;
   }
 }

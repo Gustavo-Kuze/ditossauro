@@ -438,10 +438,9 @@ class DitossauroElectronApp {
         // Capture selection if context capture is enabled
         capturedContext = await ContextManager.captureSelection(settings);
 
-        // Restore clipboard after a delay
-        setTimeout(() => {
-          ContextManager.restoreClipboard();
-        }, 200);
+        // Restore clipboard immediately after context capture
+        // This ensures TextInserter will backup the original clipboard (not the selected text)
+        ContextManager.restoreClipboard();
 
         if (capturedContext) {
           console.log(`✅ Context captured (${capturedContext.length} chars)`);

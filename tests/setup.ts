@@ -56,6 +56,14 @@ vi.mock('electron', () => ({
   clipboard: {
     readText: vi.fn(() => ''),
     writeText: vi.fn(),
+    readHTML: vi.fn(() => ''),
+    writeHTML: vi.fn(),
+    readImage: vi.fn(() => ({})),
+    writeImage: vi.fn(),
+    readBuffer: vi.fn(() => Buffer.from('')),
+    writeBuffer: vi.fn(),
+    availableFormats: vi.fn(() => ['text/plain']),
+    write: vi.fn(),
   },
 }));
 

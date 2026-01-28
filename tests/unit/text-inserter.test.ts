@@ -11,9 +11,13 @@ describe('TextInserter', () => {
   describe('insertText - clipboard mode', () => {
     it('should insert text via clipboard by default', async () => {
       const text = 'Hello, World!';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
       vi.mocked(clipboard.readText).mockReturnValue('original clipboard');
 
       await TextInserter.insertText(text);
+
+      // Should check available formats
+      expect(clipboard.availableFormats).toHaveBeenCalled();
 
       // Should read original clipboard
       expect(clipboard.readText).toHaveBeenCalled();
@@ -27,6 +31,7 @@ describe('TextInserter', () => {
 
     it('should use clipboard mode when useClipboard is true', async () => {
       const text = 'Test text';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
       const settings = {
         behavior: {
           useClipboard: true,
@@ -44,6 +49,7 @@ describe('TextInserter', () => {
 
     it('should select all before pasting in replace mode', async () => {
       const text = 'Replace this';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
 
       await TextInserter.insertText(text, 'replace');
 
@@ -56,6 +62,7 @@ describe('TextInserter', () => {
 
     it('should not select all in append mode', async () => {
       const text = 'Append this';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
       vi.clearAllMocks();
 
       await TextInserter.insertText(text, 'append');
@@ -74,6 +81,7 @@ describe('TextInserter', () => {
       const originalClipboard = 'original content';
       const newText = 'new content';
 
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
       vi.mocked(clipboard.readText).mockReturnValue(originalClipboard);
       vi.useFakeTimers();
 
@@ -85,14 +93,42 @@ describe('TextInserter', () => {
       await vi.advanceTimersByTimeAsync(250);
 
       // Should restore original clipboard after delay
-      expect(clipboard.writeText).toHaveBeenCalledWith(originalClipboard);
+      expect(clipboard.write).toHaveBeenCalledWith({
+        text: originalClipboard
+      });
+
+      vi.useRealTimers();
+    });
+
+    it('should restore image and text from clipboard', async () => {
+      const originalText = 'original text';
+      const newText = 'new content';
+      const mockImage = { isEmpty: () => false } as any;
+
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain', 'image/png']);
+      vi.mocked(clipboard.readText).mockReturnValue(originalText);
+      vi.mocked(clipboard.readImage).mockReturnValue(mockImage);
+      vi.useFakeTimers();
+
+      const promise = TextInserter.insertText(newText);
+      await vi.runAllTimersAsync();
+      await promise;
+
+      // Fast-forward timers to trigger clipboard restore
+      await vi.advanceTimersByTimeAsync(250);
+
+      // Should restore both text and image
+      expect(clipboard.write).toHaveBeenCalledWith({
+        text: originalText,
+        image: mockImage
+      });
 
       vi.useRealTimers();
     });
 
     it('should handle clipboard read errors gracefully', async () => {
       const text = 'Test text';
-      vi.mocked(clipboard.readText).mockImplementation(() => {
+      vi.mocked(clipboard.availableFormats).mockImplementation(() => {
         throw new Error('Clipboard read error');
       });
 
@@ -290,6 +326,7 @@ describe('TextInserter', () => {
     });
 
     it('should handle empty string', async () => {
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
       const promise = TextInserter.insertText('');
       await vi.runAllTimersAsync();
       await promise;
@@ -299,6 +336,7 @@ describe('TextInserter', () => {
 
     it('should handle very long text', async () => {
       const longText = 'a'.repeat(10000);
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
 
       const promise = TextInserter.insertText(longText);
       await vi.runAllTimersAsync();
@@ -309,6 +347,7 @@ describe('TextInserter', () => {
 
     it('should handle text with special characters', async () => {
       const specialText = '!@#$%^&*()_+-={}[]|\\:";\'<>?,./\n\t';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
 
       const promise = TextInserter.insertText(specialText);
       await vi.runAllTimersAsync();
@@ -319,6 +358,7 @@ describe('TextInserter', () => {
 
     it('should handle text with unicode characters', async () => {
       const unicodeText = 'Hello 世界 🌍 Olá';
+      vi.mocked(clipboard.availableFormats).mockReturnValue(['text/plain']);
 
       const promise = TextInserter.insertText(unicodeText);
       await vi.runAllTimersAsync();

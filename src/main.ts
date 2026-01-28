@@ -85,13 +85,13 @@ class DitossauroElectronApp {
         this.mainWindow?.hide();
 
         // Show notification informing that the app continues running (only once per session)
-        if (Notification.isSupported() && !this.hasShownTrayNotification) {
-          new Notification({
-            title: 'Ditossauro',
-            body: i18nMain.t('notifications.minimizedToTray'),
-          }).show();
-          this.hasShownTrayNotification = true;
-        }
+        // if (Notification.isSupported() && !this.hasShownTrayNotification) {
+        //   new Notification({
+        //     title: 'Ditossauro',
+        //     body: i18nMain.t('notifications.minimizedToTray'),
+        //   }).show();
+        //   this.hasShownTrayNotification = true;
+        // }
       }
     });
 

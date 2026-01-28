@@ -17,6 +17,7 @@ jobs:
     outputs:
       lint_result: ${{ steps.lint.outcome }}
       test_result: ${{ steps.test.outcome }}
+      e2e_result: ${{ steps.e2e.outcome }}
 
     steps:
       - name: Check out Git repository
@@ -49,6 +50,40 @@ jobs:
         run: npm run test:coverage
         continue-on-error: true
 
+      - name: Install system dependencies for Playwright
+        if: false
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb libgtk-3-0 libnotify4 libnss3 libxss1 libasound2
+        continue-on-error: true
+
+      - name: Install Playwright browsers
+        if: false
+        run: npx playwright install --with-deps
+        continue-on-error: true
+
+      - name: Build application for e2e tests
+        if: false
+        run: npm run build
+        continue-on-error: true
+
+      - name: Run e2e tests
+        id: e2e
+        if: false
+        run: xvfb-run --auto-servernum npm run test:e2e
+        env:
+          CI: true
+        continue-on-error: true
+
+      - name: Upload e2e test results
+        if: always() && steps.e2e.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+        continue-on-error: true
+
       - name: Comment PR with test results
         if: always()
         uses: actions/github-script@v7
@@ -57,9 +92,11 @@ jobs:
             const lintStatus = '${{ steps.lint.outcome }}';
             const testStatus = '${{ steps.test.outcome }}';
             const coverageStatus = '${{ steps.coverage.outcome }}';
+            const e2eStatus = '${{ steps.e2e.outcome }}';
 
-            const allPassed = lintStatus === 'success' && testStatus === 'success';
-            const emoji = allPassed ? '✅' : '❌';
+            const requiredPassed = lintStatus === 'success' && testStatus === 'success';
+            const allPassed = requiredPassed && (e2eStatus === 'success' || e2eStatus === 'skipped');
+            const emoji = requiredPassed ? '✅' : '❌';
 
             const statusEmoji = (status) => {
               if (status === 'success') return '✅';
@@ -70,13 +107,15 @@ jobs:
 
             const comment = `## ${emoji} Test Results
 
-            **Overall Status**: ${allPassed ? 'All tests passed!' : 'Tests failed'}
+            **Overall Status**: ${requiredPassed ? 'Required tests passed!' : 'Tests failed'}
 
             - **Linting**: ${statusEmoji(lintStatus)} ${lintStatus}
             - **Unit Tests**: ${statusEmoji(testStatus)} ${testStatus}
             - **Coverage**: ${statusEmoji(coverageStatus)} ${coverageStatus}
+            - **E2E Tests**: ${statusEmoji(e2eStatus)} ${e2eStatus}${e2eStatus === 'failure' ? ' (not blocking)' : ''}
 
-            ${allPassed ? '✨ Great work! All checks passed.' : '⚠️ Please fix the failing tests before merging.'}
+            ${requiredPassed ? '✨ Great work! All required checks passed.' : '⚠️ Please fix the failing tests before merging.'}
+            ${e2eStatus === 'failure' ? '\n⚠️ Note: E2E tests failed but are not blocking the PR.' : ''}
             `;
 
             github.rest.issues.createComment({

@@ -1,15 +1,22 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 
 export class TranslateInterpreter extends BaseCodeInterpreter {
-  protected getSystemPrompt(): string {
-    return `## LLM Prompt – Speech-to-Translation Interpreter
+  protected getSystemPrompt(context?: string): string {
+    let prompt = `## LLM Prompt – Speech-to-Translation Interpreter
 
 ### Model Role
 
 You are a **speech-to-translation interpreter**.
 Your job is to translate text from one language to another based on the user's request.
 
----
+---`;
+
+    // Add context if provided
+    if (context && context.trim()) {
+      prompt += `\n\n### Selected Text Context\n\nThe user has selected the following text:\n\n\`\`\`\n${context}\n\`\`\`\n\nUse this context as the source text to translate IF the user's command implies it (e.g., "translate this", "translate selection").\nIf the user provides explicit text to translate in the command (e.g., "translate hello"), prioritize the command text but use context for style/tone if relevant.\n\n---`;
+    }
+
+    prompt += `
 
 ### Core Rules
 
@@ -43,16 +50,16 @@ Bonjour le monde
 
 ---
 
-**Input**
+**Input** (assuming context: "The quick brown fox")
 
 \`\`\`
-translate how are you to Spanish
+translate to Spanish
 \`\`\`
 
 **Output**
 
 \`\`\`
-¿Cómo estás?
+El rápido zorro marrón
 \`\`\`
 
 ---
@@ -73,39 +80,10 @@ Good morning
 
 ---
 
-**Input**
-
-\`\`\`
-translate I love programming to Portuguese
-\`\`\`
-
-**Output**
-
-\`\`\`
-Eu amo programação
-\`\`\`
-
----
-
-**Input**
-
-\`\`\`
-It is a beautiful day
-\`\`\`
-
-**Output**
-
-\`\`\`
-It is a beautiful day
-\`\`\`
-
-*(Note: No translation intent detected, return unchanged)*
-
----
-
 ### Final Decision Rule
 
 * If the text **expresses a clear translation request** (includes "translate" keyword), translate to the specified target language (or English if not specified).
 * If the text is **purely conversational or not a translation request**, do not transform it.`;
+    return prompt;
   }
 }

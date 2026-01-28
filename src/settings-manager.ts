@@ -47,6 +47,15 @@ export class SettingsManager {
       showFloatingWindow: true,
       notifyOnTranscription: true,
       launchAtStartup: false,
+    },
+    contextCapture: {
+      enabled: true,
+      bash: true,
+      javascript: true,
+      typescript: true,
+      python: true,
+      translate: true,
+      dito: true
     }
   };
 
@@ -108,7 +117,8 @@ export class SettingsManager {
             ...(settings.transcription?.groq || {})
           }
         },
-        behavior: { ...this.defaultSettings.behavior, ...settings.behavior }
+        behavior: { ...this.defaultSettings.behavior, ...settings.behavior },
+        contextCapture: { ...this.defaultSettings.contextCapture, ...settings.contextCapture }
       };
     } catch (error) {
       console.error('Error loading settings:', error);

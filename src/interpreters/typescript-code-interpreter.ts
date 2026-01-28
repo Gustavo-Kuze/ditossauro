@@ -1,15 +1,22 @@
 import { BaseCodeInterpreter } from './base-code-interpreter';
 
 export class TypeScriptCodeInterpreter extends BaseCodeInterpreter {
-  protected getSystemPrompt(): string {
-    return `## LLM Prompt – Speech-to-Code Interpreter
+  protected getSystemPrompt(context?: string): string {
+    let prompt = `## LLM Prompt – Speech-to-Code Interpreter
 
 ### Model Role
 
 You are a **speech-to-code interpreter** for **TypeScript**.
 Your job is to analyze an input text written in natural language and determine whether it contains **clear intent to produce TypeScript source code** (interfaces, types, classes, functions with type annotations, etc).
 
----
+---`;
+
+    // Add context if provided
+    if (context && context.trim()) {
+      prompt += `\n\n### Selected Text Context\n\nThe user has selected the following text:\n\n\`\`\`\n${context}\n\`\`\`\n\nUse this context to inform your code generation. For example:\n- If the context is an interface or type, key off it.\n- If the context is a variable, use its type.\n- If user says "this", refer to the selected code.\n\n---`;
+    }
+
+    prompt += `
 
 ### Core Rules
 
@@ -19,14 +26,12 @@ Your job is to analyze an input text written in natural language and determine w
 4. **CRITICAL**: Return ONLY the raw code, without wrapping it in markdown code blocks or backticks.
 5. Assume the generated code must follow **modern TypeScript** best practices.
 6. Prefer:
-
    * \`camelCase\` for variables and functions
    * \`PascalCase\` for interfaces, types, and classes
    * \`const\` whenever possible
    * Explicit type annotations where helpful
    * \`interface\` over \`type\` for object shapes
 6. Interpret spoken language patterns such as:
-
    * "dot" → \`.\`
    * "open parenthesis / close parenthesis"
    * "open curly braces / close curly braces"
@@ -121,5 +126,6 @@ It is raining a lot today
 
 * If the text **expresses programming intent**, generate TypeScript code with appropriate type annotations.
 * If the text is **purely conversational or descriptive**, do not transform it.`;
+    return prompt;
   }
 }

@@ -14,7 +14,7 @@ export abstract class BaseCodeInterpreter {
     }
   }
 
-  protected abstract getSystemPrompt(): string;
+  protected abstract getSystemPrompt(context?: string): string;
 
   /**
    * Strips markdown code block formatting from the result
@@ -48,7 +48,7 @@ export abstract class BaseCodeInterpreter {
     }
   }
 
-  async interpretCode(transcribedText: string): Promise<string> {
+  async interpretCode(transcribedText: string, context?: string): Promise<string> {
     if (!this.client) {
       throw new Error('Groq client not configured. Please set your API key.');
     }
@@ -64,7 +64,7 @@ export abstract class BaseCodeInterpreter {
         messages: [
           {
             role: 'system',
-            content: this.getSystemPrompt()
+            content: this.getSystemPrompt(context)
           },
           {
             role: 'user',
@@ -105,7 +105,8 @@ export abstract class BaseCodeInterpreter {
 
   async interpretCodeStreaming(
     transcribedText: string,
-    onChunk: (chunk: string) => void
+    onChunk: (chunk: string) => void,
+    context?: string
   ): Promise<string> {
     if (!this.client) {
       throw new Error('Groq client not configured. Please set your API key.');
@@ -122,7 +123,7 @@ export abstract class BaseCodeInterpreter {
         messages: [
           {
             role: 'system',
-            content: this.getSystemPrompt()
+            content: this.getSystemPrompt(context)
           },
           {
             role: 'user',

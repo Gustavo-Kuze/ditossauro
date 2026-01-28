@@ -7,7 +7,7 @@ import { AppSettings } from './types';
  * by simulating CTRL+C and reading the clipboard.
  */
 export class ContextManager {
-    private static originalClipboard = '';
+    private static originalClipboard: { format: string; data: any }[] = [];
     private static capturedContext = '';
     private static readonly CLIPBOARD_DELAY = 150; // ms to wait for clipboard operations
 
@@ -24,11 +24,39 @@ export class ContextManager {
                 return '';
             }
 
-            // Backup current clipboard
-            this.originalClipboard = '';
+            // Backup the entire clipboard (all formats) before capturing selection
+            this.originalClipboard = [];
             try {
-                this.originalClipboard = clipboard.readText();
-                console.log('Backed up clipboard');
+                const formats = clipboard.availableFormats();
+                console.log(`📋 Backing up clipboard formats before context capture: ${formats.join(', ')}`);
+
+                for (const format of formats) {
+                    try {
+                        let data: any;
+
+                        switch (format) {
+                            case 'text/plain':
+                                data = clipboard.readText();
+                                break;
+                            case 'text/html':
+                                data = clipboard.readHTML();
+                                break;
+                            case 'image/png':
+                            case 'image/jpeg':
+                                data = clipboard.readImage();
+                                break;
+                            default:
+                                data = clipboard.readBuffer(format);
+                        }
+
+                        if (data) {
+                            this.originalClipboard.push({ format, data });
+                        }
+                    } catch (formatError) {
+                        console.warn(`⚠️ Could not backup format ${format}:`, formatError);
+                    }
+                }
+                console.log(`✅ Backed up ${this.originalClipboard.length} clipboard formats`);
             } catch (clipboardError) {
                 console.warn('Could not read current clipboard:', clipboardError);
             }
@@ -65,9 +93,46 @@ export class ContextManager {
      */
     static restoreClipboard(): void {
         try {
-            if (this.originalClipboard) {
-                clipboard.writeText(this.originalClipboard);
-                console.log('Restored original clipboard');
+            if (this.originalClipboard.length > 0) {
+                console.log(`🔄 Restoring original clipboard (${this.originalClipboard.length} formats)`);
+
+                // Build write data object with all formats
+                const writeData: {
+                    text?: string;
+                    html?: string;
+                    image?: Electron.NativeImage;
+                } = {};
+
+                for (const { format, data } of this.originalClipboard) {
+                    try {
+                        switch (format) {
+                            case 'text/plain':
+                                writeData.text = data;
+                                break;
+                            case 'text/html':
+                                writeData.html = data;
+                                break;
+                            case 'image/png':
+                            case 'image/jpeg':
+                                writeData.image = data;
+                                break;
+                            default:
+                                // For custom formats, we need to use writeBuffer separately
+                                clipboard.writeBuffer(format, data);
+                        }
+                    } catch (formatError) {
+                        console.warn(`⚠️ Could not process format ${format}:`, formatError);
+                    }
+                }
+
+                // Write all formats at once
+                if (Object.keys(writeData).length > 0) {
+                    clipboard.write(writeData);
+                }
+
+                console.log('✅ Original clipboard restored successfully');
+            } else {
+                console.log('⚠️ No original clipboard to restore');
             }
         } catch (error) {
             console.warn('Could not restore clipboard:', error);

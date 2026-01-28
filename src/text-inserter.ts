@@ -42,12 +42,40 @@ export class TextInserter {
 
   private static async insertTextViaClipboard(text: string, mode: 'replace' | 'append' = 'append'): Promise<boolean> {
     try {
-      // Backup do clipboard atual
-      let originalClipboard = '';
+      // Backup the entire clipboard (all formats)
+      const clipboardBackup: { format: string; data: any }[] = [];
       try {
-        originalClipboard = clipboard.readText();
+        const formats = clipboard.availableFormats();
+        console.log(`📋 Backing up clipboard formats: ${formats.join(', ')}`);
+
+        for (const format of formats) {
+          try {
+            let data: any;
+
+            switch (format) {
+              case 'text/plain':
+                data = clipboard.readText();
+                break;
+              case 'text/html':
+                data = clipboard.readHTML();
+                break;
+              case 'image/png':
+              case 'image/jpeg':
+                data = clipboard.readImage();
+                break;
+              default:
+                data = clipboard.readBuffer(format);
+            }
+
+            if (data) {
+              clipboardBackup.push({ format, data });
+            }
+          } catch (formatError) {
+            console.warn(`⚠️ Could not backup format ${format}:`, formatError);
+          }
+        }
       } catch (clipboardError) {
-        console.warn('Could not read current clipboard:', clipboardError);
+        console.warn('⚠️ Could not read current clipboard:', clipboardError);
       }
 
       // Small pause to ensure the field is focused
@@ -69,18 +97,54 @@ export class TextInserter {
 
       // Restore original clipboard (with delay to ensure paste is completed)
       setTimeout(() => {
-        try {
-          if (originalClipboard) {
-            clipboard.writeText(originalClipboard);
+        if (clipboardBackup.length > 0) {
+          console.log(`🔄 Restoring clipboard (${clipboardBackup.length} formats)`);
+
+          try {
+            // Build write data object with all formats
+            const writeData: {
+              text?: string;
+              html?: string;
+              image?: Electron.NativeImage;
+            } = {};
+
+            for (const { format, data } of clipboardBackup) {
+              try {
+                switch (format) {
+                  case 'text/plain':
+                    writeData.text = data;
+                    break;
+                  case 'text/html':
+                    writeData.html = data;
+                    break;
+                  case 'image/png':
+                  case 'image/jpeg':
+                    writeData.image = data;
+                    break;
+                  default:
+                    // For custom formats, we need to use writeBuffer separately
+                    clipboard.writeBuffer(format, data);
+                }
+              } catch (formatError) {
+                console.warn(`⚠️ Could not process format ${format}:`, formatError);
+              }
+            }
+
+            // Write all formats at once
+            if (Object.keys(writeData).length > 0) {
+              clipboard.write(writeData);
+            }
+
+            console.log('✅ Clipboard restored successfully');
+          } catch (restoreError) {
+            console.warn('⚠️ Could not restore clipboard:', restoreError);
           }
-        } catch (restoreError) {
-          console.warn('Não foi possível restaurar clipboard:', restoreError);
         }
       }, 200);
 
       return true;
     } catch (error) {
-      console.error('Error inserting via clipboard:', error);
+      console.error('❌ Error inserting via clipboard:', error);
       return false;
     }
   }

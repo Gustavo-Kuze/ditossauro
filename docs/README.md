@@ -1,16 +1,12 @@
 # Ditossauro
 
-[![Inglês](https://img.shields.io/badge/Lang-Inglês-blue)](README.md) [![Português](https://img.shields.io/badge/Lang-Português-green)](README-pt-BR.md)
+[![English](https://img.shields.io/badge/Lang-English-blue)](README.md) [![Português](https://img.shields.io/badge/Lang-Português-green)](README-pt-BR.md)
 
-<img src="src/assets/app_icon.png" alt="Ditossauro Logo" width="150" />
+<img src="https://raw.githubusercontent.com/Gustavo-Kuze/ditossauro/main/src/assets/app_icon.png" alt="Ditossauro Logo" width="150" />
 
 Ditossauro is an open-source desktop voice productivity tool. It allows you to transcribe speech and generate **code or terminal commands directly from spoken language** using global hotkeys.
 
 The app is designed for developers who want fast, hands-free interaction with their system while coding or working in the terminal.
-
-## 📚 Documentation
-
-**[Read the full documentation →](https://gustavo-kuze.github.io/ditossauro/#/getting-started)**
 
 ---
 
@@ -64,7 +60,7 @@ Available commands:
 * "translate" - for translating text to other languages
 * "dito" - general purpose personal assistance
 
-This enables a workflow similar to *“dictation for developers”*.
+This enables a workflow similar to *"dictation for developers"*.
 
 **Examples**
 
@@ -74,7 +70,7 @@ This enables a workflow similar to *“dictation for developers”*.
 * "javascript if user id exists then write user logged in" → `if(user.id) { console.log('user logged in'); }`
 * "javascript create variable is active set to true" → `const isActive = true;`
 * "translate cat to german" → `Katze`
-* "hotkeys control shift f" → Presses `CTRL + Shift + F` on the focused window (global search on VSCode, for example) 
+* "hotkeys control shift f" → Presses `CTRL + Shift + F` on the focused window (global search on VSCode, for example)
 * "dito, whats the height of the Eiffel Tower?" → `The Eiffel Tower is approximately 330 meters (1,083 feet) tall.`
 
 ---
@@ -131,7 +127,7 @@ Set the API key in the app settings when you start it.
 
 ## Contributing
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) for more information.
+Contributions are welcome! Please read our [contributing guidelines](https://github.com/Gustavo-Kuze/ditossauro/blob/main/CONTRIBUTING.md) for more information.
 
 ## License
 

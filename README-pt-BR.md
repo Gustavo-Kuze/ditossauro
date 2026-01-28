@@ -8,6 +8,10 @@ Ditossauro é uma ferramenta de produtividade por voz de código aberto. Ele per
 
 O aplicativo é projetado para desenvolvedores que desejam interação rápida e mãos livres com o sistema enquanto codificam ou trabalham no terminal.
 
+## 📚 Documentação
+
+**[Leia a documentação completa →](https://gustavo-kuze.github.io/ditossauro/#/getting-started)**
+
 ---
 
 ## ✨ Recursos

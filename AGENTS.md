@@ -12,6 +12,7 @@ npm run test          # Run Vitest tests
 npm run test:watch    # Run tests in watch mode
 npm run test:ui       # Run tests with UI interface
 npm run test:coverage # Run tests with coverage report
+npm run test:run      # Run tests once (non-watch mode)
 ```
 
 ### Building & Packaging
@@ -20,6 +21,7 @@ npm run package       # Package app without making distribution
 npm run build        # Same as npm run make
 npm run make         # Create distribution packages
 npm run publish      # Publish releases (requires setup)
+npm run publish:github # Publish releases via GitHub (requires setup)
 ```
 
 ### Versioning & Release
@@ -43,16 +45,19 @@ npm run test:native   # Test native module integration
 - Global hotkey support for hands-free operation
 - Automatic text insertion into applications
 - Multi-language support (English, Portuguese)
+- **Context capture** from selected text for enhanced AI responses
 
 ### Key Technologies
-- **Electron 38** - Desktop framework
+- **Electron 38.0.0** - Desktop framework
 - **TypeScript** - Type-safe development
-- **Vite** - Build tooling
-- **Vitest** - Testing framework
-- **Groq SDK** - Ultra-fast transcription & LLM
-- **AssemblyAI SDK** - Alternative transcription provider
-- **robotjs** - Cross-platform keyboard/mouse automation
-- **uiohook-napi** - Global hotkey handling
+- **Vite 5.4.19** - Build tooling
+- **Vitest 4.0.16** - Testing framework
+- **Groq SDK v0.37.0** - Ultra-fast transcription & LLM
+- **AssemblyAI SDK v4.16.0** - Alternative transcription provider
+- **robotjs v0.6.0** - Cross-platform keyboard/mouse automation
+- **uiohook-napi v1.5.4** - Global hotkey handling
+- **uuid v10.0.0** - Unique ID generation
+- **dotenv v17.2.2** - Environment variable management
 - **i18next** - Internationalization
 
 ## Code Organization
@@ -75,12 +80,13 @@ npm run test:native   # Test native module integration
   - Transcription history (last 50 sessions)
   - IPC handlers
   - Event emission for UI updates
+  - **Context capture integration** with code interpreters
 
 ### Services Layer
 | Service | Purpose | Key Patterns |
 |---------|---------|--------------|
 | `assemblyai-client.ts` | AssemblyAI SDK integration | Lazy initialization, error handling, connection testing |
-| `groq-client.ts` | Groq SDK for transcription | Client initialization, streaming support |
+| `groq-client.ts` | Groq SDK for transcription | Client initialization, streaming support, model selection |
 | `faster-whisper-client.ts` | Local Whisper transcription | Python subprocess management |
 | `transcription-factory.ts` | Factory for transcription providers | Provider abstraction, type switching |
 | `text-inserter.ts` | Automated text insertion | robotjs integration, clipboard handling |
@@ -91,6 +97,7 @@ npm run test:native   # Test native module integration
 | `voice-command-detector.ts` | Parse voice commands | Regex matching, keyword detection |
 | `code-interpreter-factory.ts` | Factory for code interpreters | Language-specific instantiation |
 | `audio-manager.ts` | Audio device management | Device enumeration, selection |
+| `context-manager.ts` | **Context capture & clipboard** | Backup/restore clipboard, capture selected text |
 
 ### Code Interpreters (`src/interpreters/`)
 Each interpreter extends `BaseCodeInterpreter`:
@@ -102,10 +109,12 @@ Each interpreter extends `BaseCodeInterpreter`:
 - `translate-interpreter.ts` - Text translation
 - `dito-interpreter.ts` - General assistant
 
+**Context Integration**: All interpreters can now use captured context from the focused application when enabled in settings.
+
 ### Type Definitions (`src/types.ts`)
 Centralized type definitions - **always use these**:
-- `AppSettings` - Nested configuration structure
-- `TranscriptionSession` - Transcription with metadata
+- `AppSettings` - Nested configuration structure (includes new `contextCapture` and `behavior.launchAtStartup`)
+- `TranscriptionSession` - Transcription with metadata (includes optional `context` field)
 - `RecordingState` - Current recording status
 - `HotkeyConfig` - Hotkey with mode (toggle/push-to-talk)
 - `CodeLanguage` - Supported code generation types
@@ -120,7 +129,7 @@ Secure communication between main and renderer:
 ### Renderer Process (`src/renderer.ts`)
 Frontend UI with tab navigation:
 - Recording interface
-- Settings panel
+- Settings panel (includes context capture settings)
 - History view
 - About section
 
@@ -130,6 +139,7 @@ Frontend UI with tab navigation:
 - `vitest.config.ts` - Test configuration with coverage thresholds
 - `tsconfig.json` - TypeScript compiler options
 - `.eslintrc.json` - Linting rules with import resolution
+- `.coderabbit.yaml` - CodeRabbit AI code review configuration
 
 ## Architecture Patterns
 
@@ -222,6 +232,7 @@ updateSetting<K extends keyof AppSettings>(
 🎤 Audio operations
 📝 Text operations
 🤖 AI/LLM operations
+📋 Clipboard operations
 ```
 
 ## Electron Patterns
@@ -409,6 +420,59 @@ const tempFile = this.createTempFile(buffer, extension);
 this.cleanupTempFile(tempFile);
 ```
 
+## Context Capture Patterns
+
+### ContextManager for Clipboard Operations
+The `ContextManager` service handles capturing and restoring clipboard content:
+
+```typescript
+import { ContextManager } from '@/context-manager';
+
+// Capture selected text from focused application
+const context = await ContextManager.captureSelection(settings);
+
+// Check if context should be used for specific command
+if (ContextManager.shouldUseContextForCommand('javascript', settings)) {
+  // Use context in code generation
+}
+
+// Restore original clipboard after use
+ContextManager.restoreClipboard();
+
+// Clear captured context
+ContextManager.clearContext();
+```
+
+### Context Capture Workflow
+1. **Backup**: Stores all clipboard formats (text, HTML, images, custom)
+2. **Capture**: Simulates CTRL+C to copy selected text
+3. **Read**: Retrieves captured text from clipboard
+4. **Use**: Passes context to code interpreters
+5. **Restore**: Restores original clipboard content
+
+### Context Settings Structure
+```typescript
+contextCapture: {
+  enabled: boolean;        // Global toggle
+  bash: boolean;           // Enable for bash commands
+  javascript: boolean;      // Enable for JavaScript code
+  typescript: boolean;     // Enable for TypeScript code
+  python: boolean;         // Enable for Python code
+  translate: boolean;      // Enable for translations
+  dito: boolean;           // Enable for dito assistant
+}
+```
+
+### Using Context in Code Interpreters
+```typescript
+// In DitossauroApp or interpreter
+const context = this.contextManager.getContext();
+const prompt = context ? `Context: ${context}\n\nInstruction: ${transcribedText}` : transcribedText;
+
+// Result
+const result = await interpreter.interpretCode(prompt);
+```
+
 ## API Integration Patterns
 
 ### Client Initialization
@@ -584,6 +648,28 @@ describe('ClassName', () => {
 });
 ```
 
+### Test Coverage
+Coverage thresholds configured in `vitest.config.ts`:
+```typescript
+coverage: {
+  thresholds: {
+    lines: 60,
+    functions: 60,
+    branches: 60,
+    statements: 60
+  }
+}
+```
+
+### Available Test Commands
+```bash
+npm run test          # Run all tests
+npm run test:watch    # Watch mode for development
+npm run test:run      # Run tests once
+npm run test:ui       # Run with Vitest UI
+npm run test:coverage # Generate coverage report
+```
+
 ### Mocking File System
 ```typescript
 vi.mock('fs', () => ({
@@ -619,18 +705,15 @@ vi.mock('uiohook-napi', () => ({
 }));
 ```
 
-### Test Coverage Thresholds
-In `vitest.config.ts`:
-```typescript
-coverage: {
-  thresholds: {
-    lines: 60,
-    functions: 60,
-    branches: 60,
-    statements: 60
-  }
-}
-```
+### Unit Tests Available
+- `code-interpreter-factory.test.ts` - Factory pattern tests
+- `history-manager.test.ts` - History management tests
+- `hotkey-manager.test.ts` - Hotkey handling tests
+- `hotkey-sender.test.ts` - Hotkey simulation tests
+- `settings-manager.test.ts` - Settings persistence tests
+- `text-inserter.test.ts` - Text insertion tests
+- `transcription-factory.test.ts` - Provider factory tests
+- `voice-command-detector.test.ts` - Voice command detection tests
 
 ### E2E Test Results
 E2E test results are stored in `test-results/` directory:
@@ -699,6 +782,13 @@ Always whitelist IPC channels in preload.ts to prevent security issues.
 - Never log API keys
 - Validate key format before use
 
+### Clipboard Security
+When using ContextManager:
+- Always backup clipboard before capturing
+- Always restore clipboard after use
+- Handle all clipboard formats (text, HTML, images)
+- Gracefully handle clipboard access errors
+
 ## Important Gotchas
 
 ### Native Modules (robotjs, uiohook-napi)
@@ -726,7 +816,7 @@ Two modes:
 ### Multi-Window Setup
 Two renderer windows:
 - Main window: Primary UI
-- Floating window: Quick status indicator
+- Floating window: Quick status indicator (can be toggled via settings)
 - Separate Vite configs for each
 
 ### Transcription Provider Switching
@@ -734,6 +824,12 @@ Factory pattern in `TranscriptionFactory`:
 - Providers: `'assemblyai' | 'faster-whisper' | 'groq'`
 - Default: `'groq'`
 - Each provider implements `ITranscriptionProvider`
+
+### Groq Model Selection
+Available models:
+- `whisper-large-v3` - High quality, slower
+- `whisper-large-v3-turbo` - Faster, slightly lower quality
+- Language can be specified or auto-detected (empty string)
 
 ### Settings Migration
 Old settings may use different formats (e.g., string hotkeys):
@@ -769,12 +865,19 @@ const cleaned = text.replace(/^```\w*\s*\n?/gm, '');
 cleaned = cleaned.replace(/\n?```\s*$/gm, '');
 ```
 
+### Context Capture Timing
+- Allow 150ms delay after CTRL+C for clipboard operations
+- Wait 50ms before simulating CTRL+C for focus stability
+- Always restore clipboard, even if capture fails
+- Handle multiple clipboard formats correctly
+
 ## Build & Release
 
 ### Electron Forge Configuration
 - Makers: Squirrel (Windows), ZIP (macOS), RPM, DEB (Linux)
 - Plugins: Vite, AutoUnpackNatives, Fuses
 - Native modules unpacked from asar
+- Extra resources: assets, locales
 
 ### Release Process
 ```bash
@@ -800,6 +903,12 @@ Security fuses applied at package time:
 - `EnableNodeCliInspectArguments`: false
 - `OnlyLoadAppFromAsar`: false (critical for native modules)
 
+### Publishing
+```bash
+npm run publish         # Standard Electron Forge publish
+npm run publish:github  # Custom GitHub publish via scripts/publish-release.js
+```
+
 ## Workflow Guidelines
 
 ### Adding New Settings
@@ -820,12 +929,19 @@ Security fuses applied at package time:
 3. Register in `CodeInterpreterFactory`
 4. Add keywords to locale files
 5. VoiceCommandDetector automatically picks up keywords
+6. Add context capture support if needed
 
 ### Adding New Transcription Provider
 1. Implement `ITranscriptionProvider` interface
 2. Create client class with error handling
 3. Add to `TranscriptionFactory`
 4. Update UI provider selection
+
+### Adding Context Capture to Interpreter
+1. Check `ContextManager.shouldUseContextForCommand()`
+2. Get context via `ContextManager.getContext()`
+3. Prepend context to user prompt with clear separator
+4. Handle empty context gracefully
 
 ### Debugging IPC Issues
 - Add logging in both main and renderer
@@ -848,6 +964,7 @@ Security fuses applied at package time:
 
 ### Transcription
 - Default to Groq (fastest)
+- Use `whisper-large-v3-turbo` for faster transcription
 - Use streaming when available
 - Cache audio data efficiently
 - Clean up temporary files
@@ -857,22 +974,31 @@ Security fuses applied at package time:
 - robotjs typeString for compatibility
 - Handle insertion errors gracefully
 
+### Context Capture
+- Minimize clipboard backup/restore operations
+- Use appropriate delays for clipboard operations
+- Only capture when enabled and relevant
+- Clean up context after use
+
 ## Platform-Specific Notes
 
 ### Windows
 - Default hotkey: `Ctrl+Win` (Meta key)
 - Squirrel installer for updates
 - Native modules require Visual Studio Build Tools
+- PowerShell commands (no `&&` chaining)
 
 ### macOS
 - Cmd key instead of Win
 - Keep running when windows closed
 - Code signing for distribution
+- Launch at startup requires special handling
 
 ### Linux
 - Package formats: .deb, .rpm
 - Different key codes for some keys
 - AppImage alternative possible
+- X11 clipboard handling differences
 
 ## CI/CD Workflows
 
@@ -887,13 +1013,6 @@ PRs to `main`, `develop`, and `dev` branches automatically run tests:
 - Blocks merge if tests fail
 ```
 
-### NorthFlank Deployment
-Releases are built and published via NorthFlank (not GitHub Actions):
-- Uses Docker environment for building
-- Creates platform-specific installers (DEB, RPM for Linux)
-- Auto-publishes to GitHub releases
-- See `NORTHFLANK.md` for detailed setup
-
 ### CodeRabbit Integration
 Automatic AI code reviews via CodeRabbit:
 - Reviews TypeScript for type safety and error handling
@@ -901,6 +1020,20 @@ Automatic AI code reviews via CodeRabbit:
 - Reviews tests for coverage and quality
 - Configured in `.coderabbit.yaml`
 - Auto-reviews enabled for `dev` branch
+- Profiles: chill, high-level summary enabled
+
+### GitHub Actions Release
+Automated release process via `.github/workflows/release.yml`:
+- Builds for all platforms on version bump
+- Creates GitHub Release with tag
+- Uploads installers to release assets
+
+### NorthFlank Deployment
+Releases are also built and published via NorthFlank:
+- Uses Docker environment for building
+- Creates platform-specific installers (DEB, RPM for Linux)
+- Auto-publishes to GitHub releases
+- See `NORTHFLANK.md` for detailed setup
 
 ## Common Tasks & Solutions
 
@@ -921,12 +1054,55 @@ Automatic AI code reviews via CodeRabbit:
 2. Test API connection in settings
 3. Check API quota/credits
 4. Review error logs for specific issues
+5. Try different model (turbo vs standard)
+
+### Context Capture Issues
+1. Verify context capture is enabled in settings
+2. Check if command type supports context
+3. Review clipboard operations in logs
+4. Verify CTRL+C simulation is working
+5. Test with text selection in different apps
 
 ### Native Module Errors
 1. Run `npm run postinstall`
 2. Rebuild: `npm run build`
 3. Check build tools are installed
 4. Verify Electron version compatibility
+
+### Floating Window Issues
+1. Check `behavior.showFloatingWindow` setting
+2. Verify floating renderer is built
+3. Check window position logic
+4. Review floating-renderer.ts
+
+## New Features (v1.0.27+)
+
+### Context Capture
+- Capture selected text from focused application
+- Automatic clipboard backup and restore
+- Per-command-type enable/disable settings
+- Integration with all code interpreters
+- Support for multiple clipboard formats
+
+### Enhanced Groq Integration
+- New `whisper-large-v3-turbo` model option
+- Auto-detect language support (empty string)
+- Improved error handling
+- File size validation (25MB limit)
+- Connection testing with minimal audio file
+
+### New Settings
+- `contextCapture.enabled` - Global toggle
+- `contextCapture.{bash,javascript,typescript,python,translate,dito}` - Per-command toggles
+- `behavior.launchAtStartup` - Auto-start on OS boot
+- `behavior.showFloatingWindow` - Toggle floating window
+- `behavior.notifyOnTranscription` - Show notifications
+
+### UI Improvements
+- Settings panel for context capture
+- Floating window toggle
+- Notification system
+- Enhanced history display with context
 
 ## Summary
 
@@ -937,6 +1113,7 @@ This codebase follows clean architecture patterns with:
 - Extensive test coverage
 - Multi-platform support
 - Internationalization support
+- **Context-aware AI responses**
 
 Key areas to pay attention to:
 1. **Native modules** - Require rebuild and unpacking
@@ -946,5 +1123,7 @@ Key areas to pay attention to:
 5. **i18n** - Always add translations for new strings
 6. **Testing** - Mock Electron/native modules properly
 7. **Build** - Fuses and native module unpacking critical
+8. **Context capture** - Handle clipboard operations carefully
+9. **Clipboard safety** - Always backup and restore
 
 When in doubt, reference existing implementations in similar services and follow established patterns.

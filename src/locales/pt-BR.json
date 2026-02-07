@@ -218,7 +218,8 @@
             "python": "python",
             "hotkeys": "hotkeys",
             "translate": "traduzir",
-            "dito": "dito|ditto"
+            "dito": "dito|ditto",
+            "code": "código|code"
         },
         "descriptions": {
             "command": "Gerar comandos bash/terminal",
@@ -227,7 +228,8 @@
             "python": "Gerar código Python",
             "hotkeys": "Enviar atalhos de teclado para a janela focada",
             "translate": "Traduzir texto para outro idioma",
-            "dito": "Pergunte qualquer coisa para seu assistente conversacional amigável"
+            "dito": "Pergunte qualquer coisa para seu assistente conversacional amigável",
+            "code": "Gerar código em qualquer linguagem de programação"
         }
     }
 }

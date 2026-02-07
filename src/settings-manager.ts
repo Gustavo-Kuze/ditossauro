@@ -55,7 +55,8 @@ export class SettingsManager {
       typescript: true,
       python: true,
       translate: true,
-      dito: true
+      dito: true,
+      code: true
     }
   };
 

@@ -100,6 +100,7 @@ export class VoiceCommandDetector {
     const hotkeysKeyword = i18nMain.t('voiceCommands.keywords.hotkeys');
     const translateKeyword = i18nMain.t('voiceCommands.keywords.translate');
     const ditoKeyword = i18nMain.t('voiceCommands.keywords.dito');
+    const codeKeyword = i18nMain.t('voiceCommands.keywords.code');
 
     // Helper function to split keywords by pipe for multiple variations
     const splitKeywords = (keyword: string): string[] => {
@@ -115,6 +116,7 @@ export class VoiceCommandDetector {
     keywordMap.set('hotkeys', splitKeywords(hotkeysKeyword));
     keywordMap.set('translate', splitKeywords(translateKeyword));
     keywordMap.set('dito', splitKeywords(ditoKeyword));
+    keywordMap.set('code', splitKeywords(codeKeyword));
 
     return keywordMap;
   }

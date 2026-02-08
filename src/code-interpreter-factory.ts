@@ -6,6 +6,7 @@ import { PythonCodeInterpreter } from './interpreters/python-code-interpreter';
 import { HotkeyInterpreter } from './interpreters/hotkey-interpreter';
 import { TranslateInterpreter } from './interpreters/translate-interpreter';
 import { DitoInterpreter } from './interpreters/dito-interpreter';
+import { GenericCodeInterpreter } from './interpreters/generic-code-interpreter';
 import { CodeLanguage } from './types';
 
 export class CodeInterpreterFactory {
@@ -28,12 +29,14 @@ export class CodeInterpreterFactory {
         return new TranslateInterpreter(apiKey);
       case 'dito':
         return new DitoInterpreter(apiKey);
+      case 'code':
+        return new GenericCodeInterpreter(apiKey);
       default:
         throw new Error(`Unsupported code language: ${language}`);
     }
   }
 
   static getSupportedLanguages(): CodeLanguage[] {
-    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito'];
+    return ['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito', 'code'];
   }
 }

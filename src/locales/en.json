@@ -218,7 +218,8 @@
             "python": "python",
             "hotkeys": "hotkeys",
             "translate": "translate",
-            "dito": "dito|ditto"
+            "dito": "dito|ditto",
+            "code": "code"
         },
         "descriptions": {
             "command": "Generate bash/terminal commands",
@@ -227,7 +228,8 @@
             "python": "Generate Python code",
             "hotkeys": "Send keyboard shortcuts to focused window",
             "translate": "Translate text to another language",
-            "dito": "Ask any question to your friendly conversational assistant"
+            "dito": "Ask any question to your friendly conversational assistant",
+            "code": "Generate code in any programming language"
         }
     }
 }

@@ -6,6 +6,7 @@ import { TypeScriptCodeInterpreter } from '@/interpreters/typescript-code-interp
 import { PythonCodeInterpreter } from '@/interpreters/python-code-interpreter';
 import { TranslateInterpreter } from '@/interpreters/translate-interpreter';
 import { DitoInterpreter } from '@/interpreters/dito-interpreter';
+import { GenericCodeInterpreter } from '@/interpreters/generic-code-interpreter';
 
 describe('CodeInterpreterFactory', () => {
   describe('createInterpreter', () => {
@@ -45,6 +46,12 @@ describe('CodeInterpreterFactory', () => {
       expect(interpreter).toBeInstanceOf(DitoInterpreter);
     });
 
+    it('should create GenericCodeInterpreter for code language', () => {
+      const interpreter = CodeInterpreterFactory.createInterpreter('code', 'test-api-key');
+
+      expect(interpreter).toBeInstanceOf(GenericCodeInterpreter);
+    });
+
     it('should throw error for unsupported language', () => {
       expect(() => {
         CodeInterpreterFactory.createInterpreter('unsupported' as any, 'test-api-key');
@@ -65,13 +72,13 @@ describe('CodeInterpreterFactory', () => {
     it('should return all supported languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito']);
+      expect(languages).toEqual(['bash', 'javascript', 'typescript', 'python', 'hotkeys', 'translate', 'dito', 'code']);
     });
 
-    it('should return array with 7 languages', () => {
+    it('should return array with 8 languages', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
-      expect(languages).toHaveLength(7);
+      expect(languages).toHaveLength(8);
     });
 
     it('should include bash in supported languages', () => {
@@ -108,6 +115,12 @@ describe('CodeInterpreterFactory', () => {
       const languages = CodeInterpreterFactory.getSupportedLanguages();
 
       expect(languages).toContain('dito');
+    });
+
+    it('should include code in supported languages', () => {
+      const languages = CodeInterpreterFactory.getSupportedLanguages();
+
+      expect(languages).toContain('code');
     });
   });
 });

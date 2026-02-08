@@ -61,6 +61,7 @@ export interface AppSettings {
     python: boolean; // Enable context for Python code
     translate: boolean; // Enable context for translations
     dito: boolean; // Enable context for dito assistant
+    code: boolean; // Enable context for generic code generation
     // hotkeys is always false - not configurable
   };
 }
@@ -72,7 +73,7 @@ export interface RecordingState {
   isCanceled?: boolean; // Flag para indicar cancelamento
 }
 
-export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys' | 'translate' | 'dito';
+export type CodeLanguage = 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys' | 'translate' | 'dito' | 'code';
 
 export interface VoiceCommandResult {
   language: CodeLanguage;

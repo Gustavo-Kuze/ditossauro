@@ -13,6 +13,7 @@ vi.mock('@/i18n-main', () => ({
         'voiceCommands.keywords.translate': 'translate',
         'voiceCommands.keywords.hotkeys': 'hotkeys',
         'voiceCommands.keywords.dito': 'dito|ditto',
+        'voiceCommands.keywords.code': 'code',
       };
       return translations[key] || key;
     }),
@@ -89,6 +90,14 @@ describe('VoiceCommandDetector', () => {
       expect(result.language).toBe('dito');
       expect(result.strippedTranscription).toBe('how are you');
       expect(result.detectedKeyword).toBe('ditto');
+    });
+
+    it('should detect "code" keyword and return code language', () => {
+      const result = VoiceCommandDetector.detectCommand('code in Dart create a stateless widget', 'en');
+
+      expect(result.language).toBe('code');
+      expect(result.strippedTranscription).toBe('in Dart create a stateless widget');
+      expect(result.detectedKeyword).toBe('code');
     });
   });
 
@@ -242,6 +251,7 @@ describe('VoiceCommandDetector', () => {
           'voiceCommands.keywords.translate': 'traduzir',
           'voiceCommands.keywords.hotkeys': 'hotkeys',
           'voiceCommands.keywords.dito': 'dito|ditto',
+          'voiceCommands.keywords.code': 'código|code',
         };
         return translations[key] || key;
       });
@@ -323,6 +333,22 @@ describe('VoiceCommandDetector', () => {
       expect(result.strippedTranscription).toBe('me conte uma piada');
       expect(result.detectedKeyword).toBe('ditto');
     });
+
+    it('should detect Portuguese "código" keyword', () => {
+      const result = VoiceCommandDetector.detectCommand('código em Dart criar um widget', 'pt-BR');
+
+      expect(result.language).toBe('code');
+      expect(result.strippedTranscription).toBe('em Dart criar um widget');
+      expect(result.detectedKeyword).toBe('código');
+    });
+
+    it('should detect "code" keyword in Portuguese locale', () => {
+      const result = VoiceCommandDetector.detectCommand('code in Swift create a function', 'pt-BR');
+
+      expect(result.language).toBe('code');
+      expect(result.strippedTranscription).toBe('in Swift create a function');
+      expect(result.detectedKeyword).toBe('code');
+    });
   });
 
   describe('detectCommand - Edge Cases', () => {
@@ -366,6 +392,7 @@ describe('VoiceCommandDetector', () => {
         { input: 'typescript interface user', expected: 'typescript' },
         { input: 'python print hello', expected: 'python' },
         { input: 'translate hello world to French', expected: 'translate' },
+        { input: 'code in Java create a class', expected: 'code' },
       ];
 
       testCases.forEach(({ input, expected }) => {

@@ -167,7 +167,7 @@ export class ContextManager {
      * @returns true if context should be used, false otherwise
      */
     static shouldUseContextForCommand(
-        commandType: 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys' | 'translate' | 'dito',
+        commandType: 'bash' | 'javascript' | 'typescript' | 'python' | 'hotkeys' | 'translate' | 'dito' | 'code',
         settings?: AppSettings
     ): boolean {
         // Hotkeys never use context

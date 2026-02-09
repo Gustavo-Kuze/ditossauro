@@ -8,6 +8,10 @@ Ditossauro is an open-source desktop voice productivity tool. It allows you to t
 
 The app is designed for developers who want fast, hands-free interaction with their system while coding or working in the terminal.
 
+## 📚 Documentation
+
+**[Read the full documentation →](https://gustavo-kuze.github.io/ditossauro/#/getting-started)**
+
 ---
 
 ## ✨ Features
